@@ -1,0 +1,52 @@
+{
+  "name": "@voxgig/model",
+  "version": "0.0.1",
+  "main": "dist/model.js",
+  "type": "commonjs",
+  "browser": "dist/model.min.js",
+  "types": "dist/model.d.ts",
+  "bin": {
+    "voxgig-model": "bin/voxgig-model"
+  },
+  "description": "Model.",
+  "homepage": "https://github.com/voxgig/model",
+  "keywords": [
+    "model"
+  ],
+  "author": "Richard Rodger (http://richardrodger.com)",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/voxgig/model.git"
+  },
+  "scripts": {
+    "watch": "tsc -w -d",
+    "test": "jest --coverage",
+    "test-lab": "lab -v -L -P test -t 70 --sourcemaps --transform node_modules/lab-transform-typescript -r console -o stdout -r html -o test/coverage.html",
+    "test-some": "lab -v -P test --sourcemaps --transform node_modules/lab-transform-typescript -g",
+    "test-web": "browserify -o test-web/test-web.js -e test/model.test.js -s Model -im -i assert -i @hapi/lab && open test-web/index.html",
+    "build": "tsc -d && cp dist/model.js dist/model.min.js && browserify -o dist/model.min.js -e dist/model.js -s Model -im -i assert -p tinyify",
+    "clean": "rm -rf node_modules yarn.lock package-lock.json",
+    "reset": "npm run clean && npm i && npm run build && npm test",
+    "repo-tag": "REPO_VERSION=`node -e \"console.log(require('./package').version)\"` && echo TAG: v$REPO_VERSION && git commit -a -m v$REPO_VERSION && git push && git tag v$REPO_VERSION && git push --tags;",
+    "repo-publish": "npm run clean && npm i && npm run repo-publish-quick",
+    "repo-publish-quick": "npm run prettier && npm run build && npm run test && npm run test-web && npm run repo-tag && npm publish --registry http://registry.npmjs.org "
+  },
+  "license": "MIT",
+  "files": [
+    "model.ts",
+    "lib",
+    "dist",
+    "bin",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "jsonic": "jsonicjs/jsonic#nextgen"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.22",
+    "jest": "^26.6.3",
+    "tinyify": "^3.0.0",
+    "ts-jest": "^26.5.5",
+    "typescript": "^4.2.4"
+  }
+}

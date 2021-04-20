@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+
+const Fs = require('fs')
+
+let { Model } = require('../dist/model.js')
+
+let path = process.argv[2]
+
+if(null == path || '' == path) {
+  console.error('ERROR: First argument should be a jsonic model file path.')
+  process.exit(1)
+}
+
+let src = Fs.readFileSync(path).toString()
+
+let model = new Model({src,path})
+
+console.log(JSON.stringify(model.get(),null,2))
+
