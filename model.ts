@@ -1,19 +1,24 @@
 
+/*
 import { Jsonic } from 'jsonic'
 import { Dynamic } from 'jsonic/plugin/dynamic'
 import { Multifile } from 'jsonic/plugin/multifile'
+*/
+
+import { Aontu, Val } from 'aontu'
 
 
 class Model {
-  root: any = {}
-  parse = Jsonic.make().use(Dynamic).use(Multifile)
+  root: Val
+  //parse = Jsonic.make().use(Dynamic).use(Multifile)
+  parse = Aontu
 
   constructor(spec: any) {
-    this.root = this.parse(spec.src, { fileName: spec.path })
+    this.root = this.parse(spec.src) //, { fileName: spec.path })
   }
 
   get() {
-    return this.root
+    return this.root.gen([])
   }
 }
 
