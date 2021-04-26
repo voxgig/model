@@ -1,9 +1,8 @@
 
 
-import { FileResolver } from '@jsonic/multisource/resolver/file'
+import { FileResolver } from '@jsonic/multisource/dist/resolver/file'
 
 import { Aontu, Val } from 'aontu'
-
 
 
 class Model {
