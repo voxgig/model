@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "dist/model.js",
   "type": "commonjs",
   "browser": "dist/model.min.js",
@@ -40,10 +40,12 @@
     "LICENSE"
   ],
   "dependencies": {
+    "@jsonic/multisource": "0.0.5",
+    "aontu": "0.0.6",
     "jsonic": "jsonicjs/jsonic#nextgen"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.22",
+    "@types/jest": "^26.0.23",
     "jest": "^26.6.3",
     "tinyify": "^3.0.0",
     "ts-jest": "^26.5.5",
