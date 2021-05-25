@@ -50,10 +50,11 @@ a: { c: 2 }
 
 
 it('file', () => {
-  let s0 = 'z:1,a: @"' + __dirname + '/t02.jsonic"'
+  //let s0 = 'z:1,a: @"' + __dirname + '/t02.jsonic"'
+  let s0 = 'z:1,a: @"t02.jsonic"'
   //console.log(s0)
 
-  let m0 = new Model({ src: s0 })
+  let m0 = new Model({ src: s0, base: __dirname })
   //console.log(m0.get())
 
   expect(m0.get()).equal({ z: 1, a: { x: 1, b: { c: 1 } } })

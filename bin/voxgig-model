@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const Fs = require('fs')
+const Path = require('path')
 
 let { Model } = require('../dist/model.js')
 
@@ -11,9 +12,18 @@ if(null == path || '' == path) {
   process.exit(1)
 }
 
+let fstats = Fs.statSync(path)
+let base = path
+
+if (fstats.isFile()) {
+  let basedesc = Path.parse(base)
+  base = basedesc.dir
+}
+
+
 let src = Fs.readFileSync(path).toString()
 
-let model = new Model({src,path})
+let model = new Model({src,path,base})
 
 console.log(JSON.stringify(model.get(),null,2))
 

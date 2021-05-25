@@ -1,0 +1,67 @@
+
+shape: app: {
+  name: string
+  layout: string
+  parts: {
+    &={
+      foo: 1
+      active: boolean
+    }
+  }
+}
+
+shape: part: img: {
+  src: string
+  svg: string
+}
+
+  
+app: web: basic: /sys/shape/app
+
+app: web: basic: {
+  name: basic
+  layout: BasicAdmin
+
+  parts: {
+    # head: {
+    #   active: *true | boolean
+    #   part: BasicHead
+    # }
+
+    side: {
+      active: *true | boolean
+      part: BasicSide
+    }
+
+    main: {
+      active: *true | boolean
+      part: BasicMain
+    }
+
+    foot: {
+      active: *true | boolean
+      part: BasicFoot
+    }
+  }
+}
+
+app: web: basic: parts: head: {
+   #active: *true | boolean
+   part: BasicHead
+   logo: /sys/shape/part/img 
+}
+
+# app: web: basic: parts: side: {
+# #  part: BasicSide
+# #   # menu: /shape/part/menu
+# }
+
+# app: web: basic: parts: main: {
+#   part: BasicMain
+# }
+
+# app: web: basic: parts: foot: {
+#   part: BasicFoot
+# }
+  
+
