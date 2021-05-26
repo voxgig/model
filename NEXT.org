@@ -1,1 +1,3 @@
-* get Multifile working with test case
+* capture syntax and model errors
+** Aontu needs to capture error nils
+   

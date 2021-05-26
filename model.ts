@@ -1,41 +1,49 @@
 
 
-import { makeFileResolver } from '@jsonic/multisource'
+import { Build, BuildResult } from './lib/build'
+import { Watch } from './lib/watch'
 
 
-
-import { Aontu, Val } from 'aontu'
-
+import { model_builder } from './lib/builder/model'
 
 
 interface Spec {
   src: string,
-  base?: string,
+  path: string,
+  base: string,
 }
 
 
 class Model {
-  root: Val
-
-  parse = Aontu
+  build: any
+  watch: Watch
 
   constructor(spec: Spec) {
-    let opts: any = {}
-
-    if (null != spec.base) {
-      opts.base = spec.base
-      opts.resolver = makeFileResolver()
+    this.build = {
+      src: spec.src,
+      path: spec.path,
+      base: spec.base,
+      res: [
+        {
+          path: '/',
+          build: model_builder
+        },
+      ]
     }
 
-    // console.log('OPTS', opts)
-
-    this.root = this.parse(spec.src, opts)
-
-    console.log('MODEL MAP', this.root.map)
+    this.watch = new Watch(this.build)
   }
 
-  get() {
-    return this.root.gen([])
+  async run(): Promise<BuildResult> {
+    return this.watch.run(true)
+  }
+
+  async start() {
+    return this.watch.start()
+  }
+
+  async stop() {
+    return this.watch.stop()
   }
 }
 

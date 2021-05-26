@@ -15,6 +15,8 @@ const expect = Code.expect
 
 import { Model } from '..'
 
+
+/*
 it('happy', () => {
   let s0 = 'a:1'
   let m0 = new Model({ src: s0 })
@@ -59,4 +61,4 @@ it('file', () => {
 
   expect(m0.get()).equal({ z: 1, a: { x: 1, b: { c: 1 } } })
 })
-
+*/
