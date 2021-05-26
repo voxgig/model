@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Watch = void 0;
 const build_1 = require("./build");
 const chokidar_1 = require("chokidar");
+const promises_1 = require("fs/promises");
 class Watch {
     constructor(spec) {
         this.spec = spec;
@@ -38,6 +39,9 @@ class Watch {
         await this.run(false);
     }
     async run(once) {
+        // TODO: build spec should not have src!
+        let src = (await promises_1.readFile(this.spec.path)).toString();
+        this.spec.src = src;
         let build = new build_1.Build(this.spec);
         let br = await build.run();
         if (!once) {

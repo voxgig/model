@@ -3,6 +3,8 @@
 import { Build, BuildResult } from './build'
 import { FSWatcher } from 'chokidar'
 
+import { readFile } from 'fs/promises'
+
 
 class Watch {
   fsw: FSWatcher
@@ -58,6 +60,10 @@ class Watch {
   }
 
   async run(once: boolean) {
+    // TODO: build spec should not have src!
+    let src = (await readFile(this.spec.path)).toString()
+    this.spec.src = src
+
     let build = new Build(this.spec)
     let br = await build.run()
 
