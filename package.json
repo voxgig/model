@@ -39,6 +39,7 @@
     "lib",
     "dist",
     "bin",
+    "model",
     "LICENSE"
   ],
   "dependencies": {
