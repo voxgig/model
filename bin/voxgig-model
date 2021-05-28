@@ -21,7 +21,8 @@ if (fstats.isFile()) {
   base = basedesc.dir
 }
 
-path = Path.normalize(path)
+path = Path.resolve(path)
+console.log('PATH', path)
 
 let src = Fs.readFileSync(path).toString()
 
@@ -29,9 +30,11 @@ let model = new Model({src,path,base})
 
 
 async function run() {
-  let br = await model.run()
-  console.log('OK:'+br.ok, once)
-  if(!once) {
+  if(once) {
+    let br = await model.run()
+    console.log('OK:'+br.ok, once)
+  }
+  else {
     console.log('WATCHING...')
     model.start()
   }

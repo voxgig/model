@@ -6,15 +6,19 @@ interface BuildResult {
     build?: Build;
     builders?: BuildResult[];
 }
+interface BuildAction {
+    path: string;
+    build: Builder;
+}
 declare type Builder = (build: Build) => Promise<BuildResult>;
 interface Spec {
     src: string;
     path?: string;
     base?: string;
-    res?: {
-        path: string;
-        build: Builder;
-    }[];
+    res?: BuildAction[];
+    use?: {
+        [name: string]: any;
+    };
 }
 declare class Build {
     src: string;
@@ -24,13 +28,13 @@ declare class Build {
     opts: {
         [key: string]: any;
     };
-    res: {
-        path: string;
-        build: Builder;
-    }[];
+    res: BuildAction[];
     spec: Spec;
     model: any;
+    use: {
+        [name: string]: any;
+    };
     constructor(spec: Spec);
     run(): Promise<BuildResult>;
 }
-export { Build, Builder, BuildResult, Spec, Val };
+export { Build, Builder, BuildResult, BuildAction, Spec, Val };

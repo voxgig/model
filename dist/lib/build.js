@@ -7,6 +7,7 @@ Object.defineProperty(exports, "Val", { enumerable: true, get: function () { ret
 class Build {
     constructor(spec) {
         this.root = aontu_1.Nil.make();
+        this.use = {};
         this.spec = spec;
         this.src = spec.src;
         this.base = null == spec.base ? '' : spec.base;
@@ -17,9 +18,10 @@ class Build {
             this.opts.resolver = multisource_1.makeFileResolver();
         }
         this.res = spec.res || [];
+        Object.assign(this.use, spec.use || {});
     }
     async run() {
-        console.log('BUILDING ' + new Date() + ' ...');
+        console.log('BUILDING ', this.path, new Date() + ' ...');
         this.root = aontu_1.Aontu(this.src, this.opts);
         let nil = this.root;
         console.log('MODEL: ' + (nil.nil ? nil.why : 'ok'));

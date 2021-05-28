@@ -14,17 +14,25 @@ interface BuildResult {
   builders?: BuildResult[]
 }
 
+interface BuildAction {
+  path: string
+  build: Builder
+}
+
 type Builder = (
   build: Build
 ) => Promise<BuildResult>
 
 
 interface Spec {
-  src: string,
-  path?: string,
-  base?: string,
-  res?: { path: string, build: Builder }[]
+  src: string
+  path?: string
+  base?: string
+  res?: BuildAction[]
+  use?: { [name: string]: any }
 }
+
+
 
 
 class Build {
@@ -33,10 +41,10 @@ class Build {
   path: string
   root: Val = Nil.make()
   opts: { [key: string]: any }
-  res: { path: string, build: Builder }[]
+  res: BuildAction[]
   spec: Spec
   model: any
-
+  use: { [name: string]: any } = {}
 
   constructor(spec: Spec) {
     this.spec = spec
@@ -51,11 +59,13 @@ class Build {
     }
 
     this.res = spec.res || []
+
+    Object.assign(this.use, spec.use || {})
   }
 
 
   async run(): Promise<BuildResult> {
-    console.log('BUILDING ' + new Date() + ' ...')
+    console.log('BUILDING ', this.path, new Date() + ' ...')
 
     this.root = Aontu(this.src, this.opts)
 
@@ -81,6 +91,13 @@ class Build {
 }
 
 
-export { Build, Builder, BuildResult, Spec, Val }
+export {
+  Build,
+  Builder,
+  BuildResult,
+  BuildAction,
+  Spec,
+  Val
+}
 
 

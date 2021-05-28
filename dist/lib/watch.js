@@ -48,6 +48,8 @@ class Watch {
             // There may be new files.
             this.update(br);
         }
+        this.last = br;
+        console.log('WATCH RUN DONE', this.spec.path, this.last.ok);
         return br;
     }
     async stop() {

@@ -9,6 +9,7 @@ import { readFile } from 'fs/promises'
 class Watch {
   fsw: FSWatcher
   spec: any
+  last?: BuildResult
 
   constructor(spec: any) {
     this.spec = spec
@@ -71,6 +72,9 @@ class Watch {
       // There may be new files.
       this.update(br)
     }
+
+    this.last = br
+    console.log('WATCH RUN DONE', this.spec.path, this.last.ok)
 
     return br
   }

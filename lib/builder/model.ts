@@ -10,7 +10,7 @@ const model_builder: Builder = async (build: Build) => {
 
   let file = build.opts.base + '/model.json'
 
-  console.log('MODEL OUT', file, json)
+  // console.log('MODEL OUT', file, json)
 
   await writeFile(file, json)
 

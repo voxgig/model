@@ -1,13 +1,11 @@
-import { BuildResult } from './lib/build';
+import { Config } from './lib/config';
+import { BuildResult, Spec } from './lib/build';
 import { Watch } from './lib/watch';
-interface Spec {
-    src: string;
-    path: string;
-    base: string;
-}
 declare class Model {
+    config: Config;
     build: any;
     watch: Watch;
+    trigger_model: boolean;
     constructor(spec: Spec);
     run(): Promise<BuildResult>;
     start(): Promise<void>;
