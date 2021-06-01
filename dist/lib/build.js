@@ -25,7 +25,7 @@ class Build {
         this.root = aontu_1.Aontu(this.src, this.opts);
         let nil = this.root;
         console.log('MODEL: ' + (nil.nil ? nil.why : 'ok'));
-        // console.log('MODEL DEPS', this.root.deps)
+        console.log('MODEL ERR', this.root.err);
         this.model = this.root.gen([]);
         // TODO: only call if path value has changed
         let brlog = [];
