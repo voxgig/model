@@ -4,8 +4,8 @@ shape: app: {
   layout: string
   parts: {
     &={
-      foo: 1
-      active: boolean
+      part: string
+      active: *true | boolean
     }
   }
 }
@@ -21,35 +21,30 @@ app: web: basic: /sys/shape/app
 app: web: basic: {
   name: basic
   layout: BasicAdmin
+}
 
-  parts: {
-    # head: {
-    #   active: *true | boolean
-    #   part: BasicHead
-    # }
+app: web: basic: parts: {
+  head: {
+    part: BasicHead
+  }
 
-    side: {
-      active: *true | boolean
-      part: BasicSide
-    }
+  side: {
+    part: BasicSide
+  }
 
-    main: {
-      active: *true | boolean
-      part: BasicMain
-    }
+  main: {
+    part: BasicMain
+  }
 
-    foot: {
-      active: *true | boolean
-      part: BasicFoot
-    }
+  foot: {
+    part: BasicFoot
   }
 }
 
-app: web: basic: parts: head: {
-   #active: *true | boolean
-   part: BasicHead
-   logo: /sys/shape/part/img 
-}
+#app: web: basic: parts: head: {
+#   part: BasicHead
+#   logo: /sys/shape/part/img 
+#}
 
 # app: web: basic: parts: side: {
 # #  part: BasicSide
