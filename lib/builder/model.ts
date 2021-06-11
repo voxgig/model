@@ -6,7 +6,7 @@ import { Build, Builder } from '../build'
 
 const model_builder: Builder = async (build: Build) => {
 
-  let json = JSON.stringify(build.root.gen([]), null, 2)
+  let json = JSON.stringify(build.root.gen(), null, 2)
 
   let file = build.opts.base + '/model.json'
 

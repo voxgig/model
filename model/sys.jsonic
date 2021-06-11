@@ -5,7 +5,8 @@ shape: app: {
   parts: {
     &={
       part: string
-      active: *true | boolean
+      active: boolean
+      # active: *true | boolean
     }
   }
 }

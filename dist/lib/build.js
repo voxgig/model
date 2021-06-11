@@ -26,7 +26,7 @@ class Build {
         let nil = this.root;
         console.log('MODEL: ' + (nil.nil ? nil.why : 'ok'));
         console.log('MODEL ERR', this.root.err);
-        this.model = this.root.gen([]);
+        this.model = this.root.gen();
         // TODO: only call if path value has changed
         let brlog = [];
         for (let builder of this.res) {

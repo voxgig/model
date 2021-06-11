@@ -536,7 +536,7 @@
         <li><a href="#tests">Test Report</a></li>
         <li><a href="#coverage">Coverage Report</a></li>
         <li class="generated">
-            <span class="cov high">83.78</span>
+            <span class="cov high">82.50</span>
             <a href="#lib/build.ts"><span class="dirname">lib/</span><span class="basename">build.ts</span></a>
         </li>
         <li class="generated">
@@ -551,7 +551,7 @@
           <div class="failures">0</div>
           <div class="skipped">0</div>
           <div class="test-count">1</div>
-          <div class="duration">25</div>
+          <div class="duration">33</div>
       </div>
       <div id="filters">
           <input type="checkbox" checked="" onchange="filter(this)" value="success" id="show-success">
@@ -576,7 +576,7 @@
               <td class="test-title">build project-p01
                   
               </td>
-              <td class="test-duration">24</td>
+              <td class="test-duration">32</td>
           </tr>
           </tbody>
       </table>
@@ -584,10 +584,10 @@
     </div>    <div id="coverage">
         <h1>Code Coverage Report</h1>
         <div class="stats high">
-            <div class="percentage">87.76%</div>
-            <div class="sloc">49</div>
-            <div class="hits">43</div>
-            <div class="misses">6</div>
+            <div class="percentage">86.27%</div>
+            <div class="sloc">51</div>
+            <div class="hits">44</div>
+            <div class="misses">7</div>
         </div>
         <div id="filters">
           <input type="checkbox" checked="" onchange="filter(this)" value="generated" id="show-generated">
@@ -597,10 +597,10 @@
             <div class="file show generated">
                 <h2 id="lib/build.ts">lib/build.ts </h2>
                 <div class="stats high">
-                    <div class="percentage">83.78%</div>
-                    <div class="sloc">37</div>
-                    <div class="hits">31</div>
-                    <div class="misses">6</div>
+                    <div class="percentage">82.50%</div>
+                    <div class="sloc">40</div>
+                    <div class="hits">33</div>
+                    <div class="misses">7</div>
                 </div>
                 <table>
                     <thead>
@@ -648,210 +648,222 @@
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
                           <td class="source"><div>Object.defineProperty(exports, &quot;Val&quot;, { enumerable: true, get: function () { </div><div class="miss never" data-tooltip>return aontu_1.Val;</div><div> } });</div></td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__84">84</a></td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__100">100</a></td>
                         </tr>            <tr id="lib/build.ts__7" class="hit">
                           <td class="line" data-tooltip>7</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
                           <td class="source">class Build {</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__30">30</a></td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__38">38</a></td>
                         </tr>            <tr id="lib/build.ts__8" class="hit">
                           <td class="line" data-tooltip>8</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
                           <td class="source">    constructor(spec) {</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__41">41</a></td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__49">49</a></td>
                         </tr>            <tr id="lib/build.ts__9" class="hit">
                           <td class="line" data-tooltip>9</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
                           <td class="source">        this.root &#x3D; aontu_1.Nil.make();</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__34">34</a></td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__42">42</a></td>
                         </tr>            <tr id="lib/build.ts__10" class="hit">
                           <td class="line" data-tooltip>10</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip>1</td>
-                          <td class="source">        this.spec &#x3D; spec;</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__42">42</a></td>
+                          <td class="source">        this.use &#x3D; {};</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__47">47</a></td>
                         </tr>            <tr id="lib/build.ts__11" class="hit">
                           <td class="line" data-tooltip>11</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip>1</td>
-                          <td class="source">        this.src &#x3D; spec.src;</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__43">43</a></td>
-                        </tr>            <tr id="lib/build.ts__12" class="chunks">
+                          <td class="source">        this.spec &#x3D; spec;</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__50">50</a></td>
+                        </tr>            <tr id="lib/build.ts__12" class="hit">
                           <td class="line" data-tooltip>12</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip></td>
-                          <td class="source"><div>        this.base &#x3D; </div><div class="miss false" data-tooltip>null &#x3D;&#x3D; spec.base</div><div> ? </div><div class="miss never" data-tooltip>&#x27;&#x27;</div><div> : spec.base;</div></td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__44">44</a></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">        this.src &#x3D; spec.src;</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__51">51</a></td>
                         </tr>            <tr id="lib/build.ts__13" class="chunks">
                           <td class="line" data-tooltip>13</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
-                          <td class="source"><div>        this.path &#x3D; </div><div class="miss true" data-tooltip>null &#x3D;&#x3D; spec.path</div><div> ? &#x27;&#x27; : </div><div class="miss never" data-tooltip>spec.path</div><div>;</div></td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__45">45</a></td>
-                        </tr>            <tr id="lib/build.ts__14" class="hit">
+                          <td class="source"><div>        this.base &#x3D; </div><div class="miss false" data-tooltip>null &#x3D;&#x3D; spec.base</div><div> ? </div><div class="miss never" data-tooltip>&#x27;&#x27;</div><div> : spec.base;</div></td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__52">52</a></td>
+                        </tr>            <tr id="lib/build.ts__14" class="chunks">
                           <td class="line" data-tooltip>14</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>        this.path &#x3D; </div><div class="miss true" data-tooltip>null &#x3D;&#x3D; spec.path</div><div> ? &#x27;&#x27; : </div><div class="miss never" data-tooltip>spec.path</div><div>;</div></td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__53">53</a></td>
+                        </tr>            <tr id="lib/build.ts__15" class="hit">
+                          <td class="line" data-tooltip>15</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip>1</td>
                           <td class="source">        this.opts &#x3D; {};</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__46">46</a></td>
-                        </tr>            <tr id="lib/build.ts__15" class="chunks">
-                          <td class="line" data-tooltip>15</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__54">54</a></td>
+                        </tr>            <tr id="lib/build.ts__16" class="chunks">
+                          <td class="line" data-tooltip>16</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
                           <td class="source"><div>        if (</div><div class="miss true" data-tooltip>null !&#x3D; spec.base</div><div>) {</div></td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__48">48</a></td>
-                        </tr>            <tr id="lib/build.ts__16" class="hit">
-                          <td class="line" data-tooltip>16</td>
-                          <td class="lint empty"></td>
-                          <td class="hits" data-tooltip>1</td>
-                          <td class="source">            this.opts.base &#x3D; spec.base;</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__49">49</a></td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__56">56</a></td>
                         </tr>            <tr id="lib/build.ts__17" class="hit">
                           <td class="line" data-tooltip>17</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip>1</td>
-                          <td class="source">            this.opts.resolver &#x3D; multisource_1.makeFileResolver();</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__50">50</a></td>
+                          <td class="source">            this.opts.base &#x3D; spec.base;</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__57">57</a></td>
                         </tr>            <tr id="lib/build.ts__18" class="hit">
                           <td class="line" data-tooltip>18</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip></td>
-                          <td class="source">        }</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__51">51</a></td>
-                        </tr>            <tr id="lib/build.ts__19" class="chunks">
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">            this.opts.resolver &#x3D; multisource_1.makeFileResolver();</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__58">58</a></td>
+                        </tr>            <tr id="lib/build.ts__19" class="hit">
                           <td class="line" data-tooltip>19</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
-                          <td class="source"><div>        this.res &#x3D; </div><div class="miss true" data-tooltip>spec.res</div><div> || </div><div class="miss never" data-tooltip>[]</div><div>;</div></td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__53">53</a></td>
-                        </tr>            <tr id="lib/build.ts__20" class="hit">
+                          <td class="source">        }</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__59">59</a></td>
+                        </tr>            <tr id="lib/build.ts__20" class="chunks">
                           <td class="line" data-tooltip>20</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
-                          <td class="source">    }</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__54">54</a></td>
-                        </tr>            <tr id="lib/build.ts__21" class="hit">
+                          <td class="source"><div>        this.res &#x3D; </div><div class="miss true" data-tooltip>spec.res</div><div> || </div><div class="miss never" data-tooltip>[]</div><div>;</div></td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__61">61</a></td>
+                        </tr>            <tr id="lib/build.ts__21" class="chunks">
                           <td class="line" data-tooltip>21</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
-                          <td class="source">    async run() {</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__57">57</a></td>
+                          <td class="source"><div>        Object.assign(this.use, </div><div class="miss false" data-tooltip>spec.use</div><div> || {});</div></td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__63">63</a></td>
                         </tr>            <tr id="lib/build.ts__22" class="hit">
                           <td class="line" data-tooltip>22</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
-                          <td class="source">        console.log(&#x27;BUILDING &#x27; + new Date() + &#x27; ...&#x27;);</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__58">58</a></td>
+                          <td class="source">    }</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__64">64</a></td>
                         </tr>            <tr id="lib/build.ts__23" class="hit">
                           <td class="line" data-tooltip>23</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip>1</td>
-                          <td class="source">        this.root &#x3D; aontu_1.Aontu(this.src, this.opts);</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__60">60</a></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    async run() {</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__67">67</a></td>
                         </tr>            <tr id="lib/build.ts__24" class="hit">
                           <td class="line" data-tooltip>24</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip>1</td>
-                          <td class="source">        let nil &#x3D; this.root;</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__62">62</a></td>
-                        </tr>            <tr id="lib/build.ts__25" class="chunks">
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        console.log(&#x27;BUILDING &#x27;, this.path, new Date() + &#x27; ...&#x27;);</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__68">68</a></td>
+                        </tr>            <tr id="lib/build.ts__25" class="hit">
                           <td class="line" data-tooltip>25</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip></td>
-                          <td class="source"><div>        console.log(&#x27;MODEL: &#x27; + (</div><div class="miss false" data-tooltip>nil.nil</div><div> ? </div><div class="miss never" data-tooltip>nil.why</div><div> : &#x27;ok&#x27;));</div></td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__63">63</a></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">        this.root &#x3D; aontu_1.Aontu(this.src, this.opts);</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__70">70</a></td>
                         </tr>            <tr id="lib/build.ts__26" class="hit">
                           <td class="line" data-tooltip>26</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip></td>
-                          <td class="source">        // console.log(&#x27;MODEL DEPS&#x27;, this.root.deps)</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__65">65</a></td>
-                        </tr>            <tr id="lib/build.ts__27" class="hit">
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">        let nil &#x3D; this.root;</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__72">72</a></td>
+                        </tr>            <tr id="lib/build.ts__27" class="chunks">
                           <td class="line" data-tooltip>27</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip>1</td>
-                          <td class="source">        this.model &#x3D; this.root.gen([]);</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__67">67</a></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"><div>        console.log(&#x27;MODEL: &#x27; + (</div><div class="miss false" data-tooltip>nil.nil</div><div> ? </div><div class="miss never" data-tooltip>nil.why</div><div> : &#x27;ok&#x27;));</div></td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__73">73</a></td>
                         </tr>            <tr id="lib/build.ts__28" class="hit">
                           <td class="line" data-tooltip>28</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip></td>
-                          <td class="source">        // TODO: only call if path value has changed</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__70">70</a></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">        console.log(&#x27;MODEL ERR&#x27;, this.root.err);</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__75">75</a></td>
                         </tr>            <tr id="lib/build.ts__29" class="hit">
                           <td class="line" data-tooltip>29</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip>1</td>
-                          <td class="source">        let brlog &#x3D; [];</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__71">71</a></td>
+                          <td class="source">        this.model &#x3D; this.root.gen();</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__77">77</a></td>
                         </tr>            <tr id="lib/build.ts__30" class="hit">
                           <td class="line" data-tooltip>30</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
-                          <td class="source">        for (let builder of this.res) {</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__72">72</a></td>
+                          <td class="source">        // TODO: only call if path value has changed</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__80">80</a></td>
                         </tr>            <tr id="lib/build.ts__31" class="hit">
                           <td class="line" data-tooltip>31</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip>3</td>
-                          <td class="source">            let br &#x3D; await builder.build(this);</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__73">73</a></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">        let brlog &#x3D; [];</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__81">81</a></td>
                         </tr>            <tr id="lib/build.ts__32" class="hit">
                           <td class="line" data-tooltip>32</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip>3</td>
-                          <td class="source">            br.path &#x3D; builder.path;</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__74">74</a></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        for (let builder of this.res) {</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__82">82</a></td>
                         </tr>            <tr id="lib/build.ts__33" class="hit">
                           <td class="line" data-tooltip>33</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip>3</td>
-                          <td class="source">            br.builder &#x3D; builder.build.name;</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__75">75</a></td>
+                          <td class="source">            let br &#x3D; await builder.build(this);</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__83">83</a></td>
                         </tr>            <tr id="lib/build.ts__34" class="hit">
                           <td class="line" data-tooltip>34</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip>3</td>
-                          <td class="source">            brlog.push(br);</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__76">76</a></td>
+                          <td class="source">            br.path &#x3D; builder.path;</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__84">84</a></td>
                         </tr>            <tr id="lib/build.ts__35" class="hit">
                           <td class="line" data-tooltip>35</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip></td>
-                          <td class="source">        }</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__77">77</a></td>
+                          <td class="hits" data-tooltip>3</td>
+                          <td class="source">            br.builder &#x3D; builder.build.name;</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__85">85</a></td>
                         </tr>            <tr id="lib/build.ts__36" class="hit">
                           <td class="line" data-tooltip>36</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip>1</td>
-                          <td class="source">        return { ok: true, build: this, builders: brlog };</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__79">79</a></td>
+                          <td class="hits" data-tooltip>3</td>
+                          <td class="source">            brlog.push(br);</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__86">86</a></td>
                         </tr>            <tr id="lib/build.ts__37" class="hit">
                           <td class="line" data-tooltip>37</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
-                          <td class="source">    }</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__80">80</a></td>
+                          <td class="source">        }</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__87">87</a></td>
                         </tr>            <tr id="lib/build.ts__38" class="hit">
                           <td class="line" data-tooltip>38</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip></td>
-                          <td class="source">}</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__81">81</a></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">        return { ok: true, build: this, builders: brlog };</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__89">89</a></td>
                         </tr>            <tr id="lib/build.ts__39" class="hit">
                           <td class="line" data-tooltip>39</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip>1</td>
-                          <td class="source">exports.Build &#x3D; Build;</td>
-                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__84">84</a></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    }</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__90">90</a></td>
                         </tr>            <tr id="lib/build.ts__40" class="hit">
                           <td class="line" data-tooltip>40</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
-                          <td class="source">//# sourceMappingURL&#x3D;data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiYnVpbGQuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJsaWIvYnVpbGQudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7O0FBRUEscURBQXNEO0FBR3RELGlDQUF1QztBQThFSyxvRkE5RTVCLFdBQUcsT0E4RTRCO0FBdEQvQyxNQUFNLEtBQUs7SUFXVCxZQUFZLElBQVU7UUFQdEIsU0FBSSxHQUFRLFdBQUcsQ0FBQyxJQUFJLEVBQUUsQ0FBQTtRQVFwQixJQUFJLENBQUMsSUFBSSxHQUFHLElBQUksQ0FBQTtRQUNoQixJQUFJLENBQUMsR0FBRyxHQUFHLElBQUksQ0FBQyxHQUFHLENBQUE7UUFDbkIsSUFBSSxDQUFDLElBQUksR0FBRyxJQUFJLElBQUksSUFBSSxDQUFDLElBQUksQ0FBQyxDQUFDLENBQUMsRUFBRSxDQUFDLENBQUMsQ0FBQyxJQUFJLENBQUMsSUFBSSxDQUFBO1FBQzlDLElBQUksQ0FBQyxJQUFJLEdBQUcsSUFBSSxJQUFJLElBQUksQ0FBQyxJQUFJLENBQUMsQ0FBQyxDQUFDLEVBQUUsQ0FBQyxDQUFDLENBQUMsSUFBSSxDQUFDLElBQUksQ0FBQTtRQUM5QyxJQUFJLENBQUMsSUFBSSxHQUFHLEVBQUUsQ0FBQTtRQUVkLElBQUksSUFBSSxJQUFJLElBQUksQ0FBQyxJQUFJLEVBQUU7WUFDckIsSUFBSSxDQUFDLElBQUksQ0FBQyxJQUFJLEdBQUcsSUFBSSxDQUFDLElBQUksQ0FBQTtZQUMxQixJQUFJLENBQUMsSUFBSSxDQUFDLFFBQVEsR0FBRyw4QkFBZ0IsRUFBRSxDQUFBO1NBQ3hDO1FBRUQsSUFBSSxDQUFDLEdBQUcsR0FBRyxJQUFJLENBQUMsR0FBRyxJQUFJLEVBQUUsQ0FBQTtJQUMzQixDQUFDO0lBR0QsS0FBSyxDQUFDLEdBQUc7UUFDUCxPQUFPLENBQUMsR0FBRyxDQUFDLFdBQVcsR0FBRyxJQUFJLElBQUksRUFBRSxHQUFHLE1BQU0sQ0FBQyxDQUFBO1FBRTlDLElBQUksQ0FBQyxJQUFJLEdBQUcsYUFBSyxDQUFDLElBQUksQ0FBQyxHQUFHLEVBQUUsSUFBSSxDQUFDLElBQUksQ0FBQyxDQUFBO1FBRXRDLElBQUksR0FBRyxHQUFJLElBQUksQ0FBQyxJQUFZLENBQUE7UUFDNUIsT0FBTyxDQUFDLEdBQUcsQ0FBQyxTQUFTLEdBQUcsQ0FBQyxHQUFHLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxHQUFHLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxJQUFJLENBQUMsQ0FBQyxDQUFBO1FBRW5ELDRDQUE0QztRQUU1QyxJQUFJLENBQUMsS0FBSyxHQUFHLElBQUksQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxDQUFBO1FBRzlCLDRDQUE0QztRQUM1QyxJQUFJLEtBQUssR0FBRyxFQUFFLENBQUE7UUFDZCxLQUFLLElBQUksT0FBTyxJQUFJLElBQUksQ0FBQyxHQUFHLEVBQUU7WUFDNUIsSUFBSSxFQUFFLEdBQUcsTUFBTSxPQUFPLENBQUMsS0FBSyxDQUFDLElBQUksQ0FBQyxDQUFBO1lBQ2xDLEVBQUUsQ0FBQyxJQUFJLEdBQUcsT0FBTyxDQUFDLElBQUksQ0FBQTtZQUN0QixFQUFFLENBQUMsT0FBTyxHQUFHLE9BQU8sQ0FBQyxLQUFLLENBQUMsSUFBSSxDQUFBO1lBQy9CLEtBQUssQ0FBQyxJQUFJLENBQUMsRUFBRSxDQUFDLENBQUE7U0FDZjtRQUVELE9BQU8sRUFBRSxFQUFFLEVBQUUsSUFBSSxFQUFFLEtBQUssRUFBRSxJQUFJLEVBQUUsUUFBUSxFQUFFLEtBQUssRUFBRSxDQUFBO0lBQ25ELENBQUM7Q0FDRjtBQUdRLHNCQUFLIn0&#x3D;</td>
+                          <td class="source">}</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__91">91</a></td>
+                        </tr>            <tr id="lib/build.ts__41" class="hit">
+                          <td class="line" data-tooltip>41</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">exports.Build &#x3D; Build;</td>
+                          <td class="original-line" data-tooltip="lib/build.ts"><a href="#lib/build.ts__95">95</a></td>
+                        </tr>            <tr id="lib/build.ts__42" class="hit">
+                          <td class="line" data-tooltip>42</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">//# sourceMappingURL&#x3D;data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiYnVpbGQuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJsaWIvYnVpbGQudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7O0FBRUEscURBQXNEO0FBR3RELGlDQUF1QztBQThGckMsb0ZBOUZjLFdBQUcsT0E4RmQ7QUE5REwsTUFBTSxLQUFLO0lBV1QsWUFBWSxJQUFVO1FBUHRCLFNBQUksR0FBUSxXQUFHLENBQUMsSUFBSSxFQUFFLENBQUE7UUFLdEIsUUFBRyxHQUE0QixFQUFFLENBQUE7UUFHL0IsSUFBSSxDQUFDLElBQUksR0FBRyxJQUFJLENBQUE7UUFDaEIsSUFBSSxDQUFDLEdBQUcsR0FBRyxJQUFJLENBQUMsR0FBRyxDQUFBO1FBQ25CLElBQUksQ0FBQyxJQUFJLEdBQUcsSUFBSSxJQUFJLElBQUksQ0FBQyxJQUFJLENBQUMsQ0FBQyxDQUFDLEVBQUUsQ0FBQyxDQUFDLENBQUMsSUFBSSxDQUFDLElBQUksQ0FBQTtRQUM5QyxJQUFJLENBQUMsSUFBSSxHQUFHLElBQUksSUFBSSxJQUFJLENBQUMsSUFBSSxDQUFDLENBQUMsQ0FBQyxFQUFFLENBQUMsQ0FBQyxDQUFDLElBQUksQ0FBQyxJQUFJLENBQUE7UUFDOUMsSUFBSSxDQUFDLElBQUksR0FBRyxFQUFFLENBQUE7UUFFZCxJQUFJLElBQUksSUFBSSxJQUFJLENBQUMsSUFBSSxFQUFFO1lBQ3JCLElBQUksQ0FBQyxJQUFJLENBQUMsSUFBSSxHQUFHLElBQUksQ0FBQyxJQUFJLENBQUE7WUFDMUIsSUFBSSxDQUFDLElBQUksQ0FBQyxRQUFRLEdBQUcsOEJBQWdCLEVBQUUsQ0FBQTtTQUN4QztRQUVELElBQUksQ0FBQyxHQUFHLEdBQUcsSUFBSSxDQUFDLEdBQUcsSUFBSSxFQUFFLENBQUE7UUFFekIsTUFBTSxDQUFDLE1BQU0sQ0FBQyxJQUFJLENBQUMsR0FBRyxFQUFFLElBQUksQ0FBQyxHQUFHLElBQUksRUFBRSxDQUFDLENBQUE7SUFDekMsQ0FBQztJQUdELEtBQUssQ0FBQyxHQUFHO1FBQ1AsT0FBTyxDQUFDLEdBQUcsQ0FBQyxXQUFXLEVBQUUsSUFBSSxDQUFDLElBQUksRUFBRSxJQUFJLElBQUksRUFBRSxHQUFHLE1BQU0sQ0FBQyxDQUFBO1FBRXhELElBQUksQ0FBQyxJQUFJLEdBQUcsYUFBSyxDQUFDLElBQUksQ0FBQyxHQUFHLEVBQUUsSUFBSSxDQUFDLElBQUksQ0FBQyxDQUFBO1FBRXRDLElBQUksR0FBRyxHQUFJLElBQUksQ0FBQyxJQUFZLENBQUE7UUFDNUIsT0FBTyxDQUFDLEdBQUcsQ0FBQyxTQUFTLEdBQUcsQ0FBQyxHQUFHLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxHQUFHLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxJQUFJLENBQUMsQ0FBQyxDQUFBO1FBRW5ELE9BQU8sQ0FBQyxHQUFHLENBQUMsV0FBVyxFQUFFLElBQUksQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLENBQUE7UUFFdkMsSUFBSSxDQUFDLEtBQUssR0FBRyxJQUFJLENBQUMsSUFBSSxDQUFDLEdBQUcsRUFBRSxDQUFBO1FBRzVCLDRDQUE0QztRQUM1QyxJQUFJLEtBQUssR0FBRyxFQUFFLENBQUE7UUFDZCxLQUFLLElBQUksT0FBTyxJQUFJLElBQUksQ0FBQyxHQUFHLEVBQUU7WUFDNUIsSUFBSSxFQUFFLEdBQUcsTUFBTSxPQUFPLENBQUMsS0FBSyxDQUFDLElBQUksQ0FBQyxDQUFBO1lBQ2xDLEVBQUUsQ0FBQyxJQUFJLEdBQUcsT0FBTyxDQUFDLElBQUksQ0FBQTtZQUN0QixFQUFFLENBQUMsT0FBTyxHQUFHLE9BQU8sQ0FBQyxLQUFLLENBQUMsSUFBSSxDQUFBO1lBQy9CLEtBQUssQ0FBQyxJQUFJLENBQUMsRUFBRSxDQUFDLENBQUE7U0FDZjtRQUVELE9BQU8sRUFBRSxFQUFFLEVBQUUsSUFBSSxFQUFFLEtBQUssRUFBRSxJQUFJLEVBQUUsUUFBUSxFQUFFLEtBQUssRUFBRSxDQUFBO0lBQ25ELENBQUM7Q0FDRjtBQUlDLHNCQUFLIn0&#x3D;</td>
                           
                         </tr>        </tbody>
                 </table>
@@ -860,8 +872,8 @@
                 <h2 id="lib/builder/model.ts">lib/builder/model.ts </h2>
                 <div class="stats high">
                     <div class="percentage">100%</div>
-                    <div class="sloc">12</div>
-                    <div class="hits">12</div>
+                    <div class="sloc">11</div>
+                    <div class="hits">11</div>
                     <div class="misses">0</div>
                 </div>
                 <table>
@@ -909,7 +921,7 @@
                           <td class="line" data-tooltip>6</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
-                          <td class="source">    let json &#x3D; JSON.stringify(build.root.gen([]), null, 2);</td>
+                          <td class="source">    let json &#x3D; JSON.stringify(build.root.gen(), null, 2);</td>
                           <td class="original-line" data-tooltip="lib/builder/model.ts"><a href="#lib/builder/model.ts__9">9</a></td>
                         </tr>            <tr id="lib/builder/model.ts__7" class="hit">
                           <td class="line" data-tooltip>7</td>
@@ -920,8 +932,8 @@
                         </tr>            <tr id="lib/builder/model.ts__8" class="hit">
                           <td class="line" data-tooltip>8</td>
                           <td class="lint empty"></td>
-                          <td class="hits" data-tooltip>1</td>
-                          <td class="source">    console.log(&#x27;MODEL OUT&#x27;, file, json);</td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    // console.log(&#x27;MODEL OUT&#x27;, file, json)</td>
                           <td class="original-line" data-tooltip="lib/builder/model.ts"><a href="#lib/builder/model.ts__13">13</a></td>
                         </tr>            <tr id="lib/builder/model.ts__9" class="hit">
                           <td class="line" data-tooltip>9</td>
@@ -951,7 +963,7 @@
                           <td class="line" data-tooltip>13</td>
                           <td class="lint empty"></td>
                           <td class="hits" data-tooltip></td>
-                          <td class="source">//# sourceMappingURL&#x3D;data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibW9kZWwuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJsaWIvYnVpbGRlci9tb2RlbC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7QUFDQSwwQ0FBdUM7QUFLdkMsTUFBTSxhQUFhLEdBQVksS0FBSyxFQUFFLEtBQVksRUFBRSxFQUFFO0lBRXBELElBQUksSUFBSSxHQUFHLElBQUksQ0FBQyxTQUFTLENBQUMsS0FBSyxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsRUFBRSxDQUFDLEVBQUUsSUFBSSxFQUFFLENBQUMsQ0FBQyxDQUFBO0lBRXRELElBQUksSUFBSSxHQUFHLEtBQUssQ0FBQyxJQUFJLENBQUMsSUFBSSxHQUFHLGFBQWEsQ0FBQTtJQUUxQyxPQUFPLENBQUMsR0FBRyxDQUFDLFdBQVcsRUFBRSxJQUFJLEVBQUUsSUFBSSxDQUFDLENBQUE7SUFFcEMsTUFBTSxvQkFBUyxDQUFDLElBQUksRUFBRSxJQUFJLENBQUMsQ0FBQTtJQUUzQixPQUFPLEVBQUUsRUFBRSxFQUFFLElBQUksRUFBRSxDQUFBO0FBQ3JCLENBQUMsQ0FBQTtBQUdDLHNDQUFhIn0&#x3D;</td>
+                          <td class="source">//# sourceMappingURL&#x3D;data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibW9kZWwuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJsaWIvYnVpbGRlci9tb2RlbC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7QUFDQSwwQ0FBdUM7QUFLdkMsTUFBTSxhQUFhLEdBQVksS0FBSyxFQUFFLEtBQVksRUFBRSxFQUFFO0lBRXBELElBQUksSUFBSSxHQUFHLElBQUksQ0FBQyxTQUFTLENBQUMsS0FBSyxDQUFDLElBQUksQ0FBQyxHQUFHLEVBQUUsRUFBRSxJQUFJLEVBQUUsQ0FBQyxDQUFDLENBQUE7SUFFcEQsSUFBSSxJQUFJLEdBQUcsS0FBSyxDQUFDLElBQUksQ0FBQyxJQUFJLEdBQUcsYUFBYSxDQUFBO0lBRTFDLHVDQUF1QztJQUV2QyxNQUFNLG9CQUFTLENBQUMsSUFBSSxFQUFFLElBQUksQ0FBQyxDQUFBO0lBRTNCLE9BQU8sRUFBRSxFQUFFLEVBQUUsSUFBSSxFQUFFLENBQUE7QUFDckIsQ0FBQyxDQUFBO0FBR0Msc0NBQWEifQ&#x3D;&#x3D;</td>
                           
                         </tr>        </tbody>
                 </table>

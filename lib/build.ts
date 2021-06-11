@@ -74,7 +74,7 @@ class Build {
 
     console.log('MODEL ERR', this.root.err)
 
-    this.model = this.root.gen([])
+    this.model = this.root.gen()
 
 
     // TODO: only call if path value has changed
