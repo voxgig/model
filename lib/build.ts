@@ -1,8 +1,5 @@
 
 
-import { makeFileResolver } from '@jsonic/multisource'
-
-
 import { Aontu, Val, Nil } from 'aontu'
 
 
@@ -55,7 +52,6 @@ class Build {
 
     if (null != spec.base) {
       this.opts.base = spec.base
-      this.opts.resolver = makeFileResolver()
     }
 
     this.res = spec.res || []

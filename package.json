@@ -43,10 +43,8 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@jsonic/multisource": "0.0.8",
     "aontu": "rjrodger/aontu",
-    "chokidar": "^3.5.3",
-    "jsonic": "jsonicjs/jsonic#4edd639987b75ef62a74e3904fb890f59d21379c"
+    "chokidar": "^3.5.3"
   },
   "devDependencies": {
     "@types/jest": "^27.4.1",

@@ -40,7 +40,7 @@ class Watch {
     }
     async run(once) {
         // TODO: build spec should not have src!
-        let src = (await promises_1.readFile(this.spec.path)).toString();
+        let src = (await (0, promises_1.readFile)(this.spec.path)).toString();
         this.spec.src = src;
         let build = new build_1.Build(this.spec);
         let br = await build.run();
