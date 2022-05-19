@@ -1,3 +1,4 @@
+/* Copyright © 2021-2022 Voxgig Ltd, MIT License. */
 
 // TODO: remove need for this
 import Fs from 'fs'
