@@ -1,16 +1,6 @@
-/* Copyright (c) 2021 Richard Rodger and other contributors, MIT License */
+/* Copyright (c) 2021-2022 Richard Rodger and other contributors, MIT License */
 
 import { writeFile } from 'fs/promises'
-
-import Lab from '@hapi/lab'
-import Code from '@hapi/code'
-
-
-const lab = (exports.lab = Lab.script())
-const describe = lab.describe
-const it = lab.it
-const expect = Code.expect
-
 
 
 import { Build, Spec, Val } from '../lib/build'
@@ -19,7 +9,7 @@ import { model_builder } from '../lib/builder/model'
 
 describe('build', () => {
 
-  it('project-p01', async () => {
+  test('project-p01', async () => {
     let b0 = new Build({
       src: '@"model.jsonic"',
       base: __dirname + '/p01/model',
@@ -28,8 +18,8 @@ describe('build', () => {
           path: '/',
           build: async function test(build: Build) {
             console.log('RES:/', build.root.canon, build.model)
-            expect(build.root.canon).equal('{"foo":1,"bar":2}')
-            expect(build.model).equal({ foo: 1, bar: 2 })
+            expect(build.root.canon).toEqual('{"foo":1,"bar":2}')
+            expect(build.model).toEqual({ foo: 1, bar: 2 })
             return { ok: true }
           },
         },
@@ -56,8 +46,28 @@ describe('build', () => {
 
     let v0 = await b0.run()
     //console.log(v0.canon)
-    expect(v0.ok).true()
-    expect(b0.root.canon).equal('{"foo":1,"bar":2}')
+    expect(v0.ok).toEqual(true)
+    expect(b0.root.canon).toEqual('{"foo":1,"bar":2}')
+  })
+
+
+  test('project-sys01', async () => {
+    let b0 = new Build({
+      src: '@"model.jsonic"',
+      base: __dirname + '/sys01',
+      res: [
+        {
+          path: '/',
+          build: model_builder
+        },
+      ]
+    })
+    // console.log(b0)
+
+    let v0 = await b0.run()
+    // console.log(v0.build.root.canon)
+    expect(v0.ok).toEqual(true)
+    // expect(b0.root.canon).toEqual('{"foo":1,"bar":2}')
   })
 
 })

@@ -1,63 +1,73 @@
 
-shape: app: {
-  name: string
-  layout: string
-  parts: {
-    &={
-      part: string
-      active: boolean
-      # active: *true | boolean
-    }
+shape: srv: {
+  env: {
+    lambda: boolean
   }
 }
 
-shape: part: img: {
-  src: string
-  svg: string
-}
+
+
+
+
+# shape: app: {
+#   name: string
+#   layout: string
+#   # parts: {
+#   #   &={
+#   #     part: string
+#   #     active: boolean
+#   #     # active: *true | boolean
+#   #   }
+#   # }
+# }
+
+# shape: part: img: {
+#   src: string
+#   svg: string
+# }
 
   
-app: web: basic: /sys/shape/app
+# app: web: basic: /sys/shape/app
 
-app: web: basic: {
-  name: basic
-  layout: BasicAdmin
-}
-
-app: web: basic: parts: {
-  head: {
-    part: BasicHead
-  }
-
-  side: {
-    part: BasicSide
-  }
-
-  main: {
-    part: BasicMain
-  }
-
-  foot: {
-    part: BasicFoot
-  }
-}
-
-#app: web: basic: parts: head: {
-#   part: BasicHead
-#   logo: /sys/shape/part/img 
-#}
-
-# app: web: basic: parts: side: {
-# #  part: BasicSide
-# #   # menu: /shape/part/menu
+# app: web: basic: {
+#   name: basic
+#   layout: BasicAdmin
 # }
 
-# app: web: basic: parts: main: {
-#   part: BasicMain
+# app: web: basic: parts: {
+#   head: {
+#     part: BasicHead
+#   }
+
+#   side: {
+#     part: BasicSide
+#   }
+
+#   main: {
+#     part: BasicMain
+#   }
+
+#   foot: {
+#     part: BasicFoot
+#   }
 # }
 
-# app: web: basic: parts: foot: {
-#   part: BasicFoot
-# }
+# #app: web: basic: parts: head: {
+# #   part: BasicHead
+# #   logo: /sys/shape/part/img 
+# #}
+
+# # app: web: basic: parts: side: {
+# # #  part: BasicSide
+# # #   # menu: /shape/part/menu
+# # }
+
+# # app: web: basic: parts: main: {
+# #   part: BasicMain
+# # }
+
+# # app: web: basic: parts: foot: {
+# #   part: BasicFoot
+# # }
   
 

@@ -104,6 +104,7 @@ typings/
 .tern-port
 
 
+coverage
 test/cov
 
 package-lock.json

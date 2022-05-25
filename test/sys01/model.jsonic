@@ -1,0 +1,10 @@
+
+sys: @"../../model/sys.jsonic"
+
+main: srv: { &: .sys.shape.srv }
+
+
+main: srv: foo: {
+  env: lambda: true
+}
+
