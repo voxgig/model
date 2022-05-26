@@ -62,7 +62,7 @@ describe('build', () => {
         },
       ]
     })
-    // console.log(b0)
+    console.log('BUILD', b0)
 
     let v0 = await b0.run()
     // console.log(v0.build.root.canon)

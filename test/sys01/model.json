@@ -2,13 +2,20 @@
   "sys": {
     "shape": {
       "srv": {
-        "env": {}
+        "env": {
+          "lambda": false
+        }
       }
     }
   },
   "main": {
     "srv": {
       "foo": {
+        "env": {
+          "lambda": false
+        }
+      },
+      "bar": {
         "env": {
           "lambda": true
         }

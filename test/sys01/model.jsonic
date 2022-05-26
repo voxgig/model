@@ -3,8 +3,24 @@ sys: @"../../model/sys.jsonic"
 
 main: srv: { &: .sys.shape.srv }
 
+# main: srv: { &: {
+#   env: {
+#     lambda: *false | boolean
+#   }
+# }}
 
-main: srv: foo: {
-  env: lambda: true
+
+main: srv: foo: {}
+
+main: srv: bar: {
+  env: { lambda: true }
 }
+
+
+
+# x: y: { m: n: o: *false | boolean }
+# a: b: { &: .x.y }
+# # a: b: { c: {} }
+# a: b: d: {}
+# a: b: e: m: n: o: true
 

@@ -41,7 +41,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "aontu": "^0.1.1",
+    "aontu": "^0.1.2",
     "chokidar": "^3.5.3"
   },
   "devDependencies": {
