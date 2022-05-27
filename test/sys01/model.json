@@ -5,6 +5,32 @@
         "env": {
           "lambda": false
         }
+      },
+      "app": {},
+      "part": {
+        "img": {}
+      }
+    },
+    "app": {
+      "web": {
+        "basic": {
+          "name": "basic",
+          "layout": "BasicAdmin",
+          "parts": {
+            "head": {
+              "part": "BasicHead"
+            },
+            "side": {
+              "part": "BasicSide"
+            },
+            "main": {
+              "part": "BasicMain"
+            },
+            "foot": {
+              "part": "BasicFoot"
+            }
+          }
+        }
       }
     }
   },
