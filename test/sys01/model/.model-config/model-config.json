@@ -1,0 +1,11 @@
+{
+  "sys": {
+    "model": {
+      "builders": {
+        "foo": {
+          "load": "build/foo"
+        }
+      }
+    }
+  }
+}

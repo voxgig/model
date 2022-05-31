@@ -70,8 +70,8 @@ exports.Model = Model;
 function makeIntern() {
     return {
         makeConfig(spec, trigger_model_build) {
-            let cbase = spec.base + '/config';
-            let cpath = cbase + '/config.jsonic';
+            let cbase = spec.base + '/.model-config';
+            let cpath = cbase + '/model-config.jsonic';
             // Build should load file
             let src = fs_1.default.readFileSync(cpath).toString();
             let cspec = {

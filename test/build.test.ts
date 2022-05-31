@@ -1,15 +1,18 @@
 /* Copyright (c) 2021-2022 Richard Rodger and other contributors, MIT License */
 
-import { writeFile } from 'fs/promises'
+import { writeFile, readFile } from 'fs/promises'
 
 
-import { Build, Spec, Val } from '../lib/build'
+import { Model } from '../model'
+import { Build } from '../lib/build'
 import { model_builder } from '../lib/builder/model'
 
 
 describe('build', () => {
 
   test('project-p01', async () => {
+    await writeFile(__dirname + '/p01/doc.html', 'BAD')
+
     let b0 = new Build({
       src: '@"model.jsonic"',
       base: __dirname + '/p01/model',
@@ -42,32 +45,118 @@ describe('build', () => {
         }
       ]
     })
-    // console.log(b0)
 
     let v0 = await b0.run()
-    //console.log(v0.canon)
+
     expect(v0.ok).toEqual(true)
     expect(b0.root.canon).toEqual('{"foo":1,"bar":2}')
+    expect(await readFile(__dirname + '/p01/doc.html', { encoding: 'utf8' }))
+      .toEqual(`<html><head><title>Docs</title></head><body>
+<p>FOO: 1</p>
+<p>BAR: 2</p>
+</body></html>`)
   })
 
 
   test('project-sys01', async () => {
-    let b0 = new Build({
-      src: '@"model.jsonic"',
-      base: __dirname + '/sys01',
-      res: [
-        {
-          path: '/',
-          build: model_builder
-        },
-      ]
-    })
-    console.log('BUILD', b0)
+    await writeFile(__dirname + '/sys01/foo.txt', 'BAD')
+    await writeFile(__dirname + '/sys01/model/model.json', 'BAD')
+    await writeFile(__dirname + '/sys01/model/.model-config/model-config.json', 'BAD')
 
-    let v0 = await b0.run()
-    // console.log(v0.build.root.canon)
-    expect(v0.ok).toEqual(true)
-    // expect(b0.root.canon).toEqual('{"foo":1,"bar":2}')
+    let base = __dirname + '/sys01/model'
+    await writeFile(base + '/model.json', 'BAD')
+    let path = base + '/model.jsonic'
+    let src = await readFile(base + '/model.jsonic', { encoding: 'utf8' })
+
+    let model = new Model({
+      src,
+      path,
+      base,
+    })
+    let br = await model.run()
+
+    expect(br.ok)
+
+    expect(await readFile(base + '/model.json', { encoding: 'utf8' }))
+      .toEqual(JSON.stringify(SYS_MODEL, undefined, 2))
+
+    expect(await readFile(base + '/.model-config/model-config.json',
+      { encoding: 'utf8' }))
+      .toEqual(JSON.stringify(CONFIG_MODEL, undefined, 2))
+
+    expect(await readFile(__dirname + '/sys01/foo.txt', { encoding: 'utf8' }))
+      .toEqual('FOO')
   })
 
+
 })
+
+
+
+
+
+const SYS_MODEL = {
+  "sys": {
+    "shape": {
+      "srv": {
+        "env": {
+          "lambda": false
+        }
+      },
+      "app": {},
+      "part": {
+        "img": {}
+      }
+    },
+    "app": {
+      "web": {
+        "basic": {
+          "name": "basic",
+          "layout": "BasicAdmin",
+          "parts": {
+            "head": {
+              "part": "BasicHead"
+            },
+            "side": {
+              "part": "BasicSide"
+            },
+            "main": {
+              "part": "BasicMain"
+            },
+            "foot": {
+              "part": "BasicFoot"
+            }
+          }
+        }
+      }
+    }
+  },
+  "main": {
+    "srv": {
+      "foo": {
+        "env": {
+          "lambda": false
+        }
+      },
+      "bar": {
+        "env": {
+          "lambda": true
+        }
+      }
+    }
+  }
+}
+
+
+
+const CONFIG_MODEL = {
+  "sys": {
+    "model": {
+      "builders": {
+        "foo": {
+          "load": "build/foo"
+        }
+      }
+    }
+  }
+}

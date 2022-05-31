@@ -91,8 +91,8 @@ class Model {
 function makeIntern() {
   return {
     makeConfig(spec: Spec, trigger_model_build: BuildAction) {
-      let cbase = spec.base + '/config'
-      let cpath = cbase + '/config.jsonic'
+      let cbase = spec.base + '/.model-config'
+      let cpath = cbase + '/model-config.jsonic'
 
       // Build should load file
       let src = Fs.readFileSync(cpath).toString()
@@ -112,6 +112,7 @@ function makeIntern() {
           trigger_model_build
         ]
       }
+
       return new Config(cspec)
     }
   }

@@ -1,5 +1,6 @@
 
-sys: @"../../model/sys.jsonic"
+# TODO: special search path for system models
+sys: @"../../../model/sys.jsonic"
 
 main: srv: { &: .sys.shape.srv }
 
