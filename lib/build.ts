@@ -68,7 +68,10 @@ class Build {
     let nil = (this.root as Nil)
     console.log('MODEL: ' + (nil.nil ? nil.why : 'ok'))
 
-    console.log('MODEL ERR', this.root.err)
+    if (this.root.err) {
+      console.log('MODEL ERR')
+      console.dir(this.root.err, { depth: null })
+    }
 
     this.model = this.root.gen()
 
