@@ -41,15 +41,15 @@
     "LICENSE"
   ],
   "dependencies": {
-    "aontu": "^0.2.0",
+    "aontu": "^0.3.0",
     "chokidar": "^3.5.3"
   },
   "devDependencies": {
-    "@types/jest": "^27.5.1",
-    "esbuild": "^0.14.42",
+    "@types/jest": "^28.1.1",
+    "esbuild": "^0.14.44",
     "esbuild-jest": "^0.5.0",
-    "jest": "^28.1.0",
-    "ts-jest": "^28.0.3",
-    "typescript": "^4.7.2"
+    "jest": "^28.1.1",
+    "ts-jest": "^28.0.5",
+    "typescript": "^4.7.3"
   }
 }

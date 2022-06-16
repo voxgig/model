@@ -16,6 +16,7 @@ describe('build', () => {
     let b0 = new Build({
       src: '@"model.jsonic"',
       base: __dirname + '/p01/model',
+      path: __dirname + '/p01/model/model.json',
       res: [
         {
           path: '/',
