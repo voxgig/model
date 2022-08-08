@@ -8,7 +8,7 @@ shape: srv: {
   }
   api: {
     web: {
-      active: *false | boolean
+      active: *true | boolean
       path: {
         prefix: *'/' | string
         area: *'' | string

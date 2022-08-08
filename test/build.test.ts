@@ -105,7 +105,7 @@ const SYS_MODEL =
         "deps": {},
         "api": {
           "web": {
-            "active": false,
+            "active": true,
             "path": {
               "prefix": "/",
               "area": ""
@@ -163,7 +163,7 @@ const SYS_MODEL =
         "deps": {},
         "api": {
           "web": {
-            "active": false,
+            "active": true,
             "path": {
               "prefix": "/",
               "area": ""
@@ -192,7 +192,7 @@ const SYS_MODEL =
         "deps": {},
         "api": {
           "web": {
-            "active": false,
+            "active": true,
             "path": {
               "prefix": "/",
               "area": ""

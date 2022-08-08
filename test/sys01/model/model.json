@@ -6,7 +6,7 @@
         "deps": {},
         "api": {
           "web": {
-            "active": false,
+            "active": true,
             "path": {
               "prefix": "/",
               "area": ""
@@ -64,7 +64,7 @@
         "deps": {},
         "api": {
           "web": {
-            "active": false,
+            "active": true,
             "path": {
               "prefix": "/",
               "area": ""
@@ -93,7 +93,7 @@
         "deps": {},
         "api": {
           "web": {
-            "active": false,
+            "active": true,
             "path": {
               "prefix": "/",
               "area": ""
