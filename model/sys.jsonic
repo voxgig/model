@@ -1,7 +1,36 @@
 
 shape: srv: {
+  in: {
+    # TODO: validate leaf?
+  }
+  deps: {
+    &: {}
+  }
+  api: {
+    web: {
+      active: *false | boolean
+      path: {
+        prefix: *'/' | string
+        area: *'' | string
+        # TODO: path to ref srv name?
+        # name: ..path..web..api..*;name | string
+      }
+      method: *'POST' | string
+      cors: {
+        active: *false | boolean
+      }
+    }
+  }
   env: {
-    lambda: *false | boolean
+    lambda: {
+      active: *false | boolean
+      handler: {
+        path: {
+          prefix: *'src/' | string
+          suffix: *'.handler' | string
+        }
+      }
+    }
   }
 }
 

@@ -96,12 +96,36 @@ describe('build', () => {
 
 
 
-const SYS_MODEL = {
+const SYS_MODEL =
+{
   "sys": {
     "shape": {
       "srv": {
+        "in": {},
+        "deps": {},
+        "api": {
+          "web": {
+            "active": false,
+            "path": {
+              "prefix": "/",
+              "area": ""
+            },
+            "method": "POST",
+            "cors": {
+              "active": false
+            }
+          }
+        },
         "env": {
-          "lambda": false
+          "lambda": {
+            "active": false,
+            "handler": {
+              "path": {
+                "prefix": "src/",
+                "suffix": ".handler"
+              }
+            }
+          }
         }
       },
       "app": {},
@@ -135,19 +159,54 @@ const SYS_MODEL = {
   "main": {
     "srv": {
       "foo": {
+        "in": {},
+        "deps": {},
+        "api": {
+          "web": {
+            "active": false,
+            "path": {
+              "prefix": "/",
+              "area": ""
+            },
+            "method": "POST",
+            "cors": {
+              "active": false
+            }
+          }
+        },
         "env": {
-          "lambda": false
+          "lambda": {
+            "active": false,
+            "handler": {
+              "path": {
+                "prefix": "src/",
+                "suffix": ".handler"
+              }
+            }
+          }
         }
       },
       "bar": {
-        "env": {
-          "lambda": true
+        "env": {},
+        "in": {},
+        "deps": {},
+        "api": {
+          "web": {
+            "active": false,
+            "path": {
+              "prefix": "/",
+              "area": ""
+            },
+            "method": "POST",
+            "cors": {
+              "active": false
+            }
+          }
         }
       }
     }
   }
 }
-
 
 
 const CONFIG_MODEL = {
