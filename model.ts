@@ -10,6 +10,11 @@ import { Watch } from './lib/watch'
 import { model_builder } from './lib/builder/model'
 import { local_builder } from './lib/builder/local'
 
+import {
+  dive,
+  joins,
+} from './lib/util'
+
 
 const intern = makeIntern()
 
@@ -119,6 +124,11 @@ function makeIntern() {
 }
 
 
-export { Model, Spec }
+export {
+  Model,
+  Spec,
+  dive,
+  joins,
+}
 
 

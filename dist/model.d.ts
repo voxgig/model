@@ -1,6 +1,7 @@
 import { Config } from './lib/config';
 import { BuildResult, Spec } from './lib/build';
 import { Watch } from './lib/watch';
+import { dive, joins } from './lib/util';
 declare class Model {
     config: Config;
     build: any;
@@ -11,4 +12,4 @@ declare class Model {
     start(): Promise<void>;
     stop(): Promise<void>;
 }
-export { Model, Spec };
+export { Model, Spec, dive, joins, };
