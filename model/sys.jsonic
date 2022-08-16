@@ -24,6 +24,7 @@ shape: srv: {
   env: {
     lambda: {
       active: *false | boolean
+      timeout: 33
       handler: {
         path: {
           prefix: *'src/' | string
