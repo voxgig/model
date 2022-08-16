@@ -119,6 +119,7 @@ const SYS_MODEL =
         "env": {
           "lambda": {
             "active": false,
+            "timeout": 33,
             "handler": {
               "path": {
                 "prefix": "src/",
@@ -177,6 +178,7 @@ const SYS_MODEL =
         "env": {
           "lambda": {
             "active": false,
+            "timeout": 33,
             "handler": {
               "path": {
                 "prefix": "src/",

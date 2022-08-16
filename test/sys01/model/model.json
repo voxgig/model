@@ -20,6 +20,7 @@
         "env": {
           "lambda": {
             "active": false,
+            "timeout": 33,
             "handler": {
               "path": {
                 "prefix": "src/",
@@ -78,6 +79,7 @@
         "env": {
           "lambda": {
             "active": false,
+            "timeout": 33,
             "handler": {
               "path": {
                 "prefix": "src/",
