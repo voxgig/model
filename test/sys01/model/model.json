@@ -9,7 +9,8 @@
             "active": true,
             "path": {
               "prefix": "/",
-              "area": ""
+              "area": "",
+              "suffix": ""
             },
             "method": "POST",
             "cors": {
@@ -68,7 +69,8 @@
             "active": true,
             "path": {
               "prefix": "/",
-              "area": ""
+              "area": "",
+              "suffix": ""
             },
             "method": "POST",
             "cors": {
@@ -98,7 +100,8 @@
             "active": true,
             "path": {
               "prefix": "/",
-              "area": ""
+              "area": "",
+              "suffix": ""
             },
             "method": "POST",
             "cors": {

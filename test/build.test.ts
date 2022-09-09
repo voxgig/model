@@ -108,7 +108,8 @@ const SYS_MODEL =
             "active": true,
             "path": {
               "prefix": "/",
-              "area": ""
+              "area": "",
+              "suffix": "",
             },
             "method": "POST",
             "cors": {
@@ -167,7 +168,8 @@ const SYS_MODEL =
             "active": true,
             "path": {
               "prefix": "/",
-              "area": ""
+              "area": "",
+              "suffix": "",
             },
             "method": "POST",
             "cors": {
@@ -197,7 +199,8 @@ const SYS_MODEL =
             "active": true,
             "path": {
               "prefix": "/",
-              "area": ""
+              "area": "",
+              "suffix": "",
             },
             "method": "POST",
             "cors": {

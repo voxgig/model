@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Val = exports.Build = void 0;
+exports.Build = void 0;
 const aontu_1 = require("aontu");
-Object.defineProperty(exports, "Val", { enumerable: true, get: function () { return aontu_1.Val; } });
 class Build {
     constructor(spec) {
         this.root = aontu_1.Nil.make();

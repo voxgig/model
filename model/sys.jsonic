@@ -12,6 +12,7 @@ shape: srv: {
       path: {
         prefix: *'/' | string
         area: *'' | string
+        suffix: *'' | string 
         # TODO: path to ref srv name?
         # name: ..path..web..api..*;name | string
       }
