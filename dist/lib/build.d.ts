@@ -10,7 +10,7 @@ interface BuildAction {
     path: string;
     build: Builder;
 }
-declare type Builder = (build: Build) => Promise<BuildResult>;
+type Builder = (build: Build) => Promise<BuildResult>;
 interface Spec {
     src: string;
     path?: string;

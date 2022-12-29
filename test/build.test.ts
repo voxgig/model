@@ -21,7 +21,7 @@ describe('build', () => {
         {
           path: '/',
           build: async function test(build: Build) {
-            console.log('RES:/', build.root.canon, build.model)
+            // console.log('RES:/', build.root.canon, build.model)
             expect(build.root.canon).toEqual('{"foo":1,"bar":2}')
             expect(build.model).toEqual({ foo: 1, bar: 2 })
             return { ok: true }

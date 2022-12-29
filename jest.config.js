@@ -1,9 +1,9 @@
-/** @type {import('@ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
-  preset: 'ts-jest',
   testEnvironment: 'node',
   testMatch: ['**/test/**/*.test.ts'],
+  coveragePathIgnorePatterns: ['test'],
+  watchPathIgnorePatterns: ['.*.js$'],
   transform: {
-    '^.+\\.ts?$': 'esbuild-jest'
+    "^.+\\.tsx?$": "es-jest"
   },
 }
