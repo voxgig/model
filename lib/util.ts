@@ -1,6 +1,7 @@
 
 
 type DiveMapper = (path: any[], leaf: any) => any[]
+
 function dive(node: any, depth?: number | DiveMapper, mapper?: DiveMapper): any[] {
   let d = (null == depth || 'number' != typeof depth) ? 2 : depth
   mapper = 'function' === typeof depth ? depth : mapper
