@@ -191,7 +191,18 @@ const SYS_MODEL =
         }
       },
       "bar": {
-        "env": {},
+        "env": {
+          "lambda": {
+            "active": true,
+            "timeout": 30,
+            "handler": {
+              "path": {
+                "prefix": "src/",
+                "suffix": ".handler"
+              }
+            }
+          }
+        },
         "in": {},
         "deps": {},
         "api": {
