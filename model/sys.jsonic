@@ -56,28 +56,28 @@ shape: part: img: {
 }
 
   
-app: web: basic: .sys.shape.app
+# app: web: basic: .sys.shape.app
 
-app: web: basic: {
-  name: basic
-  layout: BasicAdmin
-}
+# app: web: basic: {
+#   name: basic
+#   layout: BasicAdmin
+# }
 
-app: web: basic: parts: {
-  head: {
-    part: BasicHead
-  }
+# app: web: basic: parts: {
+#   head: {
+#     part: BasicHead
+#   }
 
-  side: {
-    part: BasicSide
-  }
+#   side: {
+#     part: BasicSide
+#   }
 
-  main: {
-    part: BasicMain
-  }
+#   main: {
+#     part: BasicMain
+#   }
 
-  foot: {
-    part: BasicFoot
-  }
-}
+#   foot: {
+#     part: BasicFoot
+#   }
+# }
 

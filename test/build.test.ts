@@ -135,28 +135,28 @@ const SYS_MODEL =
         "img": {}
       }
     },
-    "app": {
-      "web": {
-        "basic": {
-          "name": "basic",
-          "layout": "BasicAdmin",
-          "parts": {
-            "head": {
-              "part": "BasicHead"
-            },
-            "side": {
-              "part": "BasicSide"
-            },
-            "main": {
-              "part": "BasicMain"
-            },
-            "foot": {
-              "part": "BasicFoot"
-            }
-          }
-        }
-      }
-    }
+    // "app": {
+    //   "web": {
+    //     "basic": {
+    //       "name": "basic",
+    //       "layout": "BasicAdmin",
+    //       "parts": {
+    //         "head": {
+    //           "part": "BasicHead"
+    //         },
+    //         "side": {
+    //           "part": "BasicSide"
+    //         },
+    //         "main": {
+    //           "part": "BasicMain"
+    //         },
+    //         "foot": {
+    //           "part": "BasicFoot"
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
   },
   "main": {
     "srv": {
