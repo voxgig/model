@@ -5,6 +5,7 @@ const Path = require('path')
 
 let { Model } = require('../dist/model.js')
 
+
 let path = process.argv[2]
 let once = '--once' === process.argv[3]
 
@@ -22,11 +23,20 @@ if (fstats.isFile()) {
 }
 
 path = Path.resolve(path)
-console.log('PATH', path)
+// console.log('PATH', path)
 
 let src = Fs.readFileSync(path).toString()
 
-let model = new Model({src,path,base})
+let spec = {
+  src,
+  path,
+  base,
+  require: process.cwd()
+}
+
+// console.log('CMD SPEC', spec)
+
+let model = new Model(spec)
 
 
 async function run() {

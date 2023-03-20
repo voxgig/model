@@ -42,7 +42,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "aontu": "0.11.0",
+    "aontu": "0.12.0",
     "chokidar": "3.5.3"
   },
   "devDependencies": {

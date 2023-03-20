@@ -14,6 +14,9 @@ class Build {
         if (null != spec.base) {
             this.opts.base = spec.base;
         }
+        if (null != spec.require) {
+            this.opts.require = spec.require;
+        }
         this.res = spec.res || [];
         Object.assign(this.use, spec.use || {});
     }

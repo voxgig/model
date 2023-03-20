@@ -16,6 +16,7 @@ interface Spec {
     path?: string;
     base?: string;
     res?: BuildAction[];
+    require?: any;
     use?: {
         [name: string]: any;
     };

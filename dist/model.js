@@ -18,6 +18,7 @@ const intern = makeIntern();
 class Model {
     constructor(spec) {
         this.trigger_model = false;
+        console.log('MODEL SPEC', spec);
         this.config = intern.makeConfig(spec, {
             path: '/',
             build: async (build) => {
@@ -50,7 +51,8 @@ class Model {
                     path: '/',
                     build: local_1.local_builder
                 }
-            ]
+            ],
+            require: spec.require
         };
         this.watch = new watch_1.Watch(this.build);
     }
@@ -88,7 +90,8 @@ function makeIntern() {
                         build: model_1.model_builder
                     },
                     trigger_model_build
-                ]
+                ],
+                require: spec.require
             };
             return new config_1.Config(cspec);
         }

@@ -26,6 +26,7 @@ interface Spec {
   path?: string
   base?: string
   res?: BuildAction[]
+  require?: any
   use?: { [name: string]: any }
 }
 
@@ -52,6 +53,10 @@ class Build {
 
     if (null != spec.base) {
       this.opts.base = spec.base
+    }
+
+    if (null != spec.require) {
+      this.opts.require = spec.require
     }
 
     this.res = spec.res || []
