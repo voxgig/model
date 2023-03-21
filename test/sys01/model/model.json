@@ -7,11 +7,7 @@
         "api": {
           "web": {
             "active": true,
-            "path": {
-              "prefix": "/",
-              "area": "",
-              "suffix": ""
-            },
+            "path": {},
             "method": "POST",
             "cors": {
               "active": false
@@ -23,10 +19,7 @@
             "active": false,
             "timeout": 30,
             "handler": {
-              "path": {
-                "prefix": "src/",
-                "suffix": ".handler"
-              }
+              "path": {}
             }
           }
         }
@@ -45,11 +38,7 @@
         "api": {
           "web": {
             "active": true,
-            "path": {
-              "prefix": "/",
-              "area": "",
-              "suffix": ""
-            },
+            "path": {},
             "method": "POST",
             "cors": {
               "active": false
@@ -61,10 +50,7 @@
             "active": false,
             "timeout": 30,
             "handler": {
-              "path": {
-                "prefix": "src/",
-                "suffix": ".handler"
-              }
+              "path": {}
             }
           }
         }
@@ -75,10 +61,7 @@
             "active": true,
             "timeout": 30,
             "handler": {
-              "path": {
-                "prefix": "src/",
-                "suffix": ".handler"
-              }
+              "path": {}
             }
           }
         },
@@ -87,11 +70,7 @@
         "api": {
           "web": {
             "active": true,
-            "path": {
-              "prefix": "/",
-              "area": "",
-              "suffix": ""
-            },
+            "path": {},
             "method": "POST",
             "cors": {
               "active": false

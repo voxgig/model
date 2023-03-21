@@ -107,9 +107,9 @@ const SYS_MODEL =
           "web": {
             "active": true,
             "path": {
-              "prefix": "/",
-              "area": "",
-              "suffix": "",
+              // "prefix": "/",
+              // "area": "",
+              // "suffix": "",
             },
             "method": "POST",
             "cors": {
@@ -123,8 +123,8 @@ const SYS_MODEL =
             "timeout": 30,
             "handler": {
               "path": {
-                "prefix": "src/",
-                "suffix": ".handler"
+                // "prefix": "src/",
+                // "suffix": ".handler"
               }
             }
           }
@@ -167,9 +167,9 @@ const SYS_MODEL =
           "web": {
             "active": true,
             "path": {
-              "prefix": "/",
-              "area": "",
-              "suffix": "",
+              // "prefix": "/",
+              // "area": "",
+              // "suffix": "",
             },
             "method": "POST",
             "cors": {
@@ -183,8 +183,8 @@ const SYS_MODEL =
             "timeout": 30,
             "handler": {
               "path": {
-                "prefix": "src/",
-                "suffix": ".handler"
+                // "prefix": "src/",
+                // "suffix": ".handler"
               }
             }
           }
@@ -197,8 +197,8 @@ const SYS_MODEL =
             "timeout": 30,
             "handler": {
               "path": {
-                "prefix": "src/",
-                "suffix": ".handler"
+                // "prefix": "src/",
+                // "suffix": ".handler"
               }
             }
           }
@@ -209,9 +209,9 @@ const SYS_MODEL =
           "web": {
             "active": true,
             "path": {
-              "prefix": "/",
-              "area": "",
-              "suffix": "",
+              // "prefix": "/",
+              // "area": "",
+              // "suffix": "",
             },
             "method": "POST",
             "cors": {
