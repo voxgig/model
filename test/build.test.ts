@@ -78,8 +78,13 @@ describe('build', () => {
 
     expect(br.ok)
 
-    expect(await readFile(base + '/model.json', { encoding: 'utf8' }))
-      .toEqual(JSON.stringify(SYS_MODEL, undefined, 2))
+    let model_json = await readFile(base + '/model.json', { encoding: 'utf8' })
+    // console.log(model_json)
+    // console.dir(JSON.parse(model_json), { depth: null })
+
+    expect(JSON.parse(model_json))
+      // .toEqual(JSON.stringify(SYS_MODEL, undefined, 2))
+      .toEqual(SYS_MODEL)
 
     expect(await readFile(base + '/.model-config/model-config.json',
       { encoding: 'utf8' }))
@@ -106,11 +111,7 @@ const SYS_MODEL =
         "api": {
           "web": {
             "active": true,
-            "path": {
-              // "prefix": "/",
-              // "area": "",
-              // "suffix": "",
-            },
+            "path": {},
             "method": "POST",
             "cors": {
               "active": false
@@ -122,10 +123,7 @@ const SYS_MODEL =
             "active": false,
             "timeout": 30,
             "handler": {
-              "path": {
-                // "prefix": "src/",
-                // "suffix": ".handler"
-              }
+              "path": {}
             }
           }
         }
@@ -134,29 +132,7 @@ const SYS_MODEL =
       "part": {
         "img": {}
       }
-    },
-    // "app": {
-    //   "web": {
-    //     "basic": {
-    //       "name": "basic",
-    //       "layout": "BasicAdmin",
-    //       "parts": {
-    //         "head": {
-    //           "part": "BasicHead"
-    //         },
-    //         "side": {
-    //           "part": "BasicSide"
-    //         },
-    //         "main": {
-    //           "part": "BasicMain"
-    //         },
-    //         "foot": {
-    //           "part": "BasicFoot"
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
+    }
   },
   "main": {
     "srv": {
@@ -166,11 +142,7 @@ const SYS_MODEL =
         "api": {
           "web": {
             "active": true,
-            "path": {
-              // "prefix": "/",
-              // "area": "",
-              // "suffix": "",
-            },
+            "path": {},
             "method": "POST",
             "cors": {
               "active": false
@@ -182,10 +154,7 @@ const SYS_MODEL =
             "active": false,
             "timeout": 30,
             "handler": {
-              "path": {
-                // "prefix": "src/",
-                // "suffix": ".handler"
-              }
+              "path": {}
             }
           }
         }
@@ -196,10 +165,7 @@ const SYS_MODEL =
             "active": true,
             "timeout": 30,
             "handler": {
-              "path": {
-                // "prefix": "src/",
-                // "suffix": ".handler"
-              }
+              "path": {}
             }
           }
         },
@@ -208,11 +174,7 @@ const SYS_MODEL =
         "api": {
           "web": {
             "active": true,
-            "path": {
-              // "prefix": "/",
-              // "area": "",
-              // "suffix": "",
-            },
+            "path": {},
             "method": "POST",
             "cors": {
               "active": false
