@@ -1,4 +1,5 @@
 "use strict";
+/* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.joins = exports.dive = void 0;
 function dive(node, depth, mapper) {

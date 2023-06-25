@@ -9,5 +9,9 @@ declare class Watch {
     start(): Promise<void>;
     run(once: boolean): Promise<BuildResult>;
     stop(): Promise<void>;
+    handleErrors(br: BuildResult): void;
+    descDeps(deps: Record<string, Record<string, {
+        tar: string;
+    }>>): string;
 }
 export { Watch };

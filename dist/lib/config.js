@@ -1,7 +1,5 @@
 "use strict";
-// load config as a model
-// from model / config.jsonic by default
-// config defines builders
+/* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Config = void 0;
 const watch_1 = require("./watch");
@@ -18,7 +16,8 @@ class Config {
                     build: model_1.model_builder
                 },
                 ...(spec.res || [])
-            ]
+            ],
+            require: spec.require
         };
         this.watch = new watch_1.Watch(this.build);
     }

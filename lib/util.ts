@@ -1,3 +1,4 @@
+/* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
 
 
 type DiveMapper = (path: any[], leaf: any) => any[]

@@ -1,5 +1,5 @@
 "use strict";
-/* Copyright © 2021-2022 Voxgig Ltd, MIT License. */
+/* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -18,15 +18,11 @@ const intern = makeIntern();
 class Model {
     constructor(spec) {
         this.trigger_model = false;
-        console.log('MODEL SPEC', spec);
+        // Config is a special Watch to handle model config.
         this.config = intern.makeConfig(spec, {
             path: '/',
             build: async (build) => {
-                console.log('TRIGGER MODEL', this.trigger_model);
                 if (this.trigger_model) {
-                    console.log('CONFIG CHANGE'); //, this)
-                    // console.trace()
-                    // rebuild if config changes
                     // TODO: fix!!!
                     this.build.use.config.watch.last.build = build;
                     return this.watch.run(true);
@@ -37,6 +33,7 @@ class Model {
                 }
             }
         });
+        // The actual model.
         this.build = {
             src: spec.src,
             path: spec.path,
@@ -62,7 +59,6 @@ class Model {
         return br.ok ? this.watch.run(true) : br;
     }
     async start() {
-        console.log('MODEL START');
         this.trigger_model = false;
         await this.config.start();
         return this.watch.start();

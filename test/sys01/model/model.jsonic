@@ -4,6 +4,9 @@
 # TODO: special search path for system models
 sys: @"../../../model/sys.jsonic"
 
+
+# sys: shape: srv: { x:1 }
+
 main: srv: { &: $.sys.shape.srv }
 
 

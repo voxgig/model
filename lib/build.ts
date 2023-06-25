@@ -1,6 +1,7 @@
+/* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
 
 
-import { Aontu, Val, Nil } from 'aontu'
+import { Aontu, Val, Nil, Context } from 'aontu'
 
 
 interface BuildResult {
@@ -9,6 +10,7 @@ interface BuildResult {
   path?: string
   build?: Build
   builders?: BuildResult[]
+  err?: any[]
 }
 
 interface BuildAction {
@@ -43,6 +45,8 @@ class Build {
   spec: Spec
   model: any
   use: { [name: string]: any } = {}
+  err: any[] = []
+
 
   constructor(spec: Spec) {
     this.spec = spec
@@ -53,6 +57,7 @@ class Build {
 
     if (null != spec.base) {
       this.opts.base = spec.base
+      this.opts.path = spec.path
     }
 
     if (null != spec.require) {
@@ -66,31 +71,44 @@ class Build {
 
 
   async run(): Promise<BuildResult> {
-    console.log('BUILDING ', this.path, new Date() + ' ...')
+    let hasErr = false
 
     this.root = Aontu(this.src, this.opts)
+    hasErr = this.root.err && 0 < this.root.err.length
 
-    let nil = (this.root as Nil)
-    console.log('MODEL: ' + (nil.nil ? nil.why : 'ok'))
-
-    if (this.root.err) {
-      console.log('MODEL ERR')
-      console.dir(this.root.err, { depth: null })
+    if (hasErr) {
+      this.err.push(...this.root.err)
     }
 
-    this.model = this.root.gen()
 
-
-    // TODO: only call if path value has changed
     let brlog = []
-    for (let builder of this.res) {
-      let br = await builder.build(this)
-      br.path = builder.path
-      br.builder = builder.build.name
-      brlog.push(br)
+
+    if (!hasErr) {
+      let genctx = new Context({ root: this.root })
+      this.model = this.root.gen(genctx)
+
+      hasErr = genctx.err && 0 < genctx.err.length
+      if (hasErr) {
+        this.err.push(...genctx.err)
+      }
+      else {
+
+        // TODO: only call if path value has changed
+        for (let builder of this.res) {
+          try {
+            let br = await builder.build(this)
+            br.path = builder.path
+            br.builder = builder.build.name
+            brlog.push(br)
+          }
+          catch (e: any) {
+            this.err.push(e)
+          }
+        }
+      }
     }
 
-    return { ok: true, build: this, builders: brlog }
+    return { ok: !hasErr, build: this, builders: brlog, err: this.err }
   }
 }
 

@@ -1,3 +1,5 @@
+/* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
+
 
 // load config as a model
 // from model / config.jsonic by default
@@ -32,7 +34,8 @@ class Config {
           build: model_builder
         },
         ...(spec.res || [])
-      ]
+      ],
+      require: spec.require
     }
 
     this.watch = new Watch(this.build)

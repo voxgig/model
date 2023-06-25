@@ -5,6 +5,7 @@ interface BuildResult {
     path?: string;
     build?: Build;
     builders?: BuildResult[];
+    err?: any[];
 }
 interface BuildAction {
     path: string;
@@ -35,6 +36,7 @@ declare class Build {
     use: {
         [name: string]: any;
     };
+    err: any[];
     constructor(spec: Spec);
     run(): Promise<BuildResult>;
 }

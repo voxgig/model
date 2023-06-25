@@ -1,4 +1,4 @@
-/* Copyright © 2021-2022 Voxgig Ltd, MIT License. */
+/* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
 
 // TODO: remove need for this
 import Fs from 'fs'
@@ -27,17 +27,13 @@ class Model {
 
 
   constructor(spec: Spec) {
-    console.log('MODEL SPEC', spec)
 
+    // Config is a special Watch to handle model config.
     this.config = intern.makeConfig(spec, {
       path: '/',
       build: async (build: Build) => {
-        console.log('TRIGGER MODEL', this.trigger_model)
 
         if (this.trigger_model) {
-          console.log('CONFIG CHANGE')//, this)
-          // console.trace()
-          // rebuild if config changes
 
           // TODO: fix!!!
           this.build.use.config.watch.last.build = build
@@ -52,7 +48,7 @@ class Model {
     })
 
 
-
+    // The actual model.
     this.build = {
       src: spec.src,
       path: spec.path,
@@ -63,8 +59,6 @@ class Model {
           path: '/',
           build: model_builder
         },
-
-
         {
           path: '/',
           build: local_builder
@@ -72,6 +66,7 @@ class Model {
       ],
       require: spec.require
     }
+
 
     this.watch = new Watch(this.build)
   }
@@ -83,7 +78,6 @@ class Model {
   }
 
   async start() {
-    console.log('MODEL START')
     this.trigger_model = false
     await this.config.start()
 

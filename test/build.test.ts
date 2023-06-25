@@ -21,7 +21,6 @@ describe('build', () => {
         {
           path: '/',
           build: async function test(build: Build) {
-            // console.log('RES:/', build.root.canon, build.model)
             expect(build.root.canon).toEqual('{"foo":1,"bar":2}')
             expect(build.model).toEqual({ foo: 1, bar: 2 })
             return { ok: true }
@@ -79,8 +78,6 @@ describe('build', () => {
     expect(br.ok)
 
     let model_json = await readFile(base + '/model.json', { encoding: 'utf8' })
-    // console.log(model_json)
-    // console.dir(JSON.parse(model_json), { depth: null })
 
     expect(JSON.parse(model_json))
       // .toEqual(JSON.stringify(SYS_MODEL, undefined, 2))

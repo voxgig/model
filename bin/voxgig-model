@@ -15,7 +15,8 @@ if(null == path || '' == path) {
 }
 
 let fstats = Fs.statSync(path)
-let base = path
+// let base = path
+let base = Path.resolve(path)
 
 if (fstats.isFile()) {
   let basedesc = Path.parse(base)
@@ -23,7 +24,6 @@ if (fstats.isFile()) {
 }
 
 path = Path.resolve(path)
-// console.log('PATH', path)
 
 let src = Fs.readFileSync(path).toString()
 
@@ -34,18 +34,13 @@ let spec = {
   require: process.cwd()
 }
 
-// console.log('CMD SPEC', spec)
-
 let model = new Model(spec)
-
 
 async function run() {
   if(once) {
     let br = await model.run()
-    console.log('OK:'+br.ok, once)
   }
   else {
-    console.log('WATCHING...')
     model.start()
   }
 }
