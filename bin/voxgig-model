@@ -39,6 +39,9 @@ let model = new Model(spec)
 async function run() {
   if(once) {
     let br = await model.run()
+    if(0 < br.err.length) {
+      process.exit(1)
+    }
   }
   else {
     model.start()
