@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "0.22.0",
+  "version": "0.22.1",
   "main": "dist/model.js",
   "type": "commonjs",
   "types": "dist/model.d.ts",
@@ -42,7 +42,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "aontu": "0.14.2",
+    "aontu": "0.14.3",
     "chokidar": "3.5.3"
   },
   "devDependencies": {
