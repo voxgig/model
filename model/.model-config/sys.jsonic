@@ -1,11 +1,5 @@
 
-shape: builder: {
+
+sys: model: builders: &: {
   load: string
-  x: 1
-}
-
-model: build: order: string # TODO: comma sep 
-
-model: builders: {
-  # &=/sys/shape/builder
 }

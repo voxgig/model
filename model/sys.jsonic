@@ -1,48 +1,71 @@
 
-shape: srv: {
+sys: shape: srv: base: {
   in: {
     # TODO: validate leaf?
+    # &&: => &:, &: &:, &: &: &:, etc
   }
   deps: {
     &: {}
   }
-  api: {
-    web: {
-      active: *true | boolean
-      path: {
-        prefix: string
-        area: string
-        suffix: string 
-        #prefix: *'/' | string
-        #area: *'' | string
-        #suffix: *'' | string 
-        # TODO: path to ref srv name?
-        # name: ..path..web..api..*;name | string
-      }
-      method: *'POST' | string
-      cors: {
-        active: *false | boolean
-      }
+  api: web: {
+    active: boolean
+    path: {
+      prefix: string
+      area: string
+      suffix: string 
+    }
+    method: string
+    cors: {
+      active: boolean
     }
   }
-  env: {
-    lambda: {
-      active: *false | boolean
-      timeout: *30 | integer
-      handler: {
-        path: {
-          #prefix: *'src/' | string
-          #suffix: *'.handler' | string
-          prefix: string
-          suffix: string
-        }
+  env: lambda: {
+    active: boolean
+    timeout: integer
+    handler: {
+    path: {
+      prefix: string
+      suffix: string
       }
     }
   }
 }
 
 
-shape: app: {
+sys: shape: srv: std: $.sys.shape.srv.base & {
+  api: web: {
+    active: *true | boolean
+    method: *'POST' | string
+    cors: active: *false | boolean
+    path: prefix: '/api/'
+  }
+  env: lambda: {
+    active: *false | boolean
+    timeout: *30 | integer
+    handler: path: {
+      suffix: *'.handler' | string
+    }
+    kind: *standard | string
+  }
+}
+
+
+sys: shape: srv: std_js: $.sys.shape.srv.std & {
+  env: lambda: handler: path: {
+    prefix: *'src/handler/lambda/' | string
+  }
+}
+
+sys: shape: srv: std_ts: $.sys.shape.srv.std & {
+  env: lambda: handler: path: {
+    prefix: *'dist/handler/lambda/' | string
+  }
+}
+
+
+
+
+sys: shape: app: {
   name: string
   layout: string
   # TODO: test
@@ -55,7 +78,7 @@ shape: app: {
   # }
 }
 
-shape: part: img: {
+sys: shape: part: img: {
   src: string
   svg: string
 }

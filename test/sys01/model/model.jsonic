@@ -1,13 +1,9 @@
-#a:1
-#a:2
 
 # TODO: special search path for system models
-sys: @"../../../model/sys.jsonic"
+@"../../../model/sys.jsonic"
 
 
-# sys: shape: srv: { x:1 }
-
-main: srv: { &: $.sys.shape.srv }
+main: srv: &: $.sys.shape.srv.std
 
 
 main: srv: foo: {}
@@ -15,12 +11,4 @@ main: srv: foo: {}
 main: srv: bar: {
   env: { lambda: { active: true } }
 }
-
-
-
-# x: y: { m: n: o: *false | boolean }
-# a: b: { &: .x.y }
-# # a: b: { c: {} }
-# a: b: d: {}
-# a: b: e: m: n: o: true
 

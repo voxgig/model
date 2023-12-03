@@ -1,17 +1,15 @@
 {
-  "sys": {
-    "shape": {
-      "srv": {
-        "in": {},
-        "deps": {},
+  "main": {
+    "srv": {
+      "foo": {
         "api": {
           "web": {
             "active": true,
-            "path": {},
             "method": "POST",
             "cors": {
               "active": false
-            }
+            },
+            "path": {}
           }
         },
         "env": {
@@ -22,61 +20,82 @@
               "path": {}
             }
           }
+        },
+        "in": {},
+        "deps": {}
+      },
+      "bar": {
+        "api": {
+          "web": {
+            "active": true,
+            "method": "POST",
+            "cors": {
+              "active": false
+            },
+            "path": {}
+          }
+        },
+        "env": {
+          "lambda": {
+            "active": true,
+            "timeout": 30,
+            "handler": {
+              "path": {}
+            }
+          }
+        },
+        "in": {},
+        "deps": {}
+      }
+    }
+  },
+  "sys": {
+    "shape": {
+      "srv": {
+        "base": {
+          "in": {},
+          "deps": {},
+          "api": {
+            "web": {
+              "path": {},
+              "cors": {}
+            }
+          },
+          "env": {
+            "lambda": {
+              "handler": {
+                "path": {}
+              }
+            }
+          }
+        },
+        "std": {
+          "api": {
+            "web": {
+              "active": true,
+              "method": "POST",
+              "cors": {
+                "active": false
+              },
+              "path": {}
+            }
+          },
+          "env": {
+            "lambda": {
+              "active": false,
+              "timeout": 30,
+              "handler": {
+                "path": {}
+              }
+            }
+          },
+          "in": {},
+          "deps": {}
         }
       },
       "app": {},
       "part": {
         "img": {}
-      }
-    }
-  },
-  "main": {
-    "srv": {
-      "foo": {
-        "in": {},
-        "deps": {},
-        "api": {
-          "web": {
-            "active": true,
-            "path": {},
-            "method": "POST",
-            "cors": {
-              "active": false
-            }
-          }
-        },
-        "env": {
-          "lambda": {
-            "active": false,
-            "timeout": 30,
-            "handler": {
-              "path": {}
-            }
-          }
-        }
-      },
-      "bar": {
-        "in": {},
-        "deps": {},
-        "api": {
-          "web": {
-            "active": true,
-            "path": {},
-            "method": "POST",
-            "cors": {
-              "active": false
-            }
-          }
-        },
-        "env": {
-          "lambda": {
-            "active": true,
-            "timeout": 30,
-            "handler": {
-              "path": {}
-            }
-          }
-        }
       }
     }
   }
