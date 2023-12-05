@@ -100,29 +100,173 @@ describe('build', () => {
 
 const SYS_MODEL =
 {
-  "sys": {
-    "shape": {
-      "srv": {
-        "in": {},
-        "deps": {},
+  "main": {
+    "srv": {
+      "foo": {
+        "env": {
+          "lambda": {
+            "handler": {
+              "path": {
+                "prefix": "src/handler/lambda/",
+                "suffix": ".handler"
+              }
+            },
+            "active": false,
+            "timeout": 30,
+            "kind": "standard"
+          }
+        },
         "api": {
           "web": {
             "active": true,
-            "path": {},
             "method": "POST",
             "cors": {
               "active": false
+            },
+            "path": {
+              "prefix": "/api/"
             }
           }
         },
+        "in": {},
+        "deps": {}
+      },
+      "bar": {
         "env": {
           "lambda": {
-            "active": false,
-            "timeout": 30,
             "handler": {
-              "path": {}
+              "path": {
+                "prefix": "src/handler/lambda/",
+                "suffix": ".handler"
+              }
+            },
+            "active": true,
+            "timeout": 30,
+            "kind": "standard"
+          }
+        },
+        "api": {
+          "web": {
+            "active": true,
+            "method": "POST",
+            "cors": {
+              "active": false
+            },
+            "path": {
+              "prefix": "/api/"
             }
           }
+        },
+        "in": {},
+        "deps": {}
+      }
+    }
+  },
+  "sys": {
+    "shape": {
+      "srv": {
+        "base": {
+          "in": {},
+          "deps": {},
+          "api": {
+            "web": {
+              "path": {},
+              "cors": {}
+            }
+          },
+          "env": {
+            "lambda": {
+              "handler": {
+                "path": {}
+              }
+            }
+          }
+        },
+        "std": {
+          "api": {
+            "web": {
+              "active": true,
+              "method": "POST",
+              "cors": {
+                "active": false
+              },
+              "path": {
+                "prefix": "/api/"
+              }
+            }
+          },
+          "env": {
+            "lambda": {
+              "active": false,
+              "timeout": 30,
+              "handler": {
+                "path": {
+                  "suffix": ".handler"
+                }
+              },
+              "kind": "standard"
+            }
+          },
+          "in": {},
+          "deps": {}
+        },
+        "std_js": {
+          "env": {
+            "lambda": {
+              "handler": {
+                "path": {
+                  "prefix": "src/handler/lambda/",
+                  "suffix": ".handler"
+                }
+              },
+              "active": false,
+              "timeout": 30,
+              "kind": "standard"
+            }
+          },
+          "api": {
+            "web": {
+              "active": true,
+              "method": "POST",
+              "cors": {
+                "active": false
+              },
+              "path": {
+                "prefix": "/api/"
+              }
+            }
+          },
+          "in": {},
+          "deps": {}
+        },
+        "std_ts": {
+          "env": {
+            "lambda": {
+              "handler": {
+                "path": {
+                  "prefix": "dist/handler/lambda/",
+                  "suffix": ".handler"
+                }
+              },
+              "active": false,
+              "timeout": 30,
+              "kind": "standard"
+            }
+          },
+          "api": {
+            "web": {
+              "active": true,
+              "method": "POST",
+              "cors": {
+                "active": false
+              },
+              "path": {
+                "prefix": "/api/"
+              }
+            }
+          },
+          "in": {},
+          "deps": {}
         }
       },
       "app": {},
@@ -130,59 +274,8 @@ const SYS_MODEL =
         "img": {}
       }
     }
-  },
-  "main": {
-    "srv": {
-      "foo": {
-        "in": {},
-        "deps": {},
-        "api": {
-          "web": {
-            "active": true,
-            "path": {},
-            "method": "POST",
-            "cors": {
-              "active": false
-            }
-          }
-        },
-        "env": {
-          "lambda": {
-            "active": false,
-            "timeout": 30,
-            "handler": {
-              "path": {}
-            }
-          }
-        }
-      },
-      "bar": {
-        "env": {
-          "lambda": {
-            "active": true,
-            "timeout": 30,
-            "handler": {
-              "path": {}
-            }
-          }
-        },
-        "in": {},
-        "deps": {},
-        "api": {
-          "web": {
-            "active": true,
-            "path": {},
-            "method": "POST",
-            "cors": {
-              "active": false
-            }
-          }
-        }
-      }
-    }
   }
 }
-
 
 const CONFIG_MODEL = {
   "sys": {

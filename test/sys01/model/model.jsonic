@@ -3,7 +3,7 @@
 @"../../../model/sys.jsonic"
 
 
-main: srv: &: $.sys.shape.srv.std
+main: srv: &: $.sys.shape.srv.std_js
 
 
 main: srv: foo: {}
