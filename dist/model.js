@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.joins = exports.dive = exports.Model = void 0;
+exports.pinify = exports.get = exports.joins = exports.dive = exports.Model = void 0;
 // TODO: remove need for this
 const fs_1 = __importDefault(require("fs"));
 const config_1 = require("./lib/config");
@@ -14,6 +14,8 @@ const local_1 = require("./lib/builder/local");
 const util_1 = require("./lib/util");
 Object.defineProperty(exports, "dive", { enumerable: true, get: function () { return util_1.dive; } });
 Object.defineProperty(exports, "joins", { enumerable: true, get: function () { return util_1.joins; } });
+Object.defineProperty(exports, "get", { enumerable: true, get: function () { return util_1.get; } });
+Object.defineProperty(exports, "pinify", { enumerable: true, get: function () { return util_1.pinify; } });
 const intern = makeIntern();
 class Model {
     constructor(spec) {

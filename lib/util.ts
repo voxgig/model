@@ -9,15 +9,28 @@ function dive(node: any, depth?: number | DiveMapper, mapper?: DiveMapper): any[
 
   let items: any[] = []
 
-  Object.entries(node).reduce(
+  Object.entries(node || {}).reduce(
     (items: any[], entry: any[]) => {
       let key = entry[0]
       let child = entry[1]
 
-      if (d <= 1) {
+      // console.log('CHILD', d, key, child)
+
+      if ('$' === key) {
+        // console.log('BBB', d)
+        items.push([[], child])
+      }
+      else if (
+        d <= 1 ||
+        null == child ||
+        'object' !== typeof child ||
+        0 === Object.keys(child).length
+      ) {
+        // console.log('AAA', d)
         items.push([[key], child])
       }
       else {
+        // console.log('CCC', d)
         let children = dive(child, d - 1)
         children = children.map(child => {
           child[0].unshift(key)
@@ -30,6 +43,8 @@ function dive(node: any, depth?: number | DiveMapper, mapper?: DiveMapper): any[
     },
     items
   )
+
+  // console.log('ITEMS', items)
 
   if (mapper) {
     return items.reduce(((a, entry) => {
@@ -66,7 +81,28 @@ function joins(arr: any[], ...seps: string[]) {
   return sa.join('')
 }
 
+
+function get(root: any, path: string | string[]): any {
+  path = 'string' === typeof path ? path.split('.') : path
+  let node = root
+  for (let i = 0; i < path.length && null != node; i++) {
+    node = node[path[i]]
+  }
+  return node
+}
+
+
+function pinify(path: string[]) {
+  let pin = path
+    .map((p: string, i: number) =>
+      p + (i % 2 ? (i === path.length - 1 ? '' : ',') : ':'))
+    .join('')
+  return pin
+}
+
 export {
   dive,
   joins,
+  get,
+  pinify
 }

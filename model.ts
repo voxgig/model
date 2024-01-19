@@ -13,6 +13,8 @@ import { local_builder } from './lib/builder/local'
 import {
   dive,
   joins,
+  get,
+  pinify,
 } from './lib/util'
 
 
@@ -127,6 +129,8 @@ export {
   Spec,
   dive,
   joins,
+  get,
+  pinify,
 }
 
 

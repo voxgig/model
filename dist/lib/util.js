@@ -1,18 +1,28 @@
 "use strict";
 /* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.joins = exports.dive = void 0;
+exports.pinify = exports.get = exports.joins = exports.dive = void 0;
 function dive(node, depth, mapper) {
     let d = (null == depth || 'number' != typeof depth) ? 2 : depth;
     mapper = 'function' === typeof depth ? depth : mapper;
     let items = [];
-    Object.entries(node).reduce((items, entry) => {
+    Object.entries(node || {}).reduce((items, entry) => {
         let key = entry[0];
         let child = entry[1];
-        if (d <= 1) {
+        // console.log('CHILD', d, key, child)
+        if ('$' === key) {
+            // console.log('BBB', d)
+            items.push([[], child]);
+        }
+        else if (d <= 1 ||
+            null == child ||
+            'object' !== typeof child ||
+            0 === Object.keys(child).length) {
+            // console.log('AAA', d)
             items.push([[key], child]);
         }
         else {
+            // console.log('CCC', d)
             let children = dive(child, d - 1);
             children = children.map(child => {
                 child[0].unshift(key);
@@ -22,6 +32,7 @@ function dive(node, depth, mapper) {
         }
         return items;
     }, items);
+    // console.log('ITEMS', items)
     if (mapper) {
         return items.reduce(((a, entry) => {
             entry = mapper(entry[0], entry[1]);
@@ -55,4 +66,20 @@ function joins(arr, ...seps) {
     return sa.join('');
 }
 exports.joins = joins;
+function get(root, path) {
+    path = 'string' === typeof path ? path.split('.') : path;
+    let node = root;
+    for (let i = 0; i < path.length && null != node; i++) {
+        node = node[path[i]];
+    }
+    return node;
+}
+exports.get = get;
+function pinify(path) {
+    let pin = path
+        .map((p, i) => p + (i % 2 ? (i === path.length - 1 ? '' : ',') : ':'))
+        .join('');
+    return pin;
+}
+exports.pinify = pinify;
 //# sourceMappingURL=util.js.map

@@ -1,4 +1,6 @@
 type DiveMapper = (path: any[], leaf: any) => any[];
 declare function dive(node: any, depth?: number | DiveMapper, mapper?: DiveMapper): any[];
 declare function joins(arr: any[], ...seps: string[]): string;
-export { dive, joins, };
+declare function get(root: any, path: string | string[]): any;
+declare function pinify(path: string[]): string;
+export { dive, joins, get, pinify };
