@@ -15,6 +15,7 @@ import {
   joins,
   get,
   pinify,
+  camelify,
 } from './lib/util'
 
 
@@ -131,6 +132,7 @@ export {
   joins,
   get,
   pinify,
+  camelify,
 }
 
 

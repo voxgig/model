@@ -1,7 +1,7 @@
 "use strict";
 /* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.pinify = exports.get = exports.joins = exports.dive = void 0;
+exports.camelify = exports.pinify = exports.get = exports.joins = exports.dive = void 0;
 function dive(node, depth, mapper) {
     let d = (null == depth || 'number' != typeof depth) ? 2 : depth;
     mapper = 'function' === typeof depth ? depth : mapper;
@@ -82,4 +82,11 @@ function pinify(path) {
     return pin;
 }
 exports.pinify = pinify;
+function camelify(input) {
+    let parts = 'string' == typeof input ? input.split('-') : input.map(n => '' + n);
+    return parts
+        .map((p) => ('' === p ? '' : (p[0].toUpperCase() + p.substring(1))))
+        .join('');
+}
+exports.camelify = camelify;
 //# sourceMappingURL=util.js.map

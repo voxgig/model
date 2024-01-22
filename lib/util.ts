@@ -100,9 +100,18 @@ function pinify(path: string[]) {
   return pin
 }
 
+
+function camelify(input: any[] | string) {
+  let parts = 'string' == typeof input ? input.split('-') : input.map(n => '' + n)
+  return parts
+    .map((p: string) => ('' === p ? '' : (p[0].toUpperCase() + p.substring(1))))
+    .join('')
+}
+
 export {
   dive,
   joins,
   get,
-  pinify
+  pinify,
+  camelify,
 }
