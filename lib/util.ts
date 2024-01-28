@@ -49,7 +49,9 @@ function dive(node: any, depth?: number | DiveMapper, mapper?: DiveMapper): any[
   if (mapper) {
     return items.reduce(((a, entry) => {
       entry = (mapper as any)(entry[0], entry[1])
-      a[entry[0]] = entry[1]
+      if (null != entry[0]) {
+        a[entry[0]] = entry[1]
+      }
       return a
     }), {} as any)
   }

@@ -36,7 +36,9 @@ function dive(node, depth, mapper) {
     if (mapper) {
         return items.reduce(((a, entry) => {
             entry = mapper(entry[0], entry[1]);
-            a[entry[0]] = entry[1];
+            if (null != entry[0]) {
+                a[entry[0]] = entry[1];
+            }
             return a;
         }), {});
     }
