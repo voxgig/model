@@ -1,9 +1,16 @@
 
+
+# Service Shapes
+# --------------
+
+
+# Service base has no defaults.
 sys: shape: srv: base: {
   in: {
     # TODO: validate leaf?
     # &&: => &:, &: &:, &: &: &:, etc
   }
+  out: {}
   deps: {
     &: {}
   }
@@ -32,6 +39,7 @@ sys: shape: srv: base: {
 }
 
 
+# Shared service defaults
 sys: shape: srv: std: $.sys.shape.srv.base & {
   api: web: {
     active: *true | boolean
@@ -50,12 +58,15 @@ sys: shape: srv: std: $.sys.shape.srv.base & {
 }
 
 
+# Javascript service defaults
 sys: shape: srv: std_js: $.sys.shape.srv.std & {
   env: lambda: handler: path: {
     prefix: *'src/handler/lambda/' | string
   }
 }
 
+
+# Typescript service defaults
 sys: shape: srv: std_ts: $.sys.shape.srv.std & {
   env: lambda: handler: path: {
     prefix: *'dist/handler/lambda/' | string
@@ -64,6 +75,37 @@ sys: shape: srv: std_ts: $.sys.shape.srv.std & {
 
 
 
+# Entity Shapes
+# -------------
+
+
+sys: shape: ent: {
+  id: {
+    field: 'id'
+  }
+  field: {
+    id: kind: *'Text' | string
+  }
+}
+
+sys: shape: ent: field: &: {
+  active: *true | boolean
+  kind: *'Text' | string  
+  title: string
+  
+  # Developer model (backend)
+  dx: {}
+
+  # User inerface model (frontend)
+  ux: {
+    desc: string
+  }
+} 
+
+
+
+# App Shapes
+# --------------
 
 sys: shape: app: {
   name: string
