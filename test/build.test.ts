@@ -129,6 +129,7 @@ const SYS_MODEL =
           }
         },
         "in": {},
+        "out": {},
         "deps": {}
       },
       "bar": {
@@ -158,6 +159,7 @@ const SYS_MODEL =
           }
         },
         "in": {},
+        "out": {},
         "deps": {}
       }
     }
@@ -167,6 +169,7 @@ const SYS_MODEL =
       "srv": {
         "base": {
           "in": {},
+          "out": {},
           "deps": {},
           "api": {
             "web": {
@@ -208,6 +211,7 @@ const SYS_MODEL =
             }
           },
           "in": {},
+          "out": {},
           "deps": {}
         },
         "std_js": {
@@ -237,6 +241,7 @@ const SYS_MODEL =
             }
           },
           "in": {},
+          "out": {},
           "deps": {}
         },
         "std_ts": {
@@ -266,11 +271,24 @@ const SYS_MODEL =
             }
           },
           "in": {},
+          "out": {},
           "deps": {}
         }
       },
       "app": {},
-      "part": {
+      "ent": {
+        "field": {
+          "id": {
+            "active": true,
+            "dx": {},
+            "kind": "Text",
+            "ux": {},
+          },
+        },
+        "id": {
+          "field": "id",
+        },
+      }, "part": {
         "img": {}
       }
     }
