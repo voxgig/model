@@ -63,6 +63,20 @@
       }
     }
   },
+  "color": {
+    "red": {
+      "value": "f00",
+      "name": "red"
+    },
+    "green": {
+      "value": "0f0",
+      "name": "green"
+    },
+    "blue": {
+      "value": "00f",
+      "name": "blue"
+    }
+  },
   "sys": {
     "shape": {
       "srv": {

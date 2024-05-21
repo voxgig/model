@@ -100,6 +100,20 @@ describe('build', () => {
 
 const SYS_MODEL =
 {
+  "color": {
+    "blue": {
+      "name": "blue",
+      "value": "00f",
+    },
+    "green": {
+      "name": "green",
+      "value": "0f0",
+    },
+    "red": {
+      "name": "red",
+      "value": "f00",
+    },
+  },
   "main": {
     "srv": {
       "foo": {
@@ -162,7 +176,7 @@ const SYS_MODEL =
         "out": {},
         "deps": {}
       }
-    }
+    },
   },
   "sys": {
     "shape": {
@@ -294,6 +308,7 @@ const SYS_MODEL =
     }
   }
 }
+
 
 const CONFIG_MODEL = {
   "sys": {
