@@ -11,7 +11,7 @@ const config_1 = require("./lib/config");
 const watch_1 = require("./lib/watch");
 const model_1 = require("./lib/builder/model");
 const local_1 = require("./lib/builder/local");
-const util_1 = require("./lib/util");
+const util_1 = require("@voxgig/util");
 Object.defineProperty(exports, "dive", { enumerable: true, get: function () { return util_1.dive; } });
 Object.defineProperty(exports, "joins", { enumerable: true, get: function () { return util_1.joins; } });
 Object.defineProperty(exports, "get", { enumerable: true, get: function () { return util_1.get; } });

@@ -16,7 +16,7 @@ import {
   get,
   pinify,
   camelify,
-} from './lib/util'
+} from '@voxgig/util'
 
 
 const intern = makeIntern()
