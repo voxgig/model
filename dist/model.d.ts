@@ -1,7 +1,6 @@
 import { Config } from './lib/config';
 import { BuildResult, Spec } from './lib/build';
 import { Watch } from './lib/watch';
-import { dive, joins, get, pinify, camelify } from '@voxgig/util';
 declare class Model {
     config: Config;
     build: any;
@@ -12,4 +11,4 @@ declare class Model {
     start(): Promise<void>;
     stop(): Promise<void>;
 }
-export { Model, Spec, dive, joins, get, pinify, camelify, };
+export { Model, Spec, };

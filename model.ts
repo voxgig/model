@@ -128,11 +128,6 @@ function makeIntern() {
 export {
   Model,
   Spec,
-  dive,
-  joins,
-  get,
-  pinify,
-  camelify,
 }
 
 
