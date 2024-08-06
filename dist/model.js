@@ -19,15 +19,26 @@ class Model {
         this.config = intern.makeConfig(spec, {
             path: '/',
             build: async (build) => {
+                // console.log('CONFIG BUILD', build.model)
+                var _a, _b;
+                let res;
                 if (this.trigger_model) {
                     // TODO: fix!!!
                     this.build.use.config.watch.last.build = build;
-                    return this.watch.run(true);
+                    res = this.watch.run(true);
                 }
                 else {
                     this.trigger_model = true;
-                    return { ok: true };
+                    res = { ok: true };
                 }
+                const watchmap = (_b = (_a = build.model.sys) === null || _a === void 0 ? void 0 : _a.model) === null || _b === void 0 ? void 0 : _b.watch;
+                // console.log('WATCHMAP', watchmap)
+                if (watchmap) {
+                    Object.keys(watchmap).map((file) => {
+                        this.watch.add(file);
+                    });
+                }
+                return res;
             }
         });
         // The actual model.

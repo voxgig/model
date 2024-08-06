@@ -6,6 +6,7 @@ import { writeFile } from 'fs/promises'
 import { Build, Builder } from '../build'
 
 
+// Builds the main model file, after unification.
 const model_builder: Builder = async (build: Build) => {
 
   try {
@@ -19,6 +20,7 @@ const model_builder: Builder = async (build: Build) => {
 
     let file = build.opts.base + '/' + filename + '.json'
 
+    // console.log('MODEL BUILDER', file)
     await writeFile(file, json)
 
     return { ok: true }

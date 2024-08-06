@@ -1,7 +1,11 @@
 "use strict";
 /* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Watch = void 0;
+const node_path_1 = __importDefault(require("node:path"));
 const build_1 = require("./build");
 const chokidar_1 = require("chokidar");
 const promises_1 = require("fs/promises");
@@ -9,9 +13,24 @@ class Watch {
     constructor(spec) {
         this.spec = spec;
         this.fsw = new chokidar_1.FSWatcher();
-        this.fsw.on('change', this.run.bind(this));
+        this.last_change_time = 0;
+        const run = this.run.bind(this);
+        this.fsw.on('change', () => {
+            // Avoid rebuilding when, for example, TS rewrites all files in dist
+            if (55 < Date.now() - this.last_change_time) {
+                run();
+            }
+        });
+    }
+    add(file) {
+        if (!node_path_1.default.isAbsolute(file)) {
+            file = node_path_1.default.join(this.spec.require, file);
+        }
+        // console.log('WATCH ADD', file)
+        this.fsw.add(file);
     }
     update(br) {
+        // console.log('BUILD RESULT', br)
         let build = br.build;
         let files = Object.keys(build.root.deps).reduce((files, target) => {
             files = files.concat(Object.keys(build.root.deps[target]));
@@ -34,7 +53,8 @@ class Watch {
     }
     async run(once) {
         var _a, _b;
-        console.log('\n@voxgig/model', new Date());
+        this.last_change_time = Date.now();
+        console.log('\n@voxgig/model', new Date(this.last_change_time));
         // TODO: build spec should not have src!
         let src = (await (0, promises_1.readFile)(this.spec.path)).toString();
         this.spec.src = src;

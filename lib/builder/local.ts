@@ -1,9 +1,13 @@
 
 import Path from 'path'
 
+// import fresh from 'import-fresh'
+import clear from 'clear-module'
+
 import { Build, Builder } from '../build'
 
 
+// Runs any builders local to the repo.
 const local_builder: Builder = async (build: Build) => {
   try {
     // TODO: need to provide project root via build
@@ -24,13 +28,17 @@ const local_builder: Builder = async (build: Build) => {
 
     // TODO: order by comma sep string
     for (let name in builders) {
+      // console.log('LOCAL BUILDER', name)
+
       let builder = builders[name]
       let action_path = Path.join(root, builder.load)
 
       // TODO: need to watch these files too, and their deps!
       // console.log('ACTION PATH', name, action_path)
 
+      clear(action_path)
       let action = require(action_path)
+      // let action: any = fresh(action_path)
       let br = await action(build.model, build)
       ok = ok && null != br && br.ok
       brlog.push(br)

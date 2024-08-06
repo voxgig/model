@@ -71,6 +71,8 @@ class Build {
 
 
   async run(): Promise<BuildResult> {
+    // console.log('BUILD RUN', this.path)
+
     let hasErr = false
 
     this.root = Aontu(this.src, this.opts)

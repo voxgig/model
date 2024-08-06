@@ -5,6 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.local_builder = void 0;
 const path_1 = __importDefault(require("path"));
+// import fresh from 'import-fresh'
+const clear_module_1 = __importDefault(require("clear-module"));
+// Runs any builders local to the repo.
 const local_builder = async (build) => {
     try {
         // TODO: need to provide project root via build
@@ -20,11 +23,14 @@ const local_builder = async (build) => {
         let brlog = [];
         // TODO: order by comma sep string
         for (let name in builders) {
+            // console.log('LOCAL BUILDER', name)
             let builder = builders[name];
             let action_path = path_1.default.join(root, builder.load);
             // TODO: need to watch these files too, and their deps!
             // console.log('ACTION PATH', name, action_path)
+            (0, clear_module_1.default)(action_path);
             let action = require(action_path);
+            // let action: any = fresh(action_path)
             let br = await action(build.model, build);
             ok = ok && null != br && br.ok;
             brlog.push(br);

@@ -24,6 +24,7 @@ class Build {
         Object.assign(this.use, spec.use || {});
     }
     async run() {
+        // console.log('BUILD RUN', this.path)
         let hasErr = false;
         this.root = (0, aontu_1.Aontu)(this.src, this.opts);
         hasErr = this.root.err && 0 < this.root.err.length;

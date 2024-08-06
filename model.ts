@@ -35,18 +35,32 @@ class Model {
     this.config = intern.makeConfig(spec, {
       path: '/',
       build: async (build: Build) => {
+        // console.log('CONFIG BUILD', build.model)
+
+        let res
 
         if (this.trigger_model) {
 
           // TODO: fix!!!
           this.build.use.config.watch.last.build = build
 
-          return this.watch.run(true)
+          res = this.watch.run(true)
         }
         else {
           this.trigger_model = true
-          return { ok: true }
+          res = { ok: true }
         }
+
+        const watchmap = build.model.sys?.model?.watch
+        // console.log('WATCHMAP', watchmap)
+
+        if (watchmap) {
+          Object.keys(watchmap).map((file: string) => {
+            this.watch.add(file)
+          })
+        }
+
+        return res
       }
     })
 

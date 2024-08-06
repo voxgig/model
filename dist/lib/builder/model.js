@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.model_builder = void 0;
 const path_1 = __importDefault(require("path"));
 const promises_1 = require("fs/promises");
+// Builds the main model file, after unification.
 const model_builder = async (build) => {
     try {
         let json = JSON.stringify(build.root.gen(), null, 2);
@@ -15,6 +16,7 @@ const model_builder = async (build) => {
             filename = filenameparts[1];
         }
         let file = build.opts.base + '/' + filename + '.json';
+        // console.log('MODEL BUILDER', file)
         await (0, promises_1.writeFile)(file, json);
         return { ok: true };
     }
