@@ -5,8 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.local_builder = void 0;
 const path_1 = __importDefault(require("path"));
-// import fresh from 'import-fresh'
-const clear_module_1 = __importDefault(require("clear-module"));
 // Runs any builders local to the repo.
 const local_builder = async (build) => {
     try {
@@ -27,10 +25,9 @@ const local_builder = async (build) => {
             let builder = builders[name];
             let action_path = path_1.default.join(root, builder.load);
             // TODO: need to watch these files too, and their deps!
-            // console.log('ACTION PATH', name, action_path)
-            (0, clear_module_1.default)(action_path);
+            console.log('ACTION PATH 1', name, action_path);
+            clear(action_path);
             let action = require(action_path);
-            // let action: any = fresh(action_path)
             let br = await action(build.model, build);
             ok = ok && null != br && br.ok;
             brlog.push(br);
@@ -43,4 +40,27 @@ const local_builder = async (build) => {
     }
 };
 exports.local_builder = local_builder;
+// Adapted from https://github.com/sindresorhus/import-fresh - Thanks!
+function clear(path) {
+    let filePath = require.resolve(path);
+    // console.log('CM fp', filePath)
+    if (require.cache[filePath]) {
+        const children = require.cache[filePath].children.map(child => child.id);
+        // console.log('CM-B', filePath, children)
+        // Delete module from cache
+        delete require.cache[filePath];
+        for (const id of children) {
+            clear(id);
+        }
+    }
+    if (require.cache[filePath] && require.cache[filePath].parent) {
+        let i = require.cache[filePath].parent.children.length;
+        // console.log('CM-A', filePath, require.cache[filePath].parent.children)
+        while (i--) {
+            if (require.cache[filePath].parent.children[i].id === filePath) {
+                require.cache[filePath].parent.children.splice(i, 1);
+            }
+        }
+    }
+}
 //# sourceMappingURL=local.js.map

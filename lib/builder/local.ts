@@ -1,9 +1,6 @@
 
 import Path from 'path'
 
-// import fresh from 'import-fresh'
-import clear from 'clear-module'
-
 import { Build, Builder } from '../build'
 
 
@@ -34,11 +31,10 @@ const local_builder: Builder = async (build: Build) => {
       let action_path = Path.join(root, builder.load)
 
       // TODO: need to watch these files too, and their deps!
-      // console.log('ACTION PATH', name, action_path)
+      console.log('ACTION PATH 1', name, action_path)
 
       clear(action_path)
       let action = require(action_path)
-      // let action: any = fresh(action_path)
       let br = await action(build.model, build)
       ok = ok && null != br && br.ok
       brlog.push(br)
@@ -51,6 +47,41 @@ const local_builder: Builder = async (build: Build) => {
   }
 
 }
+
+
+// Adapted from https://github.com/sindresorhus/import-fresh - Thanks!
+function clear(path: string) {
+  let filePath = require.resolve(path)
+  // console.log('CM fp', filePath)
+
+  if (require.cache[filePath]) {
+    const children = require.cache[filePath].children.map(child => child.id)
+
+    // console.log('CM-B', filePath, children)
+
+    // Delete module from cache
+    delete require.cache[filePath]
+
+    for (const id of children) {
+      clear(id)
+    }
+  }
+
+
+  if (require.cache[filePath] && require.cache[filePath].parent) {
+    let i = require.cache[filePath].parent.children.length
+
+    // console.log('CM-A', filePath, require.cache[filePath].parent.children)
+
+    while (i--) {
+      if (require.cache[filePath].parent.children[i].id === filePath) {
+        require.cache[filePath].parent.children.splice(i, 1)
+      }
+    }
+  }
+
+}
+
 
 export {
   local_builder
