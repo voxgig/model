@@ -30,9 +30,6 @@ const local_builder: Builder = async (build: Build) => {
       let builder = builders[name]
       let action_path = Path.join(root, builder.load)
 
-      // TODO: need to watch these files too, and their deps!
-      console.log('ACTION PATH 1', name, action_path)
-
       clear(action_path)
       let action = require(action_path)
       let br = await action(build.model, build)
