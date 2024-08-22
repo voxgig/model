@@ -1,18 +1,20 @@
 "use strict";
 /* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Build = void 0;
+exports.makeBuild = makeBuild;
 const aontu_1 = require("aontu");
-class Build {
+class BuildImpl {
     constructor(spec) {
         this.root = aontu_1.Nil.make();
         this.use = {};
         this.err = [];
+        this.id = String(Math.random()).substring(3, 15);
         this.spec = spec;
         this.src = spec.src;
         this.base = null == spec.base ? '' : spec.base;
         this.path = null == spec.path ? '' : spec.path;
         this.opts = {};
+        this.ctx = { step: 'pre', state: {} };
         if (null != spec.base) {
             this.opts.base = spec.base;
             this.opts.path = spec.path;
@@ -24,14 +26,30 @@ class Build {
         Object.assign(this.use, spec.use || {});
     }
     async run() {
-        // console.log('BUILD RUN', this.path)
         let hasErr = false;
-        this.root = (0, aontu_1.Aontu)(this.src, this.opts);
-        hasErr = this.root.err && 0 < this.root.err.length;
-        if (hasErr) {
-            this.err.push(...this.root.err);
+        this.ctx.step = 'pre';
+        const brlog = [];
+        for (let builder of this.res) {
+            try {
+                let br = await builder.build(this, this.ctx);
+                br.step = this.ctx.step;
+                br.path = builder.path;
+                br.builder = builder.build.name;
+                brlog.push(br);
+            }
+            catch (e) {
+                this.err.push(e);
+                hasErr = true;
+                break;
+            }
         }
-        let brlog = [];
+        if (!hasErr) {
+            this.root = (0, aontu_1.Aontu)(this.src, this.opts);
+            hasErr = this.root.err && 0 < this.root.err.length;
+            if (hasErr) {
+                this.err.push(...this.root.err);
+            }
+        }
         if (!hasErr) {
             let genctx = new aontu_1.Context({ root: this.root });
             this.model = this.root.gen(genctx);
@@ -41,21 +59,27 @@ class Build {
             }
             else {
                 // TODO: only call if path value has changed
+                this.ctx.step = 'post';
                 for (let builder of this.res) {
                     try {
-                        let br = await builder.build(this);
+                        let br = await builder.build(this, this.ctx);
+                        br.step = this.ctx.step;
                         br.path = builder.path;
                         br.builder = builder.build.name;
                         brlog.push(br);
                     }
                     catch (e) {
                         this.err.push(e);
+                        break;
                     }
                 }
             }
         }
-        return { ok: !hasErr, build: this, builders: brlog, err: this.err };
+        const br = { ok: !hasErr, build: this, builders: brlog, err: this.err };
+        return br;
     }
 }
-exports.Build = Build;
+function makeBuild(spec) {
+    return new BuildImpl(spec);
+}
 //# sourceMappingURL=build.js.map

@@ -3,10 +3,16 @@
 import Path from 'node:path'
 
 
-import { Build, BuildResult } from './build'
+import type { Build, BuildResult } from './types'
+
+import { makeBuild } from './build'
 import { FSWatcher } from 'chokidar'
 
 import { readFile } from 'fs/promises'
+
+
+const print = console.log
+const warn = console.warn
 
 
 class Watch {
@@ -14,6 +20,7 @@ class Watch {
   spec: any
   last?: BuildResult
   last_change_time: number
+  build: Build | undefined
 
   constructor(spec: any) {
     this.spec = spec
@@ -23,8 +30,11 @@ class Watch {
     const run = this.run.bind(this)
 
     this.fsw.on('change', () => {
+
+      // TODO: needs a much more robust queue that checks for dups,
+      // otherwise BuildContext state will have concurrency corruptions
       // Avoid rebuilding when, for example, TS rewrites all files in dist
-      if (55 < Date.now() - this.last_change_time) {
+      if (1 < Date.now() - this.last_change_time) {
         run()
       }
     })
@@ -35,14 +45,11 @@ class Watch {
     if (!Path.isAbsolute(file)) {
       file = Path.join(this.spec.require, file)
     }
-    // console.log('WATCH ADD', file)
     this.fsw.add(file)
   }
 
 
   update(br: BuildResult) {
-    // console.log('BUILD RESULT', br)
-
     let build = (br.build as Build)
 
     let files: string[] =
@@ -62,33 +69,34 @@ class Watch {
       }
     })
 
-    // setTimeout(() => {
-    //   console.log('WATCH', this.fsw.getWatched())
-    // }, 100)
-
   }
 
 
-  async start() {
-    await this.run(false)
+  // Returns first BuildResult
+  async start(): Promise<BuildResult> {
+    return await this.run(false)
   }
 
 
-  async run(once?: boolean) {
+  async run(once?: boolean): Promise<BuildResult> {
     this.last_change_time = Date.now()
-    console.log('\n@voxgig/model', new Date(this.last_change_time))
+    print('\n@voxgig/model', new Date(this.last_change_time))
 
     // TODO: build spec should not have src!
     let src = (await readFile(this.spec.path)).toString()
     this.spec.src = src
 
-    let build = new Build(this.spec)
-    let br: BuildResult = await build.run()
+    this.build = this.build || makeBuild(this.spec)
 
-    console.log('\nFILES:\n' + this.descDeps((br as any).build.root.deps) + '\n')
+    // TODO: better way to do this?
+    this.build.src = src
+
+    let br: BuildResult = await this.build.run()
+
+    print('\nFILES:\n' + this.descDeps((br as any).build.root.deps) + '\n')
 
     if (br.ok) {
-      console.log('TOP:', Object.keys(br?.build?.model).join(', '), '\n')
+      print('TOP:', Object.keys(br?.build?.model).join(', '), '\n')
 
       if (!once) {
         // There may be new files.
@@ -96,7 +104,7 @@ class Watch {
       }
     }
     else {
-      console.log('MODEL ERRORS: ' + br.err?.length)
+      warn('MODEL ERRORS: ' + br.err?.length)
       this.handleErrors(br)
     }
 
@@ -115,19 +123,23 @@ class Watch {
     if (br.err) {
       for (let be of br.err) {
         if (be.msg) {
-          console.log(be.msg)
+          warn(be.msg)
         }
         else if (be.message) {
-          console.log(be.message)
+          warn(be.message)
         }
         else {
-          console.log(be)
+          warn(be)
         }
       }
     }
   }
 
   descDeps(deps: Record<string, Record<string, { tar: string }>>) {
+    if (null == deps) {
+      return ''
+    }
+
     let desc = []
     for (let entryPath of Object.keys(deps)) {
       desc.push('  ' + entryPath)

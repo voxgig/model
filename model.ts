@@ -3,23 +3,16 @@
 // TODO: remove need for this
 import Fs from 'fs'
 
+
+import type { Build, BuildResult, BuildAction, BuildContext, Spec } from './lib/types'
+
+
 import { Config } from './lib/config'
-import { Build, BuildAction, BuildResult, Spec } from './lib/build'
 import { Watch } from './lib/watch'
 
 import { model_builder } from './lib/builder/model'
 import { local_builder } from './lib/builder/local'
 
-import {
-  dive,
-  joins,
-  get,
-  pinify,
-  camelify,
-} from '@voxgig/util'
-
-
-const intern = makeIntern()
 
 class Model {
   config: Config
@@ -30,33 +23,38 @@ class Model {
 
 
   constructor(spec: Spec) {
+    const self = this
 
     // Config is a special Watch to handle model config.
-    this.config = intern.makeConfig(spec, {
+    this.config = makeConfig(spec, {
       path: '/',
-      build: async (build: Build) => {
-        // console.log('CONFIG BUILD', build.model)
+      build: async function trigger_model(build: Build, ctx: BuildContext) {
+        if ('post' !== ctx.step) {
+          return { ok: true }
+        }
 
         let res
 
-        if (this.trigger_model) {
+        // console.log('TRIGGER', build.id, self.trigger_model, ctx)
+        // console.log(new Error().stack)
+
+        if (self.trigger_model) {
 
           // TODO: fix!!!
-          this.build.use.config.watch.last.build = build
+          self.build.use.config.watch.last.build = build
 
-          res = this.watch.run(true)
+          res = self.watch.run(true)
         }
         else {
-          this.trigger_model = true
+          self.trigger_model = true
           res = { ok: true }
         }
 
-        const watchmap = build.model.sys?.model?.watch
-        // console.log('WATCHMAP', watchmap)
+        const watchmap = build.model?.sys?.model?.watch
 
         if (watchmap) {
           Object.keys(watchmap).map((file: string) => {
-            this.watch.add(file)
+            self.watch.add(file)
           })
         }
 
@@ -70,7 +68,7 @@ class Model {
       src: spec.src,
       path: spec.path,
       base: spec.base,
-      use: { config: this.config },
+      use: { config: self.config },
       res: [
         {
           path: '/',
@@ -85,21 +83,23 @@ class Model {
     }
 
 
-    this.watch = new Watch(this.build)
+    this.watch = new Watch(self.build)
   }
+
 
   async run(): Promise<BuildResult> {
     this.trigger_model = false
-    let br = await this.config.run()
+    const br = await this.config.run()
     return br.ok ? this.watch.run(true) : br
   }
 
-  async start() {
-    this.trigger_model = false
-    await this.config.start()
 
-    return this.watch.start()
+  async start(): Promise<BuildResult> {
+    this.trigger_model = false
+    const br = await this.config.start()
+    return br.ok ? this.watch.start() : br
   }
+
 
   async stop() {
     return this.watch.stop()
@@ -107,36 +107,34 @@ class Model {
 }
 
 
-function makeIntern() {
-  return {
-    makeConfig(spec: Spec, trigger_model_build: BuildAction) {
-      let cbase = spec.base + '/.model-config'
-      let cpath = cbase + '/model-config.jsonic'
+function makeConfig(spec: Spec, trigger_model_build: BuildAction) {
+  let cbase = spec.base + '/.model-config'
+  let cpath = cbase + '/model-config.jsonic'
 
-      // Build should load file
-      let src = Fs.readFileSync(cpath).toString()
+  // Build should load file
+  let src = Fs.readFileSync(cpath).toString()
 
-      let cspec: Spec = {
-        src: src,
-        path: cpath,
-        base: cbase,
-        res: [
+  let cspec: Spec = {
+    src: src,
+    path: cpath,
+    base: cbase,
+    res: [
 
-          // Generate full config model and save as a file.
-          {
-            path: '/',
-            build: model_builder
-          },
+      // Generate full config model and save as a file.
+      {
+        path: '/',
+        build: model_builder
+      },
 
-          trigger_model_build
-        ],
-        require: spec.require
-      }
-
-      return new Config(cspec)
-    }
+      // Trigger main model build.
+      trigger_model_build
+    ],
+    require: spec.require
   }
+
+  return new Config(cspec)
 }
+
 
 
 export {

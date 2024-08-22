@@ -1,16 +1,9 @@
-/* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
+/* Copyright © 2021-2024 Voxgig Ltd, MIT License. */
 
 
-// load config as a model
-// from model / config.jsonic by default
-// config defines builders
+import type { BuildResult, Spec } from './types'
 
-
-
-
-import { BuildResult, Spec } from './build'
 import { Watch } from './watch'
-
 
 import { model_builder } from './builder/model'
 
@@ -29,10 +22,6 @@ class Config {
       path: spec.path,
       base: spec.base,
       res: [
-        {
-          path: '/',
-          build: model_builder
-        },
         ...(spec.res || [])
       ],
       require: spec.require

@@ -3,8 +3,10 @@
 import { writeFile, readFile } from 'fs/promises'
 
 
+import type { Build, BuildContext } from '../lib/types'
+
+import { makeBuild } from '../lib/build'
 import { Model } from '../model'
-import { Build } from '../lib/build'
 import { model_builder } from '../lib/builder/model'
 
 
@@ -13,16 +15,18 @@ describe('build', () => {
   test('project-p01', async () => {
     await writeFile(__dirname + '/p01/doc.html', 'BAD')
 
-    let b0 = new Build({
+    let b0 = makeBuild({
       src: '@"model.jsonic"',
       base: __dirname + '/p01/model',
       path: __dirname + '/p01/model/model.json',
       res: [
         {
           path: '/',
-          build: async function test(build: Build) {
-            expect(build.root.canon).toEqual('{"foo":1,"bar":2}')
-            expect(build.model).toEqual({ foo: 1, bar: 2 })
+          build: async function test(build: Build, ctx: BuildContext) {
+            if ('post' === ctx.step) {
+              expect(build.root.canon).toEqual('{"foo":1,"bar":2}')
+              expect(build.model).toEqual({ foo: 1, bar: 2 })
+            }
             return { ok: true }
           },
         },
@@ -32,13 +36,15 @@ describe('build', () => {
         },
         {
           path: '/',
-          build: async function gendoc(build: Build) {
-            let doc = `<html><head><title>Docs</title></head><body>
+          build: async function gendoc(build: Build, ctx: BuildContext) {
+            if ('post' === ctx.step) {
+              let doc = `<html><head><title>Docs</title></head><body>
 <p>FOO: ${build.model.foo}</p>
 <p>BAR: ${build.model.bar}</p>
 </body></html>`
 
-            await writeFile(__dirname + '/p01/doc.html', doc)
+              await writeFile(__dirname + '/p01/doc.html', doc)
+            }
 
             return { ok: true }
           },

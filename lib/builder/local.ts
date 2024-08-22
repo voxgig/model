@@ -1,60 +1,103 @@
 
 import Path from 'path'
 
-import { Build, Builder } from '../build'
+import type { Build, Builder, BuildContext } from '../types'
 
 
 // Runs any builders local to the repo.
-const local_builder: Builder = async (build: Build) => {
-  try {
-    // TODO: need to provide project root via build
-    let root = Path.resolve(build.path, '..', '..')
+const local_builder: Builder = async (build: Build, ctx: BuildContext) => {
+  ctx.state.local = (ctx.state.local || {})
+  let actionDefs = ctx.state.local.actionDefs
 
-    // TODO: build should do this
-    // console.log('LOCAL root:', root)
-    let configbuild = build.use.config
+  if (null == actionDefs) {
+    try {
+      actionDefs = ctx.state.local.actionDefs = []
 
-    let config = configbuild.watch.last.build.model
-    // console.log('CONFIG BUILD')
-    // console.dir(config, { depth: null })
+      // TODO: need to provide project root via build
+      let root = Path.resolve(build.path, '..', '..')
 
-    let builders = config.sys.model.builders
 
-    let ok = true
-    let brlog = []
+      // TODO: build should do this
+      let configbuild = build.use.config
 
-    // TODO: order by comma sep string
-    for (let name in builders) {
-      // console.log('LOCAL BUILDER', name)
+      let config = configbuild.watch.last.build.model
 
-      let builder = builders[name]
-      let action_path = Path.join(root, builder.load)
+      let builders = config.sys.model.builders
 
-      clear(action_path)
-      let action = require(action_path)
-      let br = await action(build.model, build)
-      ok = ok && null != br && br.ok
-      brlog.push(br)
+      // TODO: order by comma sep string
+      // Load builders
+      for (let name in builders) {
+        let builder = builders[name]
+        let action_path = Path.join(root, builder.load)
+
+        clear(action_path)
+        let action = require(action_path)
+
+        if (action instanceof Promise) {
+          action = await action
+        }
+
+        const step = action.step || 'post'
+
+        actionDefs.push({ name, builder, action, step })
+      }
     }
-
-    return { ok: ok, brlog }
-  } catch (e: any) {
-    console.log('MODEL BUILD local', e)
-    throw e
+    catch (e: any) {
+      throw e
+    }
   }
 
+
+  if ('pre' === ctx.step) {
+    try {
+      let ok = true
+      let brlog = []
+
+      for (let actionDef of actionDefs) {
+        if ('pre' === actionDef.step || 'all' === actionDef.step) {
+          let br = await actionDef.action(build.model, build)
+          ok = ok && null != br && br.ok
+          brlog.push(br)
+        }
+      }
+
+      return { ok: true, step: ctx.step, active: true }
+    }
+    catch (e: any) {
+      throw e
+    }
+  }
+
+  else if ('post' === ctx.step) {
+    try {
+      let ok = true
+      let brlog = []
+
+      for (let actionDef of actionDefs) {
+        if ('post' === actionDef.step || 'all' === actionDef.step) {
+          let br = await actionDef.action(build.model, build)
+          ok = ok && null != br && br.ok
+          brlog.push(br)
+        }
+      }
+
+      return { ok: true, step: ctx.step, active: true }
+    }
+    catch (e: any) {
+      throw e
+    }
+  }
+
+  return { ok: false, why: 'bad-step', step: ctx.step, active: false }
 }
 
 
 // Adapted from https://github.com/sindresorhus/import-fresh - Thanks!
 function clear(path: string) {
   let filePath = require.resolve(path)
-  // console.log('CM fp', filePath)
 
   if (require.cache[filePath]) {
     const children = require.cache[filePath].children.map(child => child.id)
-
-    // console.log('CM-B', filePath, children)
 
     // Delete module from cache
     delete require.cache[filePath]
@@ -67,8 +110,6 @@ function clear(path: string) {
 
   if (require.cache[filePath] && require.cache[filePath].parent) {
     let i = require.cache[filePath].parent.children.length
-
-    // console.log('CM-A', filePath, require.cache[filePath].parent.children)
 
     while (i--) {
       if (require.cache[filePath].parent.children[i].id === filePath) {

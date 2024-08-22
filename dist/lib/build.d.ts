@@ -1,43 +1,20 @@
 import { Val } from 'aontu';
-interface BuildResult {
-    ok: boolean;
-    builder?: string;
-    path?: string;
-    build?: Build;
-    builders?: BuildResult[];
-    err?: any[];
-}
-interface BuildAction {
-    path: string;
-    build: Builder;
-}
-type Builder = (build: Build) => Promise<BuildResult>;
-interface Spec {
-    src: string;
-    path?: string;
-    base?: string;
-    res?: BuildAction[];
-    require?: any;
-    use?: {
-        [name: string]: any;
-    };
-}
-declare class Build {
+import type { Build, BuildResult, BuildAction, BuildContext, Spec } from './types';
+declare class BuildImpl implements Build {
+    id: string;
     src: string;
     base: string;
     path: string;
-    root: Val;
-    opts: {
-        [key: string]: any;
-    };
+    root: any;
+    opts: any;
     res: BuildAction[];
     spec: Spec;
     model: any;
-    use: {
-        [name: string]: any;
-    };
+    use: {};
     err: any[];
+    ctx: BuildContext;
     constructor(spec: Spec);
     run(): Promise<BuildResult>;
 }
-export { Build, Builder, BuildResult, BuildAction, Spec, Val };
+declare function makeBuild(spec: Spec): BuildImpl;
+export { makeBuild, Spec, Val };

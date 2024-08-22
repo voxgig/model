@@ -1,9 +1,8 @@
 "use strict";
-/* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
+/* Copyright © 2021-2024 Voxgig Ltd, MIT License. */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Config = void 0;
 const watch_1 = require("./watch");
-const model_1 = require("./builder/model");
 class Config {
     constructor(spec) {
         this.build = {
@@ -11,10 +10,6 @@ class Config {
             path: spec.path,
             base: spec.base,
             res: [
-                {
-                    path: '/',
-                    build: model_1.model_builder
-                },
                 ...(spec.res || [])
             ],
             require: spec.require

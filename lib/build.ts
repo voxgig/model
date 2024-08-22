@@ -4,56 +4,42 @@
 import { Aontu, Val, Nil, Context } from 'aontu'
 
 
-interface BuildResult {
-  ok: boolean
-  builder?: string
-  path?: string
-  build?: Build
-  builders?: BuildResult[]
-  err?: any[]
-}
-
-interface BuildAction {
-  path: string
-  build: Builder
-}
-
-type Builder = (
-  build: Build
-) => Promise<BuildResult>
-
-
-interface Spec {
-  src: string
-  path?: string
-  base?: string
-  res?: BuildAction[]
-  require?: any
-  use?: { [name: string]: any }
-}
+import type {
+  Build,
+  BuildResult,
+  BuildAction,
+  Builder,
+  BuildContext,
+  Spec,
+} from './types'
 
 
 
 
-class Build {
-  src: string
-  base: string
-  path: string
-  root: Val = Nil.make()
-  opts: { [key: string]: any }
-  res: BuildAction[]
-  spec: Spec
+class BuildImpl implements Build {
+  id
+  src
+  base
+  path
+  root: any = Nil.make()
+  opts: any
+  res
+  spec
   model: any
-  use: { [name: string]: any } = {}
+  use = {}
   err: any[] = []
+  ctx: BuildContext
 
 
   constructor(spec: Spec) {
+    this.id = String(Math.random()).substring(3, 15)
+
     this.spec = spec
     this.src = spec.src
     this.base = null == spec.base ? '' : spec.base
     this.path = null == spec.path ? '' : spec.path
     this.opts = {}
+    this.ctx = { step: 'pre', state: {} }
 
     if (null != spec.base) {
       this.opts.base = spec.base
@@ -71,19 +57,36 @@ class Build {
 
 
   async run(): Promise<BuildResult> {
-    // console.log('BUILD RUN', this.path)
-
     let hasErr = false
 
-    this.root = Aontu(this.src, this.opts)
-    hasErr = this.root.err && 0 < this.root.err.length
+    this.ctx.step = 'pre'
+    const brlog = []
 
-    if (hasErr) {
-      this.err.push(...this.root.err)
+    for (let builder of this.res) {
+      try {
+        let br = await builder.build(this, this.ctx)
+        br.step = this.ctx.step
+        br.path = builder.path
+        br.builder = builder.build.name
+        brlog.push(br)
+      }
+      catch (e: any) {
+        this.err.push(e)
+        hasErr = true
+        break
+      }
     }
 
 
-    let brlog = []
+    if (!hasErr) {
+      this.root = Aontu(this.src, this.opts)
+      hasErr = this.root.err && 0 < this.root.err.length
+
+      if (hasErr) {
+        this.err.push(...this.root.err)
+      }
+    }
+
 
     if (!hasErr) {
       let genctx = new Context({ root: this.root })
@@ -94,32 +97,39 @@ class Build {
         this.err.push(...genctx.err)
       }
       else {
-
         // TODO: only call if path value has changed
+
+        this.ctx.step = 'post'
+
         for (let builder of this.res) {
           try {
-            let br = await builder.build(this)
+            let br = await builder.build(this, this.ctx)
+            br.step = this.ctx.step
             br.path = builder.path
             br.builder = builder.build.name
             brlog.push(br)
           }
           catch (e: any) {
             this.err.push(e)
+            break
           }
         }
       }
     }
 
-    return { ok: !hasErr, build: this, builders: brlog, err: this.err }
+    const br = { ok: !hasErr, build: this, builders: brlog, err: this.err }
+
+    return br
   }
 }
 
 
+function makeBuild(spec: Spec) {
+  return new BuildImpl(spec)
+}
+
 export {
-  Build,
-  Builder,
-  BuildResult,
-  BuildAction,
+  makeBuild,
   Spec,
   Val
 }
