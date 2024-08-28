@@ -8,7 +8,7 @@ class BuildImpl {
         this.root = aontu_1.Nil.make();
         this.use = {};
         this.err = [];
-        this.id = String(Math.random()).substring(3, 15);
+        this.id = String(Math.random()).substring(3, 9);
         this.spec = spec;
         this.src = spec.src;
         this.base = null == spec.base ? '' : spec.base;
@@ -27,7 +27,8 @@ class BuildImpl {
     }
     async run() {
         let hasErr = false;
-        this.ctx.step = 'pre';
+        // this.ctx.step = 'pre'
+        this.ctx = { step: 'pre', state: {} };
         const brlog = [];
         for (let builder of this.res) {
             try {

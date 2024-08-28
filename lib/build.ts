@@ -32,7 +32,7 @@ class BuildImpl implements Build {
 
 
   constructor(spec: Spec) {
-    this.id = String(Math.random()).substring(3, 15)
+    this.id = String(Math.random()).substring(3, 9)
 
     this.spec = spec
     this.src = spec.src
@@ -59,7 +59,8 @@ class BuildImpl implements Build {
   async run(): Promise<BuildResult> {
     let hasErr = false
 
-    this.ctx.step = 'pre'
+    // this.ctx.step = 'pre'
+    this.ctx = { step: 'pre', state: {} }
     const brlog = []
 
     for (let builder of this.res) {

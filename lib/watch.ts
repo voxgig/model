@@ -29,12 +29,14 @@ class Watch {
 
     const run = this.run.bind(this)
 
-    this.fsw.on('change', () => {
-
+    this.fsw.on('change', (args: any[]) => {
       // TODO: needs a much more robust queue that checks for dups,
       // otherwise BuildContext state will have concurrency corruptions
       // Avoid rebuilding when, for example, TS rewrites all files in dist
-      if (1 < Date.now() - this.last_change_time) {
+      const dorun = 1111 < Date.now() - this.last_change_time
+      // console.log('CHANGE', dorun, this.last_change_time, args)
+
+      if (dorun) {
         run()
       }
     })
