@@ -1,5 +1,5 @@
 "use strict";
-/* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
+/* Copyright © 2021-2024 Voxgig Ltd, MIT License. */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -21,9 +21,10 @@ class Watch {
             // TODO: needs a much more robust queue that checks for dups,
             // otherwise BuildContext state will have concurrency corruptions
             // Avoid rebuilding when, for example, TS rewrites all files in dist
-            const dorun = 1111 < Date.now() - this.last_change_time;
+            const dorun = 111 < Date.now() - this.last_change_time;
             // console.log('CHANGE', dorun, this.last_change_time, args)
             if (dorun) {
+                // setTimeout(() => run(), 1111)
                 run();
             }
         });
