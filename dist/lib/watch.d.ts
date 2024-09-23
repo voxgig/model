@@ -1,14 +1,31 @@
 import type { Build, BuildResult } from './types';
 import { FSWatcher } from 'chokidar';
+type Run = {
+    canon: string;
+    path: string;
+    start: number;
+    end: number;
+};
+type Canon = {
+    path: string;
+    isFolder: boolean;
+    when: number;
+};
 declare class Watch {
     fsw: FSWatcher;
     spec: any;
     last?: BuildResult;
     last_change_time: number;
     build: Build | undefined;
+    runq: Run[];
+    doneq: Run[];
+    canons: Canon[];
+    running: boolean;
     constructor(spec: any);
-    add(file: string): void;
-    update(br: BuildResult): void;
+    drain(): Promise<void>;
+    add(path: string): Promise<void>;
+    canon(path: string): string;
+    update(br: BuildResult): Promise<void>;
     start(): Promise<BuildResult>;
     run(once?: boolean): Promise<BuildResult>;
     stop(): Promise<void>;

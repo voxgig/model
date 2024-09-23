@@ -23,7 +23,7 @@ const local_builder = async (build, ctx) => {
             for (let name in builders) {
                 let builder = builders[name];
                 let action_path = path_1.default.join(root, builder.load);
-                clear(action_path);
+                // clear(action_path)
                 let action = require(action_path);
                 if (action instanceof Promise) {
                     action = await action;
@@ -73,24 +73,4 @@ const local_builder = async (build, ctx) => {
     return { ok: false, why: 'bad-step', step: ctx.step, active: false };
 };
 exports.local_builder = local_builder;
-// Adapted from https://github.com/sindresorhus/import-fresh - Thanks!
-function clear(path) {
-    let filePath = require.resolve(path);
-    if (require.cache[filePath]) {
-        const children = require.cache[filePath].children.map(child => child.id);
-        // Delete module from cache
-        delete require.cache[filePath];
-        for (const id of children) {
-            clear(id);
-        }
-    }
-    if (require.cache[filePath] && require.cache[filePath].parent) {
-        let i = require.cache[filePath].parent.children.length;
-        while (i--) {
-            if (require.cache[filePath].parent.children[i].id === filePath) {
-                require.cache[filePath].parent.children.splice(i, 1);
-            }
-        }
-    }
-}
 //# sourceMappingURL=local.js.map

@@ -8,12 +8,25 @@ import type { Build, BuildResult } from './types'
 import { makeBuild } from './build'
 import { FSWatcher } from 'chokidar'
 
-import { readFile } from 'fs/promises'
+import { readFile, stat } from 'fs/promises'
 
 
 const print = console.log
 const warn = console.warn
 
+
+type Run = {
+  canon: string
+  path: string
+  start: number
+  end: number
+}
+
+type Canon = {
+  path: string
+  isFolder: boolean
+  when: number
+}
 
 class Watch {
   fsw: FSWatcher
@@ -21,38 +34,110 @@ class Watch {
   last?: BuildResult
   last_change_time: number
   build: Build | undefined
+  runq: Run[]
+  doneq: Run[]
+  canons: Canon[]
+  running: boolean
 
   constructor(spec: any) {
     this.spec = spec
     this.fsw = new FSWatcher()
     this.last_change_time = 0
+    this.runq = []
+    this.doneq = []
+    this.canons = []
+    this.running = false
 
-    const run = this.run.bind(this)
+    // const run = this.run.bind(this)
+    const drain = this.drain.bind(this)
 
-    this.fsw.on('change', (args: any[]) => {
+    this.fsw.on('change', async (path: string) => {
       // TODO: needs a much more robust queue that checks for dups,
       // otherwise BuildContext state will have concurrency corruptions
       // Avoid rebuilding when, for example, TS rewrites all files in dist
-      const dorun = 111 < Date.now() - this.last_change_time
+      // const dorun = 1111 < Date.now() - this.last_change_time
       // console.log('CHANGE', dorun, this.last_change_time, args)
 
-      if (dorun) {
-        // setTimeout(() => run(), 1111)
-        run()
+      const canon = this.canon(path)
+
+      const running = this.runq.find((run: Run) => run.canon === canon)
+      if (running) {
+        // console.log('RUNNING', canon, path)
+        return
       }
+
+      this.runq.push({
+        canon,
+        path,
+        start: Date.now(),
+        end: -1,
+      })
+
+      // console.log('RUNQ-ADD', this.runq)
+      setImmediate(drain)
     })
   }
 
 
-  add(file: string) {
-    if (!Path.isAbsolute(file)) {
-      file = Path.join(this.spec.require, file)
+  async drain() {
+    if (this.running) {
+      return
     }
-    this.fsw.add(file)
+
+    this.running = true
+    let r
+    while (r = this.runq[0]) {
+      // console.log('DRAIN')
+      let br = await this.run(false)
+      // console.log('BR', br)
+      this.runq.shift()
+      r.end = Date.now()
+
+      this.doneq.push(r)
+
+      // console.log('DONEQ', this.doneq)
+    }
+    this.running = false
   }
 
 
-  update(br: BuildResult) {
+  async add(path: string) {
+    if (!Path.isAbsolute(path)) {
+      path = Path.join(this.spec.require, path)
+    }
+
+    // Ignore if aleady added
+    if (this.canons.find((c: Canon) => c.path === path)) {
+      return
+    }
+
+    const fileStat = await stat(path)
+    const canon: Canon = {
+      path: path,
+      isFolder: fileStat.isDirectory(),
+      when: Date.now()
+    }
+
+    this.canons.push(canon)
+
+    this.fsw.add(path)
+
+    // console.log('ADD', canon)
+  }
+
+
+  // If path is inside a watched folder, return folder as canonical reference.
+  canon(path: string) {
+    for (const canon of this.canons) {
+      if (canon.isFolder && path.startsWith(canon.path)) {
+        return canon.path
+      }
+    }
+    return path
+  }
+
+
+  async update(br: BuildResult) {
     let build = (br.build as Build)
 
     let files: string[] =
@@ -63,12 +148,12 @@ class Watch {
 
 
     // TODO: remove deleted files
-    files.forEach((file: string) => {
+    files.forEach(async (file: string) => {
       if ('string' === typeof (file) &&
         '' !== file &&
         build.opts.base !== file
       ) {
-        this.fsw.add(file)
+        await this.add(file)
       }
     })
 
@@ -82,6 +167,8 @@ class Watch {
 
 
   async run(once?: boolean): Promise<BuildResult> {
+    // console.trace()
+
     this.last_change_time = Date.now()
     print('\n@voxgig/model', new Date(this.last_change_time))
 
@@ -103,7 +190,7 @@ class Watch {
 
       if (!once) {
         // There may be new files.
-        this.update(br)
+        await this.update(br)
       }
     }
     else {

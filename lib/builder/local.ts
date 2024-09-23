@@ -30,7 +30,10 @@ const local_builder: Builder = async (build: Build, ctx: BuildContext) => {
         let builder = builders[name]
         let action_path = Path.join(root, builder.load)
 
-        clear(action_path)
+
+        // clear(action_path)
+
+
         let action = require(action_path)
 
         if (action instanceof Promise) {
@@ -91,7 +94,7 @@ const local_builder: Builder = async (build: Build, ctx: BuildContext) => {
   return { ok: false, why: 'bad-step', step: ctx.step, active: false }
 }
 
-
+/*
 // Adapted from https://github.com/sindresorhus/import-fresh - Thanks!
 function clear(path: string) {
   let filePath = require.resolve(path)
@@ -119,6 +122,7 @@ function clear(path: string) {
   }
 
 }
+*/
 
 
 export {

@@ -16,37 +16,90 @@ class Watch {
         this.spec = spec;
         this.fsw = new chokidar_1.FSWatcher();
         this.last_change_time = 0;
-        const run = this.run.bind(this);
-        this.fsw.on('change', (args) => {
+        this.runq = [];
+        this.doneq = [];
+        this.canons = [];
+        this.running = false;
+        // const run = this.run.bind(this)
+        const drain = this.drain.bind(this);
+        this.fsw.on('change', async (path) => {
             // TODO: needs a much more robust queue that checks for dups,
             // otherwise BuildContext state will have concurrency corruptions
             // Avoid rebuilding when, for example, TS rewrites all files in dist
-            const dorun = 111 < Date.now() - this.last_change_time;
+            // const dorun = 1111 < Date.now() - this.last_change_time
             // console.log('CHANGE', dorun, this.last_change_time, args)
-            if (dorun) {
-                // setTimeout(() => run(), 1111)
-                run();
+            const canon = this.canon(path);
+            const running = this.runq.find((run) => run.canon === canon);
+            if (running) {
+                // console.log('RUNNING', canon, path)
+                return;
             }
+            this.runq.push({
+                canon,
+                path,
+                start: Date.now(),
+                end: -1,
+            });
+            // console.log('RUNQ-ADD', this.runq)
+            setImmediate(drain);
         });
     }
-    add(file) {
-        if (!node_path_1.default.isAbsolute(file)) {
-            file = node_path_1.default.join(this.spec.require, file);
+    async drain() {
+        if (this.running) {
+            return;
         }
-        this.fsw.add(file);
+        this.running = true;
+        let r;
+        while (r = this.runq[0]) {
+            // console.log('DRAIN')
+            let br = await this.run(false);
+            // console.log('BR', br)
+            this.runq.shift();
+            r.end = Date.now();
+            this.doneq.push(r);
+            // console.log('DONEQ', this.doneq)
+        }
+        this.running = false;
     }
-    update(br) {
+    async add(path) {
+        if (!node_path_1.default.isAbsolute(path)) {
+            path = node_path_1.default.join(this.spec.require, path);
+        }
+        // Ignore if aleady added
+        if (this.canons.find((c) => c.path === path)) {
+            return;
+        }
+        const fileStat = await (0, promises_1.stat)(path);
+        const canon = {
+            path: path,
+            isFolder: fileStat.isDirectory(),
+            when: Date.now()
+        };
+        this.canons.push(canon);
+        this.fsw.add(path);
+        // console.log('ADD', canon)
+    }
+    // If path is inside a watched folder, return folder as canonical reference.
+    canon(path) {
+        for (const canon of this.canons) {
+            if (canon.isFolder && path.startsWith(canon.path)) {
+                return canon.path;
+            }
+        }
+        return path;
+    }
+    async update(br) {
         let build = br.build;
         let files = Object.keys(build.root.deps).reduce((files, target) => {
             files = files.concat(Object.keys(build.root.deps[target]));
             return files;
         }, [build.path]);
         // TODO: remove deleted files
-        files.forEach((file) => {
+        files.forEach(async (file) => {
             if ('string' === typeof (file) &&
                 '' !== file &&
                 build.opts.base !== file) {
-                this.fsw.add(file);
+                await this.add(file);
             }
         });
     }
@@ -55,6 +108,7 @@ class Watch {
         return await this.run(false);
     }
     async run(once) {
+        // console.trace()
         var _a, _b;
         this.last_change_time = Date.now();
         print('\n@voxgig/model', new Date(this.last_change_time));
@@ -70,7 +124,7 @@ class Watch {
             print('TOP:', Object.keys((_a = br === null || br === void 0 ? void 0 : br.build) === null || _a === void 0 ? void 0 : _a.model).join(', '), '\n');
             if (!once) {
                 // There may be new files.
-                this.update(br);
+                await this.update(br);
             }
         }
         else {
