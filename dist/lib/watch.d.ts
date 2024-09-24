@@ -27,7 +27,7 @@ declare class Watch {
     canon(path: string): string;
     update(br: BuildResult): Promise<void>;
     start(): Promise<BuildResult>;
-    run(once?: boolean): Promise<BuildResult>;
+    run(once?: boolean, trigger?: string): Promise<BuildResult>;
     stop(): Promise<void>;
     handleErrors(br: BuildResult): void;
     descDeps(deps: Record<string, Record<string, {

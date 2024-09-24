@@ -88,7 +88,7 @@ class Watch {
     let r
     while (r = this.runq[0]) {
       // console.log('DRAIN')
-      let br = await this.run(false)
+      let br = await this.run(false, r.canon)
       // console.log('BR', br)
       this.runq.shift()
       r.end = Date.now()
@@ -162,15 +162,16 @@ class Watch {
 
   // Returns first BuildResult
   async start(): Promise<BuildResult> {
-    return await this.run(false)
+    return await this.run(false, '<start>')
   }
 
 
-  async run(once?: boolean): Promise<BuildResult> {
+  async run(once?: boolean, trigger?: string): Promise<BuildResult> {
     // console.trace()
 
     this.last_change_time = Date.now()
-    print('\n@voxgig/model', new Date(this.last_change_time))
+    print('\n@voxgig/model', this.last_change_time, new Date(this.last_change_time))
+    print('TRIGGER:', trigger, '\n')
 
     // TODO: build spec should not have src!
     let src = (await readFile(this.spec.path)).toString()
@@ -212,12 +213,14 @@ class Watch {
   handleErrors(br: BuildResult) {
     if (br.err) {
       for (let be of br.err) {
-        if (be.msg) {
+        // TODO: print stack if not a model error
+
+        if (be.isVal && be.msg) {
           warn(be.msg)
         }
-        else if (be.message) {
-          warn(be.message)
-        }
+        // else if (be.message) {
+        //   warn(be.message)
+        // }
         else {
           warn(be)
         }
