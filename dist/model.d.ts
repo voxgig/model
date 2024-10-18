@@ -8,7 +8,7 @@ declare class Model {
     trigger_model: boolean;
     constructor(spec: Spec);
     run(): Promise<BuildResult>;
-    start(): Promise<BuildResult>;
+    start(): Promise<void | BuildResult>;
     stop(): Promise<void>;
 }
 export { Model, Spec, };

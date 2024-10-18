@@ -15,49 +15,92 @@ class Watch {
     constructor(spec) {
         this.spec = spec;
         this.fsw = new chokidar_1.FSWatcher();
-        this.last_change_time = 0;
+        this.lastChangeTime = 0;
         this.runq = [];
         this.doneq = [];
         this.canons = [];
+        this.startTime = 0;
+        this.lastChange = { path: '', when: 0 };
+        this.lastTrigger = { path: '', when: 0 };
         this.running = false;
-        // const run = this.run.bind(this)
-        const drain = this.drain.bind(this);
+        this.lastrun = undefined;
+        this.idle = spec.idle || 111;
         this.fsw.on('change', async (path) => {
-            // TODO: needs a much more robust queue that checks for dups,
-            // otherwise BuildContext state will have concurrency corruptions
-            // Avoid rebuilding when, for example, TS rewrites all files in dist
-            // const dorun = 1111 < Date.now() - this.last_change_time
-            // console.log('CHANGE', dorun, this.last_change_time, args)
-            const canon = this.canon(path);
-            const running = this.runq.find((run) => run.canon === canon);
-            if (running) {
-                // console.log('RUNNING', canon, path)
-                return;
-            }
-            this.runq.push({
-                canon,
-                path,
-                start: Date.now(),
-                end: -1,
-            });
-            // console.log('RUNQ-ADD', this.runq)
-            setImmediate(drain);
+            // console.log('CHANGE', Date.now() - this.startTime, path)
+            this.handleChange(path);
         });
     }
+    // Returns first BuildResult
+    start() {
+        this.startTime = Date.now();
+        this.handleChange('<start>');
+        // Check if there have been no recent changes, if so, run build.
+        setInterval(() => {
+            const start = this.startTime;
+            const now = Date.now();
+            const idleDuration = now - this.lastChange.when;
+            // Only trigger a build if there was a actual change
+            const trigger = this.lastChange.when !== this.lastTrigger.when &&
+                this.lastChange.path !== this.lastTrigger.path;
+            // console.log('CHECK-A', {
+            //   tick: (now - start),
+            //   idleDuration,
+            //   trigger,
+            //   running: this.running,
+            //   path: this.lastChange.path
+            // })
+            if (trigger) {
+                // Only add to build queue if we've been idle.
+                // This allows external compilation outputting multiple files to complete fully.
+                // IMPORTANT: always trigger a new build if there were changes *inside* a build period
+                if (this.idle < idleDuration) {
+                    this.lastTrigger.path = this.lastChange.path;
+                    this.lastTrigger.when = this.lastChange.when;
+                    const path = this.lastChange.path;
+                    const canon = this.canon(path);
+                    this.runq.push({
+                        canon,
+                        path,
+                        start: now,
+                        end: -1,
+                    });
+                    // Defer builds to the event loop to keep idle checking separate.
+                    setImmediate(this.drain.bind(this));
+                }
+            }
+        }, (this.idle * 1.1 / 2) | 0);
+    }
+    // If path is inside a watched folder, return folder as canonical reference.
+    canon(path) {
+        for (const canon of this.canons) {
+            if (canon.isFolder && path.startsWith(canon.path)) {
+                return canon.path;
+            }
+        }
+        return path;
+    }
+    handleChange(path) {
+        // Record most recent (last) changed path and time
+        this.lastChange.path = path;
+        this.lastChange.when = Date.now();
+    }
     async drain() {
+        // If already running, all items in queue will be drained from this.runq in the while loop
         if (this.running) {
             return;
         }
         this.running = true;
         let r;
-        while (r = this.runq[0]) {
-            // console.log('DRAIN')
+        // While there are queued runs, run them sequentially
+        while (r = this.runq.shift()) {
+            // console.log('===DRAIN-RUN', this.runq.length, new Date(), r.start, r.canon)
+            // TODO: collect results and errors!!!
             let br = await this.run(false, r.canon);
             // console.log('BR', br)
-            this.runq.shift();
             r.end = Date.now();
             this.doneq.push(r);
-            // console.log('DONEQ', this.doneq)
+            this.lastrun = r;
+            // console.log('===DRAIN-DONE', this.runq.length, new Date(), r.start, r.canon)
         }
         this.running = false;
     }
@@ -79,15 +122,6 @@ class Watch {
         this.fsw.add(path);
         // console.log('ADD', canon)
     }
-    // If path is inside a watched folder, return folder as canonical reference.
-    canon(path) {
-        for (const canon of this.canons) {
-            if (canon.isFolder && path.startsWith(canon.path)) {
-                return canon.path;
-            }
-        }
-        return path;
-    }
     async update(br) {
         let build = br.build;
         let files = Object.keys(build.root.deps).reduce((files, target) => {
@@ -103,15 +137,11 @@ class Watch {
             }
         });
     }
-    // Returns first BuildResult
-    async start() {
-        return await this.run(false, '<start>');
-    }
     async run(once, trigger) {
         // console.trace()
         var _a, _b;
-        this.last_change_time = Date.now();
-        print('\n@voxgig/model', this.last_change_time, new Date(this.last_change_time));
+        this.lastChangeTime = Date.now();
+        print('\n@voxgig/model =================', this.lastChangeTime, new Date(this.lastChangeTime));
         print('TRIGGER:', trigger, '\n');
         // TODO: build spec should not have src!
         let src = (await (0, promises_1.readFile)(this.spec.path)).toString();

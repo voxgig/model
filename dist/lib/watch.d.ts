@@ -11,22 +11,32 @@ type Canon = {
     isFolder: boolean;
     when: number;
 };
+type ChangeItem = {
+    path: string;
+    when: number;
+};
 declare class Watch {
     fsw: FSWatcher;
     spec: any;
     last?: BuildResult;
-    last_change_time: number;
+    lastChangeTime: number;
     build: Build | undefined;
     runq: Run[];
     doneq: Run[];
     canons: Canon[];
+    lastrun: Run | undefined;
+    idle: number;
+    startTime: number;
     running: boolean;
+    lastChange: ChangeItem;
+    lastTrigger: ChangeItem;
     constructor(spec: any);
+    start(): void;
+    canon(path: string): string;
+    handleChange(path: string): void;
     drain(): Promise<void>;
     add(path: string): Promise<void>;
-    canon(path: string): string;
     update(br: BuildResult): Promise<void>;
-    start(): Promise<BuildResult>;
     run(once?: boolean, trigger?: string): Promise<BuildResult>;
     stop(): Promise<void>;
     handleErrors(br: BuildResult): void;

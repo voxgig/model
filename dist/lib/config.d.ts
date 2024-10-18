@@ -5,7 +5,7 @@ declare class Config {
     watch: Watch;
     constructor(spec: Spec);
     run(): Promise<BuildResult>;
-    start(): Promise<BuildResult>;
+    start(): Promise<void>;
     stop(): Promise<void>;
 }
 export { Config, Spec };

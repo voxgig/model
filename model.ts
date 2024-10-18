@@ -94,9 +94,11 @@ class Model {
   }
 
 
-  async start(): Promise<BuildResult> {
+  async start() {
     this.trigger_model = false
-    const br = await this.config.start()
+
+    const br = await this.config.run()
+    // console.log('MODEL CONFIG START', br.ok)
     return br.ok ? this.watch.start() : br
   }
 

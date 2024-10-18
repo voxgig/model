@@ -31,7 +31,7 @@ class Config {
   }
 
   async run(): Promise<BuildResult> {
-    return this.watch.run(true)
+    return this.watch.run(true, '<config>')
   }
 
   async start() {

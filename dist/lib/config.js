@@ -17,7 +17,7 @@ class Config {
         this.watch = new watch_1.Watch(this.build);
     }
     async run() {
-        return this.watch.run(true);
+        return this.watch.run(true, '<config>');
     }
     async start() {
         return this.watch.start();
