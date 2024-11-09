@@ -44,13 +44,15 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@voxgig/util": "^0.0.3",
-    "aontu": "0.22.0",
+    "aontu": "0.25.0",
     "chokidar": "4.0.1"
   },
+  "peerDependencies": {
+    "@voxgig/util": ">=0"
+  },
   "devDependencies": {
-    "@types/jest": "^29.5.13",
-    "@types/node": "22.7.6",
+    "@types/jest": "^29.5.14",
+    "@types/node": "22.9.0",
     "es-jest": "^2.1.0",
     "esbuild": "^0.24.0",
     "esbuild-jest": "^0.5.0",
