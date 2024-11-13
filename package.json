@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "main": "dist/model.js",
   "type": "commonjs",
   "types": "dist/model.d.ts",
@@ -22,6 +22,7 @@
     "test": "node --enable-source-maps --test dist-test",
     "test22": "node --enable-source-maps --test \"dist-test/*.test.js\"",
     "test-some": "node --enable-source-maps --test-name-pattern=\"$npm_config_pattern\" --test dist-test",
+    "test-cov": "rm -rf ./coverage && mkdir -p ./coverage && node --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info --enable-source-maps --test \"dist-test/*.test.js\"",
     "watch": "tsc --build src test -w",
     "build": "tsc --build src test",
     "test-model": "voxgig-model test/sys01/model/model.jsonic",
