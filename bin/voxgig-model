@@ -1,52 +1,171 @@
 #!/usr/bin/env node
 
-const Fs = require('fs')
-const Path = require('path')
+const { parseArgs } = require('node:util')
+const Fs = require('node:fs')
+const Path = require('node:path')
 
-let { Model } = require('../dist/model.js')
+const Pkg = require('../package.json')
+const { Model } = require('../dist/model.js')
+
+const { Gubu, Fault, One } = require('gubu')
 
 
-let path = process.argv[2]
-let once = '--once' === process.argv[3]
-
-if(null == path || '' == path) {
-  console.error('ERROR: First argument should be a jsonic model file path.')
-  process.exit(1)
-}
-
-let fstats = Fs.statSync(path)
-// let base = path
-let base = Path.resolve(path)
-
-if (fstats.isFile()) {
-  let basedesc = Path.parse(base)
-  base = basedesc.dir
-}
-
-path = Path.resolve(path)
-
-let src = Fs.readFileSync(path).toString()
-
-let spec = {
-  src,
-  path,
-  base,
-  require: process.cwd()
-}
-
-let model = new Model(spec)
-
-async function run() {
-  if(once) {
-    let br = await model.run()
-    if(0 < br.err.length) {
-      process.exit(1)
-    }
-  }
-  else {
-    model.start()
-  }
-}
-
+let CONSOLE = console
 
 run()
+
+
+async function run() {
+  try {
+    let options = resolveOptions()
+
+    if(options.version) {
+      version()
+    }
+
+    if(options.help) {
+      help()
+    }
+
+    if(options.version || options.help) {
+      exit()
+    }
+
+    options = validateOptions(options)
+
+    await generate(options)
+  }
+  catch(err) {
+    handleError(err)
+  }
+}
+
+
+function exit(err) {
+  let code = 0
+  if(err) {
+    code = 1
+  }
+  process.exit(code)
+}
+
+
+function resolveOptions() {
+
+  const args = parseArgs({
+    allowPositionals: true,
+    options: {
+      model: {
+        type: 'string',
+        short: 'm',
+        default: '',
+      },
+      
+      watch: {
+        type: 'boolean',
+        short: 'w',
+      },
+      
+      debug: {
+        type: 'string',
+        short: 'g',
+        default: 'info'
+      },
+      
+      help: {
+        type: 'boolean',
+        short: 'h',
+      },
+      
+      version: {
+        type: 'boolean',
+        short: 'v',
+      },
+      
+    }
+  })
+
+  const options = {
+    model: '' === args.values.model ? args.positionals[0] : args.values.model,
+    watch: !!args.values.watch,
+    debug: args.values.debug,
+    help: !!args.values.help,
+    version: !!args.values.version,
+  }
+
+  return options
+}
+
+
+function validateOptions(rawOptions) {
+  const optShape = Gubu({
+    model: Fault('The first argument should be the model file.', String),
+    watch: Boolean,
+    debug: One(String,Boolean),
+    help: Boolean,
+    version: Boolean,
+  })
+
+  const err = []
+  const options = optShape(rawOptions,{err})
+
+  if(err[0]) {
+    throw new Error(err[0].text)
+  }
+
+  return options
+}
+
+
+async function handleError(err) {
+  CONSOLE.log('Voxgig Model Error:')
+  CONSOLE.log(err)
+  exit(err)
+}
+
+
+function version() {
+  CONSOLE.log(Pkg.version)
+}
+
+
+function help() {
+  const s = 'TODO'
+  CONSOLE.log(s)
+}
+
+
+
+async function generate(options) {
+  let path = options.model
+
+  let fstats = Fs.statSync(path)
+  let base = Path.resolve(path)
+
+  if (fstats.isFile()) {
+    let basedesc = Path.parse(base)
+    base = basedesc.dir
+  }
+
+  path = Path.resolve(path)
+
+  let src = Fs.readFileSync(path).toString()
+
+  let spec = {
+    src,
+    path,
+    base,
+    require: process.cwd(),
+    debug: options.debug,
+  }
+
+  let model = new Model(spec)
+
+  if(options.watch) {
+    model.start()
+  }
+  else {
+    let br = await model.run()
+  }
+}
+

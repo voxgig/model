@@ -19,16 +19,15 @@
     "url": "git://github.com/voxgig/model.git"
   },
   "scripts": {
-    "test": "jest --coverage",
-    "test-pure": "jest --coverage --config jest.config.pure.js",
-    "test-some": "jest -t",
-    "test-watch": "jest --coverage --watchAll",
+    "test": "node --enable-source-maps --test dist-test",
+    "test22": "node --enable-source-maps --test \"dist-test/*.test.js\"",
+    "test-some": "node --enable-source-maps --test-name-pattern=\"$npm_config_pattern\" --test dist-test",
+    "watch": "tsc --build src test -w",
+    "build": "tsc --build src test",
     "test-model": "voxgig-model test/sys01/model/model.jsonic",
-    "model": "voxgig-model model/sys.jsonic",
-    "model-build": "voxgig-model model/sys.jsonic --once",
-    "watch": "tsc -w -d",
-    "build": "tsc -d",
-    "clean": "rm -rf node_modules yarn.lock package-lock.json",
+    "model": "voxgig-model -w model/sys.jsonic",
+    "model-build": "voxgig-model -g debug model/sys.jsonic",
+    "clean": "rm -rf node_modules dist dist-test yarn.lock package-lock.json",
     "reset": "npm run clean && npm i && npm run build && npm test",
     "repo-tag": "REPO_VERSION=`node -e \"console.log(require('./package').version)\"` && echo TAG: v$REPO_VERSION && git commit -a -m v$REPO_VERSION && git push && git tag v$REPO_VERSION && git push --tags;",
     "repo-publish": "npm run clean && npm i && npm run repo-publish-quick",
@@ -45,18 +44,15 @@
   ],
   "dependencies": {
     "aontu": "0.25.0",
-    "chokidar": "4.0.1"
+    "chokidar": "4.0.1",
+    "gubu": "^8.3.0"
   },
   "peerDependencies": {
     "@voxgig/util": ">=0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.14",
     "@types/node": "22.9.0",
-    "es-jest": "^2.1.0",
-    "esbuild": "^0.24.0",
-    "esbuild-jest": "^0.5.0",
-    "jest": "^29.7.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "@hapi/code": "^9.0.3"
   }
 }
