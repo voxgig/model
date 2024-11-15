@@ -1,11 +1,11 @@
 import type { BuildResult, BuildSpec, Log } from './types';
 import { Watch } from './watch';
 declare class Config {
-    build: any;
+    build: BuildSpec;
     watch: Watch;
     log: Log;
     constructor(spec: BuildSpec, log: Log);
-    run(): Promise<BuildResult>;
+    run(watch: boolean): Promise<BuildResult>;
     start(): Promise<void>;
     stop(): Promise<void>;
 }

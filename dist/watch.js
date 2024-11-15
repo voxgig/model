@@ -9,8 +9,6 @@ const node_path_1 = __importDefault(require("node:path"));
 const build_1 = require("./build");
 const chokidar_1 = require("chokidar");
 const promises_1 = require("fs/promises");
-const print = console.log;
-const warn = console.warn;
 class Watch {
     constructor(wspec, log) {
         this.wspec = wspec;
@@ -28,7 +26,7 @@ class Watch {
         this.lastrun = undefined;
         this.idle = wspec.idle || 111;
         this.fsw.on('change', async (path) => {
-            // console.log('CHANGE', Date.now() - this.startTime, path)
+            // console.log('CHANGE:', path)
             this.handleChange(path);
         });
     }
@@ -41,17 +39,11 @@ class Watch {
             // const start = this.startTime
             const now = Date.now();
             const idleDuration = now - this.lastChange.when;
-            // Only trigger a build if there was a actual change
-            const trigger = this.lastChange.when !== this.lastTrigger.when &&
-                this.lastChange.path !== this.lastTrigger.path;
-            // console.log('CHECK-A', {
-            //   tick: (now - start),
-            //   idleDuration,
-            //   trigger,
-            //   running: this.running,
-            //   path: this.lastChange.path
-            // })
+            // Only trigger a build if there was an actual change
+            const trigger = this.lastChange.when !== this.lastTrigger.when; // &&
+            // this.lastChange.path !== this.lastTrigger.path
             if (trigger) {
+                // console.log('TRIGGER', this.idle < idleDuration, this.idle, idleDuration)
                 // Only add to build queue if we've been idle.
                 // This allows external compilation outputting multiple files to complete fully.
                 // IMPORTANT: always trigger a new build if there were changes *inside* a build period
@@ -60,12 +52,14 @@ class Watch {
                     this.lastTrigger.when = this.lastChange.when;
                     const path = this.lastChange.path;
                     const canon = this.canon(path);
-                    this.runq.push({
+                    const entry = {
                         canon,
                         path,
                         start: now,
                         end: -1,
-                    });
+                    };
+                    // console.log('RUNQ ENTRY', entry)
+                    this.runq.push(entry);
                     // Defer builds to the event loop to keep idle checking separate.
                     setImmediate(this.drain.bind(this));
                 }
@@ -95,14 +89,11 @@ class Watch {
         let r;
         // While there are queued runs, run them sequentially
         while (r = this.runq.shift()) {
-            // console.log('===DRAIN-RUN', this.runq.length, new Date(), r.start, r.canon)
-            // TODO: collect results and errors!!!
-            let br = await this.run(this.name, false, r.canon);
-            // console.log('BR', br)
+            let br = await this.run(this.name, true, r.canon);
+            r.result = br;
             r.end = Date.now();
             this.doneq.push(r);
             this.lastrun = r;
-            // console.log('===DRAIN-DONE', this.runq.length, new Date(), r.start, r.canon)
         }
         this.running = false;
     }
@@ -122,7 +113,6 @@ class Watch {
         };
         this.canons.push(canon);
         this.fsw.add(path);
-        // console.log('ADD', canon)
     }
     async update(br) {
         let build = br.build;
@@ -139,73 +129,60 @@ class Watch {
             }
         });
     }
-    async run(name, once, trigger) {
-        // console.trace()
-        this.lastChangeTime = Date.now();
-        // print('\n@voxgig/model =================', this.lastChangeTime, new Date(this.lastChangeTime))
-        // print('TRIGGER:', trigger, '\n')
-        this.log.info({
-            point: 'build-start', last: this.lastChangeTime, watch: name,
-            note: 'watch:' + name + ' last:' + new Date(this.lastChangeTime).toISOString()
-        });
-        this.log.info({
-            point: 'build-trigger', trigger,
-            note: 'watch:' + name + ' trigger:' + ('' + trigger).replace(process.cwd() + '/', '')
-        });
-        // TODO: build spec should not have src!
-        let src = (await (0, promises_1.readFile)(this.wspec.path)).toString();
-        this.wspec.src = src;
-        this.build = this.build || (0, build_1.makeBuild)(this.wspec, this.log);
-        // TODO: better way to do this?
-        this.build.src = src;
-        let br = await this.build.run();
-        // print('\nFILES:\n' + this.descDeps((br as any).build.root.deps) + '\n')
-        const deps = this.descDeps(br.build.root.deps);
-        this.log.debug({
-            point: 'deps', deps,
-            note: 'watch:' + name + ' deps:\n' + deps
-        });
-        if (br.ok) {
-            const rootkeys = Object.keys(br?.build?.model).join(';');
+    async run(name, watch, trigger) {
+        try {
+            this.lastChangeTime = Date.now();
             this.log.info({
-                point: 'root-keys', keys: rootkeys,
-                note: 'watch:' + name + ' keys: ' + rootkeys
+                point: 'build-start', last: this.lastChangeTime, watch: name,
+                note: 'watch:' + name + ' last:' + new Date(this.lastChangeTime).toISOString()
             });
-            // print('TOP:', Object.keys(br?.build?.model).join(', '), '\n')
-            if (!once) {
-                // There may be new files.
-                await this.update(br);
+            this.log.info({
+                point: 'build-trigger', trigger,
+                note: 'watch:' + name + ' trigger:' + ('' + trigger).replace(process.cwd() + '/', '')
+            });
+            this.build = this.build || (0, build_1.makeBuild)(this.wspec, this.log);
+            let rspec = { watch: true === watch };
+            let br = await this.build.run(rspec);
+            const deps = this.descDeps(br.build?.root.deps);
+            this.log.debug({
+                point: 'deps', deps,
+                note: 'watch:' + name + ' deps:\n' + deps
+            });
+            if (br.ok) {
+                const rootkeys = Object.keys(br.build?.model).join(';');
+                this.log.info({
+                    point: 'root-keys', keys: rootkeys,
+                    note: 'watch:' + name + ' keys: ' + rootkeys
+                });
+                if (watch) {
+                    // There may be new files.
+                    await this.update(br);
+                }
+                this.log.info({
+                    point: 'build-end', watch: name,
+                    note: 'watch:' + name + '\n',
+                });
             }
+            else {
+                let errs = br.errs || [new Error('Unknown build error')];
+                errs.map((err) => this.log.error({
+                    fail: 'build', point: 'run-build', build: this, err
+                }));
+                // console.log('WATCH ERRS', errs)
+            }
+            this.last = br;
+            return br;
         }
-        else {
-            warn('MODEL ERRORS: ' + br.err?.length);
-            this.handleErrors(br);
+        catch (err) {
+            let br = {
+                ok: false,
+                errs: [err]
+            };
+            return br;
         }
-        this.last = br;
-        this.log.info({
-            point: 'build-end', watch: name,
-            note: 'watch:' + name + '\n',
-        });
-        return br;
     }
     async stop() {
         await this.fsw.close();
-    }
-    handleErrors(br) {
-        if (br.err) {
-            for (let be of br.err) {
-                // TODO: print stack if not a model error
-                if (be.isVal && be.msg) {
-                    warn(be.msg);
-                }
-                // else if (be.message) {
-                //   warn(be.message)
-                // }
-                else {
-                    warn(be);
-                }
-            }
-        }
     }
     descDeps(deps) {
         if (null == deps) {

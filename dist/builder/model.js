@@ -11,25 +11,20 @@ const model_builder = async (build, ctx) => {
     if ('post' !== ctx.step) {
         return { ok: true, step: ctx.step, active: false };
     }
-    try {
-        let json = JSON.stringify(build.root.gen(), null, 2);
-        let filename = path_1.default.basename(build.path);
-        let filenameparts = filename.match(/^(.*)\.[^.]+$/);
-        if (filenameparts) {
-            filename = filenameparts[1];
-        }
-        let file = build.opts.base + '/' + filename + '.json';
-        build.log.info({
-            point: 'write-model',
-            path: file,
-            note: file.replace(process.cwd(), '.')
-        });
-        await (0, promises_1.writeFile)(file, json);
-        return { ok: true, step: ctx.step, active: true };
+    let json = JSON.stringify(build.root.gen(), null, 2);
+    let filename = path_1.default.basename(build.path);
+    let filenameparts = filename.match(/^(.*)\.[^.]+$/);
+    if (filenameparts) {
+        filename = filenameparts[1];
     }
-    catch (e) {
-        throw e;
-    }
+    let file = build.opts.base + '/' + filename + '.json';
+    build.log.info({
+        point: 'write-model',
+        path: file,
+        note: file.replace(process.cwd(), '.')
+    });
+    await (0, promises_1.writeFile)(file, json);
+    return { ok: true, step: ctx.step, active: true };
 };
 exports.model_builder = model_builder;
 //# sourceMappingURL=model.js.map

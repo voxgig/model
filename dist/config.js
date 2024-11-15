@@ -7,7 +7,6 @@ class Config {
     constructor(spec, log) {
         this.log = log;
         this.build = {
-            src: spec.src,
             path: spec.path,
             base: spec.base,
             res: [
@@ -15,11 +14,12 @@ class Config {
             ],
             require: spec.require,
             log: this.log,
+            fs: spec.fs
         };
         this.watch = new watch_1.Watch(this.build, this.log);
     }
-    async run() {
-        return this.watch.run('config', true, '<config>');
+    async run(watch) {
+        return this.watch.run('config', watch, '<config>');
     }
     async start() {
         return this.watch.start();

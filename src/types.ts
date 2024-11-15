@@ -8,7 +8,6 @@ type Log = ReturnType<typeof Pino>
 
 interface Build {
   id: string
-  src: string
   base: string
   path: string
   root: any
@@ -17,10 +16,10 @@ interface Build {
   spec: BuildSpec
   model: any
   use: { [name: string]: any }
-  err: any[]
+  errs: any[]
   ctx: BuildContext
 
-  run: () => Promise<BuildResult>
+  run: (rspec: RunSpec) => Promise<BuildResult>
   log: Log
 }
 
@@ -32,7 +31,7 @@ interface BuildResult {
   build?: Build
   builders?: BuildResult[]
   step?: string
-  err?: any[]
+  errs?: any[]
 }
 
 interface BuildAction {
@@ -43,6 +42,7 @@ interface BuildAction {
 
 interface BuildContext {
   step: 'pre' | 'post'
+  watch: boolean,
   state: Record<string, any>
 }
 
@@ -53,16 +53,16 @@ type Builder = (
 
 
 interface BuildSpec {
-  src: string
   path?: string
   base?: string
   res?: BuildAction[]
   require?: any
   use?: { [name: string]: any }
   log?: Log
-  idle?: number,
-  name?: string,
-  debug?: boolean | string,
+  idle?: number
+  name?: string
+  debug?: boolean | string
+  fs: any
 }
 
 
@@ -71,6 +71,12 @@ type Run = {
   path: string
   start: number
   end: number
+  result?: BuildResult
+}
+
+
+type RunSpec = {
+  watch: boolean
 }
 
 type Canon = {
@@ -85,6 +91,17 @@ type ChangeItem = {
   when: number
 }
 
+interface ModelSpec {
+  path?: string
+  base?: string
+  require?: any
+  log?: Log
+  idle?: number
+  debug?: boolean | string
+  fs?: any
+}
+
+
 
 export type {
   Build,
@@ -96,5 +113,7 @@ export type {
   Log,
   Run,
   Canon,
-  ChangeItem
+  ChangeItem,
+  RunSpec,
+  ModelSpec,
 }

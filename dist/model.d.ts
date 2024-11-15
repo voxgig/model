@@ -1,4 +1,4 @@
-import type { BuildResult, BuildSpec, Log } from './types';
+import type { BuildResult, BuildSpec, ModelSpec, Log } from './types';
 import { Config } from './config';
 import { Watch } from './watch';
 declare class Model {
@@ -7,7 +7,8 @@ declare class Model {
     watch: Watch;
     trigger_model: boolean;
     log: Log;
-    constructor(spec: BuildSpec);
+    fs: any;
+    constructor(mspec: ModelSpec);
     run(): Promise<BuildResult>;
     start(): Promise<void | BuildResult>;
     stop(): Promise<void>;

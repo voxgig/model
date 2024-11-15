@@ -8,7 +8,7 @@ import { Watch } from './watch'
 
 
 class Config {
-  build: any
+  build: BuildSpec
   watch: Watch
   log: Log
 
@@ -16,7 +16,6 @@ class Config {
     this.log = log
 
     this.build = {
-      src: spec.src,
       path: spec.path,
       base: spec.base,
       res: [
@@ -24,13 +23,14 @@ class Config {
       ],
       require: spec.require,
       log: this.log,
+      fs: spec.fs
     }
 
     this.watch = new Watch(this.build, this.log)
   }
 
-  async run(): Promise<BuildResult> {
-    return this.watch.run('config', true, '<config>')
+  async run(watch: boolean): Promise<BuildResult> {
+    return this.watch.run('config', watch, '<config>')
   }
 
   async start() {

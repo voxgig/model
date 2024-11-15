@@ -10,50 +10,38 @@ const local_builder: Builder = async (build: Build, ctx: BuildContext) => {
   let actionDefs = ctx.state.local.actionDefs
 
   if (null == actionDefs) {
-    try {
-      actionDefs = ctx.state.local.actionDefs = []
+    actionDefs = ctx.state.local.actionDefs = []
 
-      // TODO: need to provide project root via build
-      let root = Path.resolve(build.path, '..', '..')
-
-
-      // TODO: build should do this
-      let configbuild = build.use.config
-
-      let config = configbuild.watch.last.build.model
-
-      let builders = config.sys.model.builders
-
-      // TODO: order by comma sep string
-      // Load builders
-      for (let name in builders) {
-        let builder = builders[name]
-        let action_path = Path.join(root, builder.load)
+    // TODO: need to provide project root via build
+    let root = Path.resolve(build.path, '..', '..')
 
 
-        // clear(action_path)
+    // TODO: build should do this
+    let configbuild = build.use.config
 
+    let config = configbuild.watch.last?.build.model || {}
 
-        let action = require(action_path)
+    let builders = config.sys?.model.builders || {}
 
-        if (action instanceof Promise) {
-          action = await action
-        }
+    // TODO: order by comma sep string
+    // Load builders
+    for (let name in builders) {
+      let builder = builders[name]
+      let action_path = Path.join(root, builder.load)
 
-        const step = action.step || 'post'
+      let action = require(action_path)
 
-        actionDefs.push({ name, builder, action, step })
+      if (action instanceof Promise) {
+        action = await action
       }
-    }
-    catch (e: any) {
-      throw e
+
+      const step = action.step || 'post'
+
+      actionDefs.push({ name, builder, action, step })
     }
   }
 
-
   const runActionDefs = actionDefs.filter((ad: any) => ctx.step === ad.step || 'all' === ad.step)
-
-  // console.log(runActionDefs)
 
   build.log.info({
     point: ctx.step + '-actions', step: ctx.step, actions: runActionDefs,
@@ -61,46 +49,16 @@ const local_builder: Builder = async (build: Build, ctx: BuildContext) => {
   })
 
   let ok = true
-  let brlog = []
+  let areslog = []
 
   for (let actionDef of runActionDefs) {
-    let br = await actionDef.action(build.model, build)
-    ok = ok && null != br && br.ok
-    brlog.push(br)
+    let ares = await actionDef.action(build.model, build, ctx)
+    ok = ok && null != ares && ares.ok
+    areslog.push(ares)
   }
 
   return { ok: true, step: ctx.step, active: true }
 }
-
-/*
-// Adapted from https://github.com/sindresorhus/import-fresh - Thanks!
-function clear(path: string) {
-  let filePath = require.resolve(path)
-
-  if (require.cache[filePath]) {
-    const children = require.cache[filePath].children.map(child => child.id)
-
-    // Delete module from cache
-    delete require.cache[filePath]
-
-    for (const id of children) {
-      clear(id)
-    }
-  }
-
-
-  if (require.cache[filePath] && require.cache[filePath].parent) {
-    let i = require.cache[filePath].parent.children.length
-
-    while (i--) {
-      if (require.cache[filePath].parent.children[i].id === filePath) {
-        require.cache[filePath].parent.children.splice(i, 1)
-      }
-    }
-  }
-
-}
-*/
 
 
 export {

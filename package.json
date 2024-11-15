@@ -44,16 +44,17 @@
     "LICENSE"
   ],
   "dependencies": {
-    "aontu": "0.25.0",
+    "aontu": "0.25.1",
     "chokidar": "4.0.1",
     "gubu": "^8.3.0"
   },
   "peerDependencies": {
-    "@voxgig/util": ">=0"
+    "@voxgig/util": ">=0",
+    "pino": ">=9"
   },
   "devDependencies": {
+    "@hapi/code": "^9.0.3",
     "@types/node": "22.9.0",
-    "typescript": "^5.6.3",
-    "@hapi/code": "^9.0.3"
+    "typescript": "^5.6.3"
   }
 }

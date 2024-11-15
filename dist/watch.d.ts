@@ -24,9 +24,8 @@ declare class Watch {
     drain(): Promise<void>;
     add(path: string): Promise<void>;
     update(br: BuildResult): Promise<void>;
-    run(name: string, once?: boolean, trigger?: string): Promise<BuildResult>;
+    run(name: string, watch?: boolean, trigger?: string): Promise<BuildResult>;
     stop(): Promise<void>;
-    handleErrors(br: BuildResult): void;
     descDeps(deps: Record<string, Record<string, {
         tar: string;
     }>>): string;

@@ -1,6 +1,10 @@
 "use strict";
 /* Copyright (c) 2021-2024 Richard Rodger and other contributors, MIT License */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const fs_1 = __importDefault(require("fs"));
 const promises_1 = require("node:fs/promises");
 const node_test_1 = require("node:test");
 const code_1 = require("@hapi/code");
@@ -13,9 +17,9 @@ const model_2 = require("../dist/builder/model");
         await (0, promises_1.writeFile)(__dirname + '/../test/p01/doc.html', 'BAD');
         let log = (0, util_1.prettyPino)('test', {});
         let b0 = (0, build_1.makeBuild)({
-            src: '@"model.jsonic"',
+            fs: fs_1.default,
             base: __dirname + '/../test/p01/model',
-            path: __dirname + '/../test/p01/model/model.json',
+            path: __dirname + '/../test/p01/model/model.jsonic',
             res: [
                 {
                     path: '/',
@@ -46,7 +50,8 @@ const model_2 = require("../dist/builder/model");
                 }
             ]
         }, log);
-        let v0 = await b0.run();
+        let v0 = await b0.run({ watch: false });
+        console.log(v0);
         (0, code_1.expect)(v0.ok).equal(true);
         (0, code_1.expect)(b0.root.canon).equal('{"foo":1,"bar":2}');
         (0, code_1.expect)(await (0, promises_1.readFile)(__dirname + '/../test/p01/doc.html', { encoding: 'utf8' }))
@@ -62,9 +67,8 @@ const model_2 = require("../dist/builder/model");
         let base = __dirname + '/../test/sys01/model';
         await (0, promises_1.writeFile)(base + '/model.json', 'BAD');
         let path = base + '/model.jsonic';
-        let src = await (0, promises_1.readFile)(base + '/model.jsonic', { encoding: 'utf8' });
+        // let src = await readFile(base + '/model.jsonic', { encoding: 'utf8' })
         let model = new model_1.Model({
-            src,
             path,
             base,
         });

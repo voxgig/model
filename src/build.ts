@@ -1,4 +1,4 @@
-/* Copyright © 2021-2023 Voxgig Ltd, MIT License. */
+/* Copyright © 2021-2024 Voxgig Ltd, MIT License. */
 
 
 import { Aontu, Val, Nil, Context } from 'aontu'
@@ -7,10 +7,9 @@ import { Aontu, Val, Nil, Context } from 'aontu'
 import type {
   Build,
   BuildResult,
-  BuildAction,
-  Builder,
   BuildContext,
   BuildSpec,
+  RunSpec,
   Log,
 } from './types'
 
@@ -18,29 +17,29 @@ import type {
 
 class BuildImpl implements Build {
   id
-  src
   base
   path
   root: any = Nil.make()
   opts: any
-  res
+  res: any[]
   spec
   model: any
   use = {}
-  err: any[] = []
+  errs: any[] = []
   ctx: BuildContext
   log: Log
+  fs: any
 
   constructor(spec: BuildSpec, log: Log) {
     this.id = String(Math.random()).substring(3, 9)
     this.log = log
 
     this.spec = spec
-    this.src = spec.src
+    this.fs = spec.fs
     this.base = null == spec.base ? '' : spec.base
     this.path = null == spec.path ? '' : spec.path
     this.opts = {}
-    this.ctx = { step: 'pre', state: {} }
+    this.ctx = { step: 'pre', watch: false, state: {} }
 
     if (null != spec.base) {
       this.opts.base = spec.base
@@ -57,12 +56,11 @@ class BuildImpl implements Build {
   }
 
 
-  async run(): Promise<BuildResult> {
+  async run(rspec: RunSpec): Promise<BuildResult> {
     let hasErr = false
 
-    // this.ctx.step = 'pre'
-    this.ctx = { step: 'pre', state: {} }
-    const brlog = []
+    this.ctx = { step: 'pre', state: {}, watch: rspec.watch }
+    const brlog: any[] = []
 
     for (let builder of this.res) {
       try {
@@ -72,23 +70,33 @@ class BuildImpl implements Build {
         br.builder = builder.build.name
         brlog.push(br)
       }
-      catch (e: any) {
-        this.err.push(e)
+      catch (err: any) {
+        this.errs.push(err)
         hasErr = true
         break
       }
     }
 
-
+    let src: string = ''
     if (!hasErr) {
-      this.root = Aontu(this.src, this.opts)
-      hasErr = this.root.err && 0 < this.root.err.length
-
-      if (hasErr) {
-        this.err.push(...this.root.err)
+      try {
+        src = this.fs.readFileSync(this.path, 'utf8')
+      }
+      catch (err: any) {
+        hasErr = true
+        this.errs.push(err)
       }
     }
 
+    if (!hasErr) {
+      this.root = Aontu(src, this.opts)
+      hasErr = this.root.err && 0 < this.root.err.length
+
+      if (hasErr) {
+        this.errs.push(...this.root.err)
+        // console.log('AONTU ERRS', this.errs)
+      }
+    }
 
     if (!hasErr) {
       let genctx = new Context({ root: this.root })
@@ -96,11 +104,9 @@ class BuildImpl implements Build {
 
       hasErr = genctx.err && 0 < genctx.err.length
       if (hasErr) {
-        this.err.push(...genctx.err)
+        this.errs.push(...genctx.err)
       }
       else {
-        // TODO: only call if path value has changed
-
         this.ctx.step = 'post'
 
         for (let builder of this.res) {
@@ -111,15 +117,17 @@ class BuildImpl implements Build {
             br.builder = builder.build.name
             brlog.push(br)
           }
-          catch (e: any) {
-            this.err.push(e)
+          catch (err: any) {
+            hasErr = true
+            this.errs.push(err)
             break
           }
         }
+
       }
     }
 
-    const br = { ok: !hasErr, build: this, builders: brlog, err: this.err }
+    const br: BuildResult = { ok: !hasErr, build: this, builders: brlog, errs: this.errs }
 
     return br
   }

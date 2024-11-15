@@ -1,9 +1,9 @@
 /* Copyright © 2021-2024 Voxgig Ltd, MIT License. */
 
-// TODO: remove need for this
+
 import Fs from 'node:fs'
 
-import { prettyPino, Pino } from '@voxgig/util'
+import { prettyPino } from '@voxgig/util'
 
 import type {
   Build,
@@ -11,6 +11,7 @@ import type {
   BuildAction,
   BuildContext,
   BuildSpec,
+  ModelSpec,
   Log
 } from './types'
 
@@ -22,6 +23,7 @@ import { model_builder } from './builder/model'
 import { local_builder } from './builder/local'
 
 
+
 class Model {
   config: Config
   build: BuildSpec
@@ -30,24 +32,26 @@ class Model {
   trigger_model = false
 
   log: Log
+  fs: any
 
-  constructor(spec: BuildSpec) {
+  constructor(mspec: ModelSpec) {
     const self = this
+    self.fs = mspec.fs || Fs
 
-    const pino = prettyPino('model', spec as any)
+    const pino = prettyPino('model', mspec as any)
 
     this.log = pino.child({ cmp: 'model' })
 
     this.log.info({ point: 'model-init' })
     this.log.debug({
-      point: 'model-spec', spec, note: '\n' +
-        JSON.stringify({ ...spec, src: '<NOT-SHOWN>' }, null, 2)
+      point: 'model-spec', mspec, note: '\n' +
+        JSON.stringify({ ...mspec, src: '<NOT-SHOWN>' }, null, 2)
           .replace(/"/g, '')
           .replaceAll(process.cwd(), '.')
     })
 
     // Config is a special Watch to handle model config.
-    this.config = makeConfig(spec, this.log, {
+    this.config = makeConfig(mspec, this.log, this.fs, {
       path: '/',
       build: async function trigger_model(build: Build, ctx: BuildContext) {
         if ('post' !== ctx.step) {
@@ -55,9 +59,6 @@ class Model {
         }
 
         let res
-
-        // console.log('TRIGGER', build.id, self.trigger_model, ctx)
-        // console.log(new Error().stack)
 
         if (self.trigger_model) {
 
@@ -73,24 +74,24 @@ class Model {
           res = { ok: true }
         }
 
-        const watchmap = build.model?.sys?.model?.watch
+        if (ctx.watch) {
+          const watchmap = build.model?.sys?.model?.watch
 
-        if (watchmap) {
-          Object.keys(watchmap).map((file: string) => {
-            self.watch.add(file)
-          })
+          if (watchmap) {
+            Object.keys(watchmap).map((file: string) => {
+              self.watch.add(file)
+            })
+          }
         }
 
         return res
       }
     })
 
-
     // The actual model.
     this.build = {
-      src: spec.src,
-      path: spec.path,
-      base: spec.base,
+      path: mspec.path,
+      base: mspec.base,
       use: { config: self.config },
       res: [
         {
@@ -102,27 +103,27 @@ class Model {
           build: local_builder
         }
       ],
-      require: spec.require,
+      require: mspec.require,
       log: this.log,
+      fs: this.fs
     }
-
 
     this.watch = new Watch(self.build, this.log)
   }
 
 
+  // Run once.
   async run(): Promise<BuildResult> {
     this.trigger_model = false
-    const br = await this.config.run()
-    return br.ok ? this.watch.run('model', true) : br
+    const br = await this.config.run(false)
+    return br.ok ? this.watch.run('model', false, '<start>') : br
   }
 
 
+  // Start watching for file changes. Run once initially.
   async start() {
     this.trigger_model = false
-
-    const br = await this.config.run()
-    // console.log('MODEL CONFIG START', br.ok)
+    const br = await this.config.run(true)
     return br.ok ? this.watch.start() : br
   }
 
@@ -133,16 +134,24 @@ class Model {
 }
 
 
-function makeConfig(spec: BuildSpec, log: Log, trigger_model_build: BuildAction) {
-  let cbase = spec.base + '/.model-config'
+function makeConfig(mspec: ModelSpec, log: Log, fs: any, trigger_model_build: BuildAction) {
+  let cbase = mspec.base + '/.model-config'
   let cpath = cbase + '/model-config.jsonic'
 
-  // Build should load file
-  let src = Fs.readFileSync(cpath).toString()
+  /*
+  try {
+    src = Fs.readFileSync(cpath).toString()
+  }
+  catch (err: any) {
+    log.error({
+      fail: 'read-file', point: 'model-config', path: cpath, err
+    })
+    throw err
+  }
+  */
 
   let cspec: BuildSpec = {
     name: 'config',
-    src: src,
     path: cpath,
     base: cbase,
     res: [
@@ -156,8 +165,9 @@ function makeConfig(spec: BuildSpec, log: Log, trigger_model_build: BuildAction)
       // Trigger main model build.
       trigger_model_build
     ],
-    require: spec.require,
+    require: mspec.require,
     log,
+    fs,
   }
 
   return new Config(cspec, log)

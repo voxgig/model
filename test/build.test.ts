@@ -1,5 +1,7 @@
 /* Copyright (c) 2021-2024 Richard Rodger and other contributors, MIT License */
 
+import Fs from 'fs'
+
 import { writeFile, readFile } from 'node:fs/promises'
 import { test, describe } from 'node:test'
 
@@ -16,6 +18,7 @@ import { Model } from '../dist/model'
 import { model_builder } from '../dist/builder/model'
 
 
+
 describe('build', () => {
 
   test('project-p01', async () => {
@@ -24,9 +27,9 @@ describe('build', () => {
     let log = prettyPino('test', {})
 
     let b0 = makeBuild({
-      src: '@"model.jsonic"',
+      fs: Fs,
       base: __dirname + '/../test/p01/model',
-      path: __dirname + '/../test/p01/model/model.json',
+      path: __dirname + '/../test/p01/model/model.jsonic',
       res: [
         {
           path: '/',
@@ -60,7 +63,9 @@ describe('build', () => {
       ]
     }, log)
 
-    let v0 = await b0.run()
+    let v0 = await b0.run({ watch: false })
+
+    console.log(v0)
 
     expect(v0.ok).equal(true)
     expect(b0.root.canon).equal('{"foo":1,"bar":2}')
@@ -80,10 +85,9 @@ describe('build', () => {
     let base = __dirname + '/../test/sys01/model'
     await writeFile(base + '/model.json', 'BAD')
     let path = base + '/model.jsonic'
-    let src = await readFile(base + '/model.jsonic', { encoding: 'utf8' })
+    // let src = await readFile(base + '/model.jsonic', { encoding: 'utf8' })
 
     let model = new Model({
-      src,
       path,
       base,
     })

@@ -41,15 +41,6 @@ async function run() {
 }
 
 
-function exit(err) {
-  let code = 0
-  if(err) {
-    code = 1
-  }
-  process.exit(code)
-}
-
-
 function resolveOptions() {
 
   const args = parseArgs({
@@ -99,7 +90,7 @@ function resolveOptions() {
 
 function validateOptions(rawOptions) {
   const optShape = Gubu({
-    model: Fault('The first argument should be the model file.', String),
+    model: Fault('The first command line argument must be the model file path.', String),
     watch: Boolean,
     debug: One(String,Boolean),
     help: Boolean,
@@ -110,7 +101,9 @@ function validateOptions(rawOptions) {
   const options = optShape(rawOptions,{err})
 
   if(err[0]) {
-    throw new Error(err[0].text)
+    const errtext = 'ERROR: '+err.map(err=>err.text).join('\n')
+    console.error(errtext)
+    exit(1)
   }
 
   return options
@@ -118,8 +111,7 @@ function validateOptions(rawOptions) {
 
 
 async function handleError(err) {
-  CONSOLE.log('Voxgig Model Error:')
-  CONSOLE.log(err)
+  CONSOLE.error(err)
   exit(err)
 }
 
@@ -135,10 +127,23 @@ function help() {
 }
 
 
+function exit(err) {
+  let code = 0
+  if(err) {
+    code = 1
+  }
+  process.exit(code)
+}
+
 
 async function generate(options) {
   let path = options.model
 
+  if(!Fs.existsSync(path)) {
+    console.error('ERROR: model file does not exist: '+(path.replace(process.cwd(),'.')))
+    exit(1)
+  }
+                 
   let fstats = Fs.statSync(path)
   let base = Path.resolve(path)
 
@@ -149,10 +154,7 @@ async function generate(options) {
 
   path = Path.resolve(path)
 
-  let src = Fs.readFileSync(path).toString()
-
   let spec = {
-    src,
     path,
     base,
     require: process.cwd(),
@@ -165,7 +167,7 @@ async function generate(options) {
     model.start()
   }
   else {
-    let br = await model.run()
+    await model.run()
   }
 }
 

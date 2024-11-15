@@ -2,7 +2,6 @@ import Pino from 'pino';
 type Log = ReturnType<typeof Pino>;
 interface Build {
     id: string;
-    src: string;
     base: string;
     path: string;
     root: any;
@@ -15,9 +14,9 @@ interface Build {
     use: {
         [name: string]: any;
     };
-    err: any[];
+    errs: any[];
     ctx: BuildContext;
-    run: () => Promise<BuildResult>;
+    run: (rspec: RunSpec) => Promise<BuildResult>;
     log: Log;
 }
 interface BuildResult {
@@ -27,7 +26,7 @@ interface BuildResult {
     build?: Build;
     builders?: BuildResult[];
     step?: string;
-    err?: any[];
+    errs?: any[];
 }
 interface BuildAction {
     path: string;
@@ -35,11 +34,11 @@ interface BuildAction {
 }
 interface BuildContext {
     step: 'pre' | 'post';
+    watch: boolean;
     state: Record<string, any>;
 }
 type Builder = (build: Build, ctx: BuildContext) => Promise<BuildResult>;
 interface BuildSpec {
-    src: string;
     path?: string;
     base?: string;
     res?: BuildAction[];
@@ -51,12 +50,17 @@ interface BuildSpec {
     idle?: number;
     name?: string;
     debug?: boolean | string;
+    fs: any;
 }
 type Run = {
     canon: string;
     path: string;
     start: number;
     end: number;
+    result?: BuildResult;
+};
+type RunSpec = {
+    watch: boolean;
 };
 type Canon = {
     path: string;
@@ -67,4 +71,13 @@ type ChangeItem = {
     path: string;
     when: number;
 };
-export type { Build, BuildResult, BuildAction, Builder, BuildContext, BuildSpec, Log, Run, Canon, ChangeItem };
+interface ModelSpec {
+    path?: string;
+    base?: string;
+    require?: any;
+    log?: Log;
+    idle?: number;
+    debug?: boolean | string;
+    fs?: any;
+}
+export type { Build, BuildResult, BuildAction, Builder, BuildContext, BuildSpec, Log, Run, Canon, ChangeItem, RunSpec, ModelSpec, };
