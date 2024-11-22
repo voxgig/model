@@ -12,7 +12,10 @@ const model_builder: Builder = async (build: Build, ctx: BuildContext) => {
     return { ok: true, step: ctx.step, active: false }
   }
 
-  let json = JSON.stringify(build.root.gen(), null, 2)
+  // TODO: is this double work?
+  // let json = JSON.stringify(build.root.gen(), null, 2)
+
+  let json = JSON.stringify(build.model, null, 2)
 
   let filename = Path.basename(build.path)
   let filenameparts = filename.match(/^(.*)\.[^.]+$/)

@@ -16,6 +16,7 @@ declare class BuildImpl implements Build {
     fs: any;
     constructor(spec: BuildSpec, log: Log);
     run(rspec: RunSpec): Promise<BuildResult>;
+    resolveModel(): Promise<boolean>;
 }
 declare function makeBuild(spec: BuildSpec, log: Log): BuildImpl;
 export { makeBuild, BuildSpec, Val };

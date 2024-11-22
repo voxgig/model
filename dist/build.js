@@ -30,20 +30,59 @@ class BuildImpl {
         let hasErr = false;
         this.ctx = { step: 'pre', state: {}, watch: rspec.watch };
         const brlog = [];
-        for (let builder of this.res) {
-            try {
-                let br = await builder.build(this, this.ctx);
-                br.step = this.ctx.step;
-                br.path = builder.path;
-                br.builder = builder.build.name;
-                brlog.push(br);
-            }
-            catch (err) {
-                this.errs.push(err);
-                hasErr = true;
-                break;
+        if (!hasErr) {
+            hasErr = await this.resolveModel();
+        }
+        if (!hasErr) {
+            for (let builder of this.res) {
+                try {
+                    let br = await builder.build(this, this.ctx);
+                    br.step = this.ctx.step;
+                    br.path = builder.path;
+                    br.builder = builder.build.name;
+                    brlog.push(br);
+                    if (!br.ok) {
+                        hasErr = true;
+                        break;
+                    }
+                }
+                catch (err) {
+                    hasErr = true;
+                    this.errs.push(err);
+                    break;
+                }
             }
         }
+        // TODO: only reload if mode changed
+        if (!hasErr) {
+            hasErr = await this.resolveModel();
+        }
+        if (!hasErr) {
+            this.ctx.step = 'post';
+            for (let builder of this.res) {
+                try {
+                    let br = await builder.build(this, this.ctx);
+                    br.step = this.ctx.step;
+                    br.path = builder.path;
+                    br.builder = builder.build.name;
+                    brlog.push(br);
+                    if (!br.ok) {
+                        hasErr = true;
+                        break;
+                    }
+                }
+                catch (err) {
+                    hasErr = true;
+                    this.errs.push(err);
+                    break;
+                }
+            }
+        }
+        const br = { ok: !hasErr, build: this, builders: brlog, errs: this.errs };
+        return br;
+    }
+    async resolveModel() {
+        let hasErr = false;
         let src = '';
         if (!hasErr) {
             try {
@@ -69,26 +108,8 @@ class BuildImpl {
             if (hasErr) {
                 this.errs.push(...genctx.err);
             }
-            else {
-                this.ctx.step = 'post';
-                for (let builder of this.res) {
-                    try {
-                        let br = await builder.build(this, this.ctx);
-                        br.step = this.ctx.step;
-                        br.path = builder.path;
-                        br.builder = builder.build.name;
-                        brlog.push(br);
-                    }
-                    catch (err) {
-                        hasErr = true;
-                        this.errs.push(err);
-                        break;
-                    }
-                }
-            }
         }
-        const br = { ok: !hasErr, build: this, builders: brlog, errs: this.errs };
-        return br;
+        return hasErr;
     }
 }
 function makeBuild(spec, log) {

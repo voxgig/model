@@ -212,14 +212,13 @@ class Watch {
       let rspec: RunSpec = { watch: true === watch }
       let br: BuildResult = await this.build.run(rspec)
 
-      const deps = this.descDeps((br as any).build?.root.deps)
-      this.log.debug({
-        point: 'deps', deps,
-        note: 'watch:' + name + ' deps:\n' + deps
-      })
-
-
       if (br.ok) {
+        const deps = this.descDeps((br as any).build?.root.deps)
+        this.log.debug({
+          point: 'deps', deps,
+          note: 'watch:' + name + ' deps:\n' + deps
+        })
+
         const rootkeys = Object.keys(br.build?.model).join(';')
         this.log.info({
           point: 'root-keys', keys: rootkeys,
@@ -238,11 +237,9 @@ class Watch {
       }
       else {
         let errs = br.errs || [new Error('Unknown build error')]
-        errs.map((err: any) => this.log.error({
+        errs.filter(err => !err.__logged__).map((err: any) => this.log.error({
           fail: 'build', point: 'run-build', build: this, err
         }))
-
-        // console.log('WATCH ERRS', errs)
       }
 
       this.last = br

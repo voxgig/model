@@ -11,7 +11,9 @@ const model_builder = async (build, ctx) => {
     if ('post' !== ctx.step) {
         return { ok: true, step: ctx.step, active: false };
     }
-    let json = JSON.stringify(build.root.gen(), null, 2);
+    // TODO: is this double work?
+    // let json = JSON.stringify(build.root.gen(), null, 2)
+    let json = JSON.stringify(build.model, null, 2);
     let filename = path_1.default.basename(build.path);
     let filenameparts = filename.match(/^(.*)\.[^.]+$/);
     if (filenameparts) {

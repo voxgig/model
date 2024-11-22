@@ -38,11 +38,27 @@ const local_builder = async (build, ctx) => {
     let ok = true;
     let areslog = [];
     for (let actionDef of runActionDefs) {
-        let ares = await actionDef.action(build.model, build, ctx);
-        ok = ok && null != ares && ares.ok;
-        areslog.push(ares);
+        try {
+            let ares = await actionDef.action(build.model, build, ctx);
+            ok = ok && null != ares && ares.ok;
+            areslog.push(ares);
+            if (!ok) {
+                break;
+            }
+        }
+        catch (err) {
+            if (!err.__logged__) {
+                build.log.error({
+                    point: ctx.step + '-action', step: ctx.step, action: actionDef,
+                    note: actionDef.name,
+                    err
+                });
+                err.__logged__ = true;
+            }
+            throw err;
+        }
     }
-    return { ok: true, step: ctx.step, active: true };
+    return { ok, step: ctx.step, active: true };
 };
 exports.local_builder = local_builder;
 //# sourceMappingURL=local.js.map

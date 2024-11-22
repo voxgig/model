@@ -62,20 +62,68 @@ class BuildImpl implements Build {
     this.ctx = { step: 'pre', state: {}, watch: rspec.watch }
     const brlog: any[] = []
 
-    for (let builder of this.res) {
-      try {
-        let br = await builder.build(this, this.ctx)
-        br.step = this.ctx.step
-        br.path = builder.path
-        br.builder = builder.build.name
-        brlog.push(br)
-      }
-      catch (err: any) {
-        this.errs.push(err)
-        hasErr = true
-        break
+    if (!hasErr) {
+      hasErr = await this.resolveModel()
+    }
+
+    if (!hasErr) {
+      for (let builder of this.res) {
+        try {
+          let br = await builder.build(this, this.ctx)
+          br.step = this.ctx.step
+          br.path = builder.path
+          br.builder = builder.build.name
+          brlog.push(br)
+          if (!br.ok) {
+            hasErr = true
+            break
+          }
+        }
+        catch (err: any) {
+          hasErr = true
+          this.errs.push(err)
+          break
+        }
       }
     }
+
+    // TODO: only reload if mode changed
+    if (!hasErr) {
+      hasErr = await this.resolveModel()
+    }
+
+    if (!hasErr) {
+      this.ctx.step = 'post'
+
+      for (let builder of this.res) {
+        try {
+          let br = await builder.build(this, this.ctx)
+          br.step = this.ctx.step
+          br.path = builder.path
+          br.builder = builder.build.name
+          brlog.push(br)
+          if (!br.ok) {
+            hasErr = true
+            break
+          }
+        }
+        catch (err: any) {
+          hasErr = true
+          this.errs.push(err)
+          break
+        }
+      }
+
+    }
+
+    const br: BuildResult = { ok: !hasErr, build: this, builders: brlog, errs: this.errs }
+
+    return br
+  }
+
+
+  async resolveModel() {
+    let hasErr = false
 
     let src: string = ''
     if (!hasErr) {
@@ -106,30 +154,9 @@ class BuildImpl implements Build {
       if (hasErr) {
         this.errs.push(...genctx.err)
       }
-      else {
-        this.ctx.step = 'post'
-
-        for (let builder of this.res) {
-          try {
-            let br = await builder.build(this, this.ctx)
-            br.step = this.ctx.step
-            br.path = builder.path
-            br.builder = builder.build.name
-            brlog.push(br)
-          }
-          catch (err: any) {
-            hasErr = true
-            this.errs.push(err)
-            break
-          }
-        }
-
-      }
     }
 
-    const br: BuildResult = { ok: !hasErr, build: this, builders: brlog, errs: this.errs }
-
-    return br
+    return hasErr
   }
 }
 
