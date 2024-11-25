@@ -14,9 +14,11 @@ const local_builder = async (build, ctx) => {
         // TODO: need to provide project root via build
         let root = path_1.default.resolve(build.path, '..', '..');
         // TODO: build should do this
-        let configbuild = build.use.config;
-        let config = configbuild.watch.last?.build.model || {};
+        let configBuildResult = build.use.config.watch.last;
+        let configBuild = configBuildResult?.build();
+        let config = configBuild?.model || {};
         let builders = config.sys?.model.builders || {};
+        // console.log('LOCAL BUILDERS', builders)
         // TODO: order by comma sep string
         // Load builders
         for (let name in builders) {
@@ -29,6 +31,7 @@ const local_builder = async (build, ctx) => {
             const step = action.step || 'post';
             actionDefs.push({ name, builder, action, step });
         }
+        // console.log('LOCAL ACTION DEFS', actionDefs)
     }
     const runActionDefs = actionDefs.filter((ad) => ctx.step === ad.step || 'all' === ad.step);
     build.log.info({
@@ -40,7 +43,7 @@ const local_builder = async (build, ctx) => {
     for (let actionDef of runActionDefs) {
         try {
             let ares = await actionDef.action(build.model, build, ctx);
-            ok = ok && null != ares && ares.ok;
+            ok = ok && (null == ares || !!ares.ok);
             areslog.push(ares);
             if (!ok) {
                 break;
@@ -58,7 +61,7 @@ const local_builder = async (build, ctx) => {
             throw err;
         }
     }
-    return { ok, step: ctx.step, active: true };
+    return { ok, step: ctx.step, active: true, errs: [], runlog: [] };
 };
 exports.local_builder = local_builder;
 //# sourceMappingURL=local.js.map

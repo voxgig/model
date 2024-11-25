@@ -23,10 +23,11 @@ interface BuildResult {
     ok: boolean;
     builder?: string;
     path?: string;
-    build?: Build;
     builders?: BuildResult[];
     step?: string;
-    errs?: any[];
+    errs: any[];
+    runlog: string[];
+    build?: () => Build;
 }
 interface BuildAction {
     path: string;

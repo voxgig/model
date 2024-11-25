@@ -17,7 +17,8 @@ import type {
 import { makeBuild } from './build'
 import { FSWatcher } from 'chokidar'
 
-import { readFile, stat } from 'fs/promises'
+import { stat } from 'fs/promises'
+
 
 
 class Watch {
@@ -172,25 +173,29 @@ class Watch {
 
 
   async update(br: BuildResult) {
-    let build = (br.build as Build)
+    let build = br.build ? br.build() : undefined
 
-    let files: string[] =
-      Object.keys(build.root.deps).reduce((files: string[], target: any) => {
-        files = files.concat(Object.keys(build.root.deps[target]))
-        return files
-      }, [build.path])
+    // console.log('UPDATE BR BUILD', build)
 
+    if (build?.root?.deps) {
+      let files: string[] =
+        Object.keys(build.root.deps).reduce((files: string[], target: any) => {
+          files = files.concat(Object.keys(build.root.deps[target]))
+          return files
+        }, [build.path])
 
-    // TODO: remove deleted files
-    files.forEach(async (file: string) => {
-      if ('string' === typeof (file) &&
-        '' !== file &&
-        build.opts.base !== file
-      ) {
-        await this.add(file)
-      }
-    })
+      // console.log('DEPS', files)
 
+      // TODO: remove deleted files
+      files.forEach(async (file: string) => {
+        if ('string' === typeof (file) &&
+          '' !== file &&
+          build.opts.base !== file
+        ) {
+          await this.add(file)
+        }
+      })
+    }
   }
 
 
@@ -213,13 +218,13 @@ class Watch {
       let br: BuildResult = await this.build.run(rspec)
 
       if (br.ok) {
-        const deps = this.descDeps((br as any).build?.root.deps)
+        const deps = this.descDeps(br.build ? br.build().root?.deps : undefined)
         this.log.debug({
           point: 'deps', deps,
           note: 'watch:' + name + ' deps:\n' + deps
         })
 
-        const rootkeys = Object.keys(br.build?.model).join(';')
+        const rootkeys = Object.keys(this.build.model).join(';')
         this.log.info({
           point: 'root-keys', keys: rootkeys,
           note: 'watch:' + name + ' keys: ' + rootkeys
@@ -237,9 +242,12 @@ class Watch {
       }
       else {
         let errs = br.errs || [new Error('Unknown build error')]
-        errs.filter(err => !err.__logged__).map((err: any) => this.log.error({
-          fail: 'build', point: 'run-build', build: this, err
-        }))
+        errs.filter(err => !err.__logged__).map((err: any) => {
+          this.log.error({
+            fail: 'build', point: 'run-build', build: this, err
+          })
+          err.__logged__ = true
+        })
       }
 
       this.last = br
@@ -247,9 +255,17 @@ class Watch {
       return br
     }
     catch (err: any) {
+      if (!err.__logged__) {
+        this.log.error({
+          fail: 'build', point: 'run-build', build: this, err
+        })
+        err.__logged__ = true
+      }
+
       let br = {
         ok: false,
-        errs: [err]
+        errs: [err],
+        runlog: []
       }
 
       return br

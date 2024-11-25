@@ -9,10 +9,8 @@ const promises_1 = require("fs/promises");
 // Builds the main model file, after unification.
 const model_builder = async (build, ctx) => {
     if ('post' !== ctx.step) {
-        return { ok: true, step: ctx.step, active: false };
+        return { ok: true, step: ctx.step, active: false, errs: [], runlog: [] };
     }
-    // TODO: is this double work?
-    // let json = JSON.stringify(build.root.gen(), null, 2)
     let json = JSON.stringify(build.model, null, 2);
     let filename = path_1.default.basename(build.path);
     let filenameparts = filename.match(/^(.*)\.[^.]+$/);
@@ -26,7 +24,7 @@ const model_builder = async (build, ctx) => {
         note: file.replace(process.cwd(), '.')
     });
     await (0, promises_1.writeFile)(file, json);
-    return { ok: true, step: ctx.step, active: true };
+    return { ok: true, step: ctx.step, active: true, errs: [], runlog: [] };
 };
 exports.model_builder = model_builder;
 //# sourceMappingURL=model.js.map

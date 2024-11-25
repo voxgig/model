@@ -28,14 +28,19 @@ class BuildImpl {
     }
     async run(rspec) {
         let hasErr = false;
+        let runlog = [];
+        // console.log('BUILD RUN RES', this.res)
         this.ctx = { step: 'pre', state: {}, watch: rspec.watch };
         const brlog = [];
         if (!hasErr) {
+            runlog.push('model:initial');
             hasErr = await this.resolveModel();
+            // console.log('MODEL', this.path, hasErr, rspec, this.errs)
         }
         if (!hasErr) {
             for (let builder of this.res) {
                 try {
+                    runlog.push('builder:pre:' + builder.build.name);
                     let br = await builder.build(this, this.ctx);
                     br.step = this.ctx.step;
                     br.path = builder.path;
@@ -55,12 +60,14 @@ class BuildImpl {
         }
         // TODO: only reload if mode changed
         if (!hasErr) {
+            runlog.push('model:full');
             hasErr = await this.resolveModel();
         }
         if (!hasErr) {
             this.ctx.step = 'post';
             for (let builder of this.res) {
                 try {
+                    runlog.push('builder:post:' + builder.build.name);
                     let br = await builder.build(this, this.ctx);
                     br.step = this.ctx.step;
                     br.path = builder.path;
@@ -78,7 +85,15 @@ class BuildImpl {
                 }
             }
         }
-        const br = { ok: !hasErr, build: this, builders: brlog, errs: this.errs };
+        const br = {
+            // TODO: remove need for this
+            build: () => this,
+            ok: !hasErr,
+            builders: brlog,
+            errs: this.errs,
+            runlog
+        };
+        // console.log('BUILD RESULT', br.ok, br.runlog)
         return br;
     }
     async resolveModel() {
@@ -98,15 +113,17 @@ class BuildImpl {
             hasErr = this.root.err && 0 < this.root.err.length;
             if (hasErr) {
                 this.errs.push(...this.root.err);
-                // console.log('AONTU ERRS', this.errs)
+                // console.log('AONTU PARSE ERRS', this.errs)
             }
         }
         if (!hasErr) {
             let genctx = new aontu_1.Context({ root: this.root });
             this.model = this.root.gen(genctx);
+            // console.log('AAA', Object.keys(this.model.main?.api?.entity || {}))
             hasErr = genctx.err && 0 < genctx.err.length;
             if (hasErr) {
                 this.errs.push(...genctx.err);
+                // console.log('AONTU GEN ERRS', this.errs)
             }
         }
         return hasErr;

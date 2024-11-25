@@ -30,19 +30,19 @@ class Model {
             path: '/',
             build: async function trigger_model(build, ctx) {
                 if ('post' !== ctx.step) {
-                    return { ok: true };
+                    return { ok: true, errs: [], runlog: [] };
                 }
-                let res;
+                let res = { ok: false, errs: [], runlog: [] };
                 if (self.trigger_model) {
                     // TODO: better design
                     if (self.build.use) {
                         self.build.use.config.watch.last.build = build;
                     }
-                    res = self.watch.run('model', true);
+                    res = await self.watch.run('model', true);
                 }
                 else {
                     self.trigger_model = true;
-                    res = { ok: true };
+                    res = { ok: true, errs: [], runlog: [] };
                 }
                 if (ctx.watch) {
                     const watchmap = build.model?.sys?.model?.watch;

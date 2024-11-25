@@ -55,10 +55,10 @@ class Model {
       path: '/',
       build: async function trigger_model(build: Build, ctx: BuildContext) {
         if ('post' !== ctx.step) {
-          return { ok: true }
+          return { ok: true, errs: [], runlog: [] }
         }
 
-        let res
+        let res: BuildResult = { ok: false, errs: [], runlog: [] }
 
         if (self.trigger_model) {
 
@@ -67,11 +67,11 @@ class Model {
             self.build.use.config.watch.last.build = build
           }
 
-          res = self.watch.run('model', true)
+          res = await self.watch.run('model', true)
         }
         else {
           self.trigger_model = true
-          res = { ok: true }
+          res = { ok: true, errs: [], runlog: [] }
         }
 
         if (ctx.watch) {

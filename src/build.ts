@@ -58,17 +58,23 @@ class BuildImpl implements Build {
 
   async run(rspec: RunSpec): Promise<BuildResult> {
     let hasErr = false
+    let runlog = []
+
+    // console.log('BUILD RUN RES', this.res)
 
     this.ctx = { step: 'pre', state: {}, watch: rspec.watch }
     const brlog: any[] = []
 
     if (!hasErr) {
+      runlog.push('model:initial')
       hasErr = await this.resolveModel()
+      // console.log('MODEL', this.path, hasErr, rspec, this.errs)
     }
 
     if (!hasErr) {
       for (let builder of this.res) {
         try {
+          runlog.push('builder:pre:' + builder.build.name)
           let br = await builder.build(this, this.ctx)
           br.step = this.ctx.step
           br.path = builder.path
@@ -89,6 +95,7 @@ class BuildImpl implements Build {
 
     // TODO: only reload if mode changed
     if (!hasErr) {
+      runlog.push('model:full')
       hasErr = await this.resolveModel()
     }
 
@@ -97,6 +104,7 @@ class BuildImpl implements Build {
 
       for (let builder of this.res) {
         try {
+          runlog.push('builder:post:' + builder.build.name)
           let br = await builder.build(this, this.ctx)
           br.step = this.ctx.step
           br.path = builder.path
@@ -116,7 +124,18 @@ class BuildImpl implements Build {
 
     }
 
-    const br: BuildResult = { ok: !hasErr, build: this, builders: brlog, errs: this.errs }
+    const br: BuildResult =
+    {
+      // TODO: remove need for this
+      build: () => this,
+
+      ok: !hasErr,
+      builders: brlog,
+      errs: this.errs,
+      runlog
+    }
+
+    // console.log('BUILD RESULT', br.ok, br.runlog)
 
     return br
   }
@@ -142,7 +161,7 @@ class BuildImpl implements Build {
 
       if (hasErr) {
         this.errs.push(...this.root.err)
-        // console.log('AONTU ERRS', this.errs)
+        // console.log('AONTU PARSE ERRS', this.errs)
       }
     }
 
@@ -150,9 +169,12 @@ class BuildImpl implements Build {
       let genctx = new Context({ root: this.root })
       this.model = this.root.gen(genctx)
 
+      // console.log('AAA', Object.keys(this.model.main?.api?.entity || {}))
+
       hasErr = genctx.err && 0 < genctx.err.length
       if (hasErr) {
         this.errs.push(...genctx.err)
+        // console.log('AONTU GEN ERRS', this.errs)
       }
     }
 
@@ -170,5 +192,6 @@ export {
   BuildSpec,
   Val
 }
+
 
 
