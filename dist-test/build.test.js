@@ -28,7 +28,7 @@ const model_2 = require("../dist/builder/model");
                             (0, code_1.expect)(build.root.canon).equal('{"foo":1,"bar":2}');
                             (0, code_1.expect)(build.model).equal({ foo: 1, bar: 2 });
                         }
-                        return { ok: true };
+                        return { ok: true, errs: [], runlog: [] };
                     },
                 },
                 {
@@ -45,7 +45,7 @@ const model_2 = require("../dist/builder/model");
 </body></html>`;
                             await (0, promises_1.writeFile)(__dirname + '/../test/p01/doc.html', doc);
                         }
-                        return { ok: true };
+                        return { ok: true, errs: [], runlog: [] };
                     },
                 }
             ]

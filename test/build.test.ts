@@ -38,7 +38,7 @@ describe('build', () => {
               expect(build.root.canon).equal('{"foo":1,"bar":2}')
               expect(build.model).equal({ foo: 1, bar: 2 })
             }
-            return { ok: true }
+            return { ok: true, errs: [], runlog: [] }
           },
         },
         {
@@ -57,7 +57,7 @@ describe('build', () => {
               await writeFile(__dirname + '/../test/p01/doc.html', doc)
             }
 
-            return { ok: true }
+            return { ok: true, errs: [], runlog: [] }
           },
         }
       ]

@@ -59,6 +59,7 @@ class Model {
         this.build = {
             path: mspec.path,
             base: mspec.base,
+            debug: mspec.debug,
             use: { config: self.config },
             res: [
                 {
@@ -111,6 +112,7 @@ function makeConfig(mspec, log, fs, trigger_model_build) {
         name: 'config',
         path: cpath,
         base: cbase,
+        debug: mspec.debug,
         res: [
             // Generate full config model and save as a file.
             {
