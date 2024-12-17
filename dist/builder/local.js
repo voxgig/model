@@ -45,6 +45,7 @@ const local_builder = async (build, ctx) => {
             let ares = await actionDef.action(build.model, build, ctx);
             ok = ok && (null == ares || !!ares.ok);
             areslog.push(ares);
+            console.log('ARES', ares);
             if (!ok) {
                 break;
             }

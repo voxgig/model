@@ -46,7 +46,7 @@
   "dependencies": {
     "aontu": "0.25.3",
     "chokidar": "4.0.1",
-    "gubu": "^8.3.0"
+    "gubu": "^9.0.0"
   },
   "peerDependencies": {
     "@voxgig/util": ">=0",
@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@hapi/code": "^9.0.3",
-    "@types/node": "22.10.1",
+    "@types/node": "22.10.2",
     "typescript": "^5.7.2"
   }
 }

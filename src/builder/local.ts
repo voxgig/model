@@ -60,6 +60,8 @@ const local_builder: Builder = async (build: Build, ctx: BuildContext) => {
       ok = ok && (null == ares || !!ares.ok)
       areslog.push(ares)
 
+      console.log('ARES', ares)
+
       if (!ok) { break }
     }
     catch (err: any) {
