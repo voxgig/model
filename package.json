@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "5.2.1",
+  "version": "5.2.2",
   "main": "dist/model.js",
   "type": "commonjs",
   "types": "dist/model.d.ts",
@@ -54,7 +54,10 @@
   },
   "devDependencies": {
     "@hapi/code": "^9.0.3",
-    "@types/node": "22.10.2",
-    "typescript": "^5.7.2"
+    "@types/node": "22.10.5",
+    "typescript": "^5.7.3"
+  },
+  "overrides": {
+    "readdirp": "4.0.2"
   }
 }
