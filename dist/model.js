@@ -97,17 +97,14 @@ exports.Model = Model;
 function makeConfig(mspec, log, fs, trigger_model_build) {
     let cbase = mspec.base + '/.model-config';
     let cpath = cbase + '/model-config.jsonic';
-    /*
-    try {
-      src = Fs.readFileSync(cpath).toString()
+    if (!node_fs_1.default.existsSync(cpath)) {
+        node_fs_1.default.mkdirSync(cbase, { recursive: true });
+        node_fs_1.default.writeFileSync(cpath, `
+@"@voxgig/model/model/.model-config/model-config.jsonic"
+
+sys: model: builders: {}
+`);
     }
-    catch (err: any) {
-      log.error({
-        fail: 'read-file', point: 'model-config', path: cpath, err
-      })
-      throw err
-    }
-    */
     let cspec = {
         name: 'config',
         path: cpath,

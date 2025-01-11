@@ -139,17 +139,14 @@ function makeConfig(mspec: ModelSpec, log: Log, fs: any, trigger_model_build: Bu
   let cbase = mspec.base + '/.model-config'
   let cpath = cbase + '/model-config.jsonic'
 
-  /*
-  try {
-    src = Fs.readFileSync(cpath).toString()
+  if (!Fs.existsSync(cpath)) {
+    Fs.mkdirSync(cbase, { recursive: true })
+    Fs.writeFileSync(cpath, `
+@"@voxgig/model/model/.model-config/model-config.jsonic"
+
+sys: model: builders: {}
+`)
   }
-  catch (err: any) {
-    log.error({
-      fail: 'read-file', point: 'model-config', path: cpath, err
-    })
-    throw err
-  }
-  */
 
   let cspec: BuildSpec = {
     name: 'config',
