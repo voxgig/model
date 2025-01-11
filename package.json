@@ -46,8 +46,7 @@
   "dependencies": {
     "aontu": "0.25.3",
     "gubu": "^9.0.0",
-    "chokidar": "4.0.3",
-    "readdirp": "4.0.2"
+    "chokidar": "4.0.3"
   },
   "peerDependencies": {
     "@voxgig/util": ">=0",
@@ -59,6 +58,8 @@
     "typescript": "^5.7.3"
   },
   "overrides": {
-    "readdirp": "4.0.2"
+    "chokidar": {
+      "readdirp": "4.0.2"
+    }
   }
 }
