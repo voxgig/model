@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "main": "dist/model.js",
   "type": "commonjs",
   "types": "dist/model.d.ts",
@@ -50,7 +50,13 @@
   },
   "peerDependencies": {
     "@voxgig/util": ">=0",
-    "pino": ">=9"
+    "pino": ">=9",
+    "readdirp": "4.0.2"
+  },
+  "peerDependenciesMeta": {
+    "readdirp": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@hapi/code": "^9.0.3",
