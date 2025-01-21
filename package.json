@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "5.3.0",
+  "version": "5.4.0",
   "main": "dist/model.js",
   "type": "commonjs",
   "types": "dist/model.d.ts",
@@ -44,14 +44,14 @@
     "LICENSE"
   ],
   "dependencies": {
-    "aontu": "0.25.3",
+    "aontu": "0.26.0",
     "gubu": "^9.0.0",
     "chokidar": "4.0.3"
   },
   "peerDependencies": {
     "@voxgig/util": ">=0",
     "pino": ">=9",
-    "readdirp": "4.0.2"
+    "readdirp": "4.1.1"
   },
   "peerDependenciesMeta": {
     "readdirp": {
@@ -60,12 +60,12 @@
   },
   "devDependencies": {
     "@hapi/code": "^9.0.3",
-    "@types/node": "22.10.5",
+    "@types/node": "22.10.7",
     "typescript": "^5.7.3"
   },
   "overrides": {
     "chokidar": {
-      "readdirp": "4.0.2"
+      "readdirp": "4.1.1"
     }
   }
 }
