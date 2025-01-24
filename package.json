@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "5.4.0",
+  "version": "5.5.0",
   "main": "dist/model.js",
   "type": "commonjs",
   "types": "dist/model.d.ts",
@@ -44,7 +44,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "aontu": "0.26.0",
+    "aontu": "0.27.0",
     "gubu": "^9.0.0",
     "chokidar": "4.0.3"
   },
@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@hapi/code": "^9.0.3",
-    "@types/node": "22.10.7",
+    "@types/node": "22.10.10",
     "typescript": "^5.7.3"
   },
   "overrides": {
