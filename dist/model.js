@@ -73,7 +73,8 @@ class Model {
             ],
             require: mspec.require,
             log: this.log,
-            fs: this.fs
+            fs: this.fs,
+            watch: mspec.watch,
         };
         this.watch = new watch_1.Watch(self.build, this.log);
     }

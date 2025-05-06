@@ -159,6 +159,13 @@ async function generate(options) {
     base,
     require: process.cwd(),
     debug: options.debug,
+
+    // TODO: read more complex options from elsewhere?
+    watch: {
+      mod: true,
+      add:  true,
+      rem:  true,
+    }
   }
 
   let model = new Model(spec)

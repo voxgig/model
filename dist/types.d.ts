@@ -51,6 +51,11 @@ interface BuildSpec {
     idle?: number;
     name?: string;
     debug?: boolean | string;
+    watch?: {
+        mod?: boolean;
+        add?: boolean;
+        rem?: boolean;
+    };
     fs: any;
 }
 type Run = {
@@ -80,5 +85,10 @@ interface ModelSpec {
     idle?: number;
     debug?: boolean | string;
     fs?: any;
+    watch?: {
+        mod?: boolean;
+        add?: boolean;
+        rem?: boolean;
+    };
 }
 export type { Build, BuildResult, BuildAction, Builder, BuildContext, BuildSpec, Log, Run, Canon, ChangeItem, RunSpec, ModelSpec, };

@@ -106,7 +106,8 @@ class Model {
       ],
       require: mspec.require,
       log: this.log,
-      fs: this.fs
+      fs: this.fs,
+      watch: mspec.watch,
     }
 
     this.watch = new Watch(self.build, this.log)

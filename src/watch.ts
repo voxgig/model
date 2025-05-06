@@ -38,12 +38,17 @@ class Watch {
   lastTrigger: ChangeItem
   log: Log
   name: string
+  mode: {
+    mod: boolean // file modification
+    add: boolean // file addition
+    rem: boolean // file deletion
+  }
 
-  constructor(wspec: BuildSpec, log: Log) {
-    this.wspec = wspec
+  constructor(bspec: BuildSpec, log: Log) {
+    this.wspec = bspec
     this.log = log
 
-    this.name = wspec.name || 'model'
+    this.name = bspec.name || 'model'
     this.fsw = new FSWatcher()
     this.lastChangeTime = 0
     this.runq = []
@@ -55,12 +60,34 @@ class Watch {
     this.running = false
     this.lastrun = undefined
 
-    this.idle = wspec.idle || 111
+    this.idle = bspec.idle || 111
 
-    this.fsw.on('change', async (path: string) => {
-      // console.log('CHANGE:', path)
-      this.handleChange(path)
-    })
+    this.mode = {
+      mod: null == bspec.watch?.mod ? true : true == bspec.watch?.mod,
+      add: true === bspec.watch?.add,
+      rem: true === bspec.watch?.rem,
+    }
+
+    const handleChange = this.handleChange.bind(this)
+
+    if (this.mode.mod) {
+      console.log('WM-mod')
+      this.fsw.on('change', handleChange)
+    }
+
+    if (this.mode.add) {
+      console.log('WM-add')
+      this.fsw.on('add', handleChange)
+    }
+
+    if (this.mode.rem) {
+      console.log('WM-rem')
+      this.fsw.on('unlink', handleChange)
+    }
+
+    // this.fsw.on('change', async (path: string) => {
+    //   this.handleChange(path)
+    // })
   }
 
 

@@ -17,7 +17,12 @@ declare class Watch {
     lastTrigger: ChangeItem;
     log: Log;
     name: string;
-    constructor(wspec: BuildSpec, log: Log);
+    mode: {
+        mod: boolean;
+        add: boolean;
+        rem: boolean;
+    };
+    constructor(bspec: BuildSpec, log: Log);
     start(): void;
     canon(path: string): string;
     handleChange(path: string): void;

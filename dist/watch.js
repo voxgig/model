@@ -10,10 +10,10 @@ const build_1 = require("./build");
 const chokidar_1 = require("chokidar");
 const promises_1 = require("fs/promises");
 class Watch {
-    constructor(wspec, log) {
-        this.wspec = wspec;
+    constructor(bspec, log) {
+        this.wspec = bspec;
         this.log = log;
-        this.name = wspec.name || 'model';
+        this.name = bspec.name || 'model';
         this.fsw = new chokidar_1.FSWatcher();
         this.lastChangeTime = 0;
         this.runq = [];
@@ -24,11 +24,28 @@ class Watch {
         this.lastTrigger = { path: '', when: 0 };
         this.running = false;
         this.lastrun = undefined;
-        this.idle = wspec.idle || 111;
-        this.fsw.on('change', async (path) => {
-            // console.log('CHANGE:', path)
-            this.handleChange(path);
-        });
+        this.idle = bspec.idle || 111;
+        this.mode = {
+            mod: null == bspec.watch?.mod ? true : true == bspec.watch?.mod,
+            add: true === bspec.watch?.add,
+            rem: true === bspec.watch?.rem,
+        };
+        const handleChange = this.handleChange.bind(this);
+        if (this.mode.mod) {
+            console.log('WM-mod');
+            this.fsw.on('change', handleChange);
+        }
+        if (this.mode.add) {
+            console.log('WM-add');
+            this.fsw.on('add', handleChange);
+        }
+        if (this.mode.rem) {
+            console.log('WM-rem');
+            this.fsw.on('unlink', handleChange);
+        }
+        // this.fsw.on('change', async (path: string) => {
+        //   this.handleChange(path)
+        // })
     }
     // Returns first BuildResult
     start() {

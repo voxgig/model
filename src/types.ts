@@ -64,6 +64,11 @@ interface BuildSpec {
   idle?: number
   name?: string
   debug?: boolean | string
+  watch?: {
+    mod?: boolean // file modification
+    add?: boolean // file addition
+    rem?: boolean // file deletion
+  }
   fs: any
 }
 
@@ -101,6 +106,11 @@ interface ModelSpec {
   idle?: number
   debug?: boolean | string
   fs?: any
+  watch?: {
+    mod?: boolean // file modification
+    add?: boolean // file addition
+    rem?: boolean // file deletion
+  }
 }
 
 
