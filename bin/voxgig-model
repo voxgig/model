@@ -163,8 +163,8 @@ async function generate(options) {
     // TODO: read more complex options from elsewhere?
     watch: {
       mod: true,
-      add:  true,
-      rem:  true,
+      add: true,
+      rem: true,
     }
   }
 

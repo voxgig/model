@@ -32,15 +32,12 @@ class Watch {
         };
         const handleChange = this.handleChange.bind(this);
         if (this.mode.mod) {
-            console.log('WM-mod');
             this.fsw.on('change', handleChange);
         }
         if (this.mode.add) {
-            console.log('WM-add');
             this.fsw.on('add', handleChange);
         }
         if (this.mode.rem) {
-            console.log('WM-rem');
             this.fsw.on('unlink', handleChange);
         }
         // this.fsw.on('change', async (path: string) => {
