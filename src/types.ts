@@ -1,8 +1,11 @@
 /* Copyright © 2021-2024 Voxgig Ltd, MIT License. */
 
+import Fs from 'node:fs'
 
 import Pino from 'pino'
 
+
+type FST = typeof Fs
 
 type Log = ReturnType<typeof Pino>
 
@@ -21,6 +24,7 @@ interface Build {
 
   run: (rspec: RunSpec) => Promise<BuildResult>
   log: Log
+  fs: FST
 }
 
 
@@ -64,12 +68,14 @@ interface BuildSpec {
   idle?: number
   name?: string
   debug?: boolean | string
+  dryrun?: boolean,
+  buildargs?: any,
   watch?: {
     mod?: boolean // file modification
     add?: boolean // file addition
     rem?: boolean // file deletion
   }
-  fs: any
+  fs: FST
 }
 
 
@@ -105,6 +111,8 @@ interface ModelSpec {
   log?: Log
   idle?: number
   debug?: boolean | string
+  dryrun?: boolean
+  buildargs?: any
   fs?: any
   watch?: {
     mod?: boolean // file modification
@@ -128,4 +136,5 @@ export type {
   ChangeItem,
   RunSpec,
   ModelSpec,
+  FST,
 }

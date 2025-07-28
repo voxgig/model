@@ -40,9 +40,6 @@ class Watch {
         if (this.mode.rem) {
             this.fsw.on('unlink', handleChange);
         }
-        // this.fsw.on('change', async (path: string) => {
-        //   this.handleChange(path)
-        // })
     }
     // Returns first BuildResult
     start() {

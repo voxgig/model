@@ -1,7 +1,9 @@
-/* Copyright © 2021-2024 Voxgig Ltd, MIT License. */
+/* Copyright © 2021-2025 Voxgig Ltd, MIT License. */
 
 
-import Fs from 'node:fs'
+import * as NodeFs from 'node:fs'
+
+import { memfs as MemFs } from 'memfs'
 
 import { prettyPino } from '@voxgig/util'
 
@@ -12,7 +14,8 @@ import type {
   BuildContext,
   BuildSpec,
   ModelSpec,
-  Log
+  Log,
+  FST,
 } from './types'
 
 
@@ -36,7 +39,12 @@ class Model {
 
   constructor(mspec: ModelSpec) {
     const self = this
-    self.fs = mspec.fs || Fs
+
+    this.fs = { ...(mspec.fs || NodeFs) }
+
+    if (mspec.dryrun) {
+      makeReadOnly(this.fs)
+    }
 
     const pino = prettyPino('model', mspec as any)
 
@@ -93,6 +101,8 @@ class Model {
       path: mspec.path,
       base: mspec.base,
       debug: mspec.debug,
+      dryrun: mspec.dryrun,
+      buildargs: mspec.buildargs,
       use: { config: self.config },
       res: [
         {
@@ -140,9 +150,9 @@ function makeConfig(mspec: ModelSpec, log: Log, fs: any, trigger_model_build: Bu
   let cbase = mspec.base + '/.model-config'
   let cpath = cbase + '/model-config.jsonic'
 
-  if (!Fs.existsSync(cpath)) {
-    Fs.mkdirSync(cbase, { recursive: true })
-    Fs.writeFileSync(cpath, `
+  if (!fs.existsSync(cpath)) {
+    fs.mkdirSync(cbase, { recursive: true })
+    fs.writeFileSync(cpath, `
 @"@voxgig/model/model/.model-config/model-config.jsonic"
 
 sys: model: builders: {}
@@ -173,6 +183,53 @@ sys: model: builders: {}
   return new Config(cspec, log)
 }
 
+
+function makeReadOnly(fsm: FST) {
+
+  // NOTE: NOT COMPLETE!
+  // Just for internal use,
+  const writers = [
+    'writeFile',
+    'writeFileSync',
+    'appendFile',
+    'appendFileSync',
+    'chmod',
+    'chmodSync',
+    'chown',
+    'chownSync',
+    'cp',
+    'cpSync',
+    'createWriteStream',
+    'mkdir',
+    'mkdirSync',
+    'rename',
+    'renameSync',
+    'rm',
+    'rmSync',
+    'rmdir',
+    'rmdirSync',
+    'symlink',
+    'symlinkSync',
+    'truncate',
+    'truncateSync',
+    'unlink',
+    'unlinkSync',
+    'write',
+    'writeFile',
+    'writeFileSync',
+    'writev',
+  ]
+
+  const { fs } = MemFs({ [process.cwd()]: {} })
+
+  for (let w of writers) {
+    if ((fs as any)[w]) {
+      (fsm as any)[w] = (fs as any)[w].bind(fs)
+    }
+  }
+
+  return fsm
+}
 
 
 export {

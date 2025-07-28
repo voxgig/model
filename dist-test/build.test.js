@@ -6,6 +6,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const promises_1 = require("node:fs/promises");
+const node_fs_1 = require("node:fs");
 const node_test_1 = require("node:test");
 const code_1 = require("@hapi/code");
 const util_1 = require("@voxgig/util");
@@ -51,7 +52,7 @@ const model_2 = require("../dist/builder/model");
             ]
         }, log);
         let v0 = await b0.run({ watch: false });
-        console.log(v0);
+        // console.log(v0)
         (0, code_1.expect)(v0.ok).equal(true);
         (0, code_1.expect)(b0.root.canon).equal('{"foo":1,"bar":2}');
         (0, code_1.expect)(await (0, promises_1.readFile)(__dirname + '/../test/p01/doc.html', { encoding: 'utf8' }))
@@ -61,18 +62,29 @@ const model_2 = require("../dist/builder/model");
 </body></html>`);
     });
     (0, node_test_1.test)('project-sys01', async () => {
-        await (0, promises_1.writeFile)(__dirname + '/../test/sys01/foo.txt', 'BAD');
-        await (0, promises_1.writeFile)(__dirname + '/../test/sys01/model/model.json', 'BAD');
-        await (0, promises_1.writeFile)(__dirname + '/../test/sys01/model/.model-config/model-config.json', 'BAD');
+        const folder = __dirname + '/../test/sys01/';
+        await (0, promises_1.writeFile)(folder + 'foo.txt', 'BAD');
+        await (0, promises_1.writeFile)(folder + 'model/model.json', 'BAD');
+        await (0, promises_1.writeFile)(folder + 'model/.model-config/model-config.json', 'BAD');
         let base = __dirname + '/../test/sys01/model';
         await (0, promises_1.writeFile)(base + '/model.json', 'BAD');
         let path = base + '/model.jsonic';
-        // let src = await readFile(base + '/model.jsonic', { encoding: 'utf8' })
         let model = new model_1.Model({
             path,
             base,
+            dryrun: true
         });
         let br = await model.run();
+        (0, code_1.expect)(br.ok);
+        (0, code_1.expect)((0, node_fs_1.readFileSync)(folder + 'foo.txt').toString()).equal('BAD');
+        (0, code_1.expect)((0, node_fs_1.readFileSync)(folder + 'model/model.json').toString()).equal('BAD');
+        (0, code_1.expect)((0, node_fs_1.readFileSync)(folder + 'model/.model-config/model-config.json').toString())
+            .equal('BAD');
+        model = new model_1.Model({
+            path,
+            base,
+        });
+        br = await model.run();
         (0, code_1.expect)(br.ok);
         let model_json = await (0, promises_1.readFile)(base + '/model.json', { encoding: 'utf8' });
         (0, code_1.expect)(JSON.parse(model_json))

@@ -1,8 +1,6 @@
 
 import Path from 'path'
 
-import { writeFile } from 'fs/promises'
-
 import type { Build, Builder, BuildContext } from '../types'
 
 
@@ -28,7 +26,8 @@ const model_builder: Builder = async (build: Build, ctx: BuildContext) => {
     note: file.replace(process.cwd(), '.')
   })
 
-  await writeFile(file, json)
+  build.fs.mkdirSync(Path.dirname(file), { recursive: true })
+  build.fs.writeFileSync(file, json)
 
   return { ok: true, step: ctx.step, active: true, errs: [], runlog: [] }
 }

@@ -3,6 +3,7 @@
 import Fs from 'fs'
 
 import { writeFile, readFile } from 'node:fs/promises'
+import { readFileSync } from 'node:fs'
 import { test, describe } from 'node:test'
 
 import { expect } from '@hapi/code'
@@ -65,7 +66,7 @@ describe('build', () => {
 
     let v0 = await b0.run({ watch: false })
 
-    console.log(v0)
+    // console.log(v0)
 
     expect(v0.ok).equal(true)
     expect(b0.root.canon).equal('{"foo":1,"bar":2}')
@@ -78,20 +79,35 @@ describe('build', () => {
 
 
   test('project-sys01', async () => {
-    await writeFile(__dirname + '/../test/sys01/foo.txt', 'BAD')
-    await writeFile(__dirname + '/../test/sys01/model/model.json', 'BAD')
-    await writeFile(__dirname + '/../test/sys01/model/.model-config/model-config.json', 'BAD')
+    const folder = __dirname + '/../test/sys01/'
+    await writeFile(folder + 'foo.txt', 'BAD')
+    await writeFile(folder + 'model/model.json', 'BAD')
+    await writeFile(folder + 'model/.model-config/model-config.json', 'BAD')
 
     let base = __dirname + '/../test/sys01/model'
     await writeFile(base + '/model.json', 'BAD')
     let path = base + '/model.jsonic'
-    // let src = await readFile(base + '/model.jsonic', { encoding: 'utf8' })
 
     let model = new Model({
       path,
       base,
+      dryrun: true
     })
     let br = await model.run()
+
+    expect(br.ok)
+
+    expect(readFileSync(folder + 'foo.txt').toString()).equal('BAD')
+    expect(readFileSync(folder + 'model/model.json').toString()).equal('BAD')
+    expect(readFileSync(folder + 'model/.model-config/model-config.json').toString())
+      .equal('BAD')
+
+
+    model = new Model({
+      path,
+      base,
+    })
+    br = await model.run()
 
     expect(br.ok)
 

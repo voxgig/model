@@ -7,10 +7,11 @@ const Path = require('node:path')
 const Pkg = require('../package.json')
 const { Model } = require('../dist/model.js')
 
+const { Jsonic } = require('jsonic')
 const { Gubu, Fault, One } = require('gubu')
 
 
-let CONSOLE = console
+let KONSOLE = console
 
 run()
 
@@ -63,6 +64,18 @@ function resolveOptions() {
         default: 'info'
       },
       
+      dryrun: {
+        type: 'boolean',
+        short: 'y',
+      },
+
+      // Pass jsonic-defined data to build scripts
+      build: {
+        type: 'string',
+        short: 'b',
+        default: ''
+      },
+      
       help: {
         type: 'boolean',
         short: 'h',
@@ -80,6 +93,8 @@ function resolveOptions() {
     model: '' === args.values.model ? args.positionals[0] : args.values.model,
     watch: !!args.values.watch,
     debug: args.values.debug,
+    dryrun: args.values.dryrun,
+    build: args.values.build,
     help: !!args.values.help,
     version: !!args.values.version,
   }
@@ -93,6 +108,8 @@ function validateOptions(rawOptions) {
     model: Fault('The first command line argument must be the model file path.', String),
     watch: Boolean,
     debug: One(String,Boolean),
+    dryrun: false,
+    buildargs: '',
     help: Boolean,
     version: Boolean,
   })
@@ -100,6 +117,16 @@ function validateOptions(rawOptions) {
   const err = []
   const options = optShape(rawOptions,{err})
 
+  if(!err[0]) {
+    try {
+      options.buildargs = Jsonic(options.build)
+    }
+    catch(je) {
+      err[0] = je
+      je.text = je.message.split('\n')[0]
+    }
+  }
+  
   if(err[0]) {
     const errtext = 'ERROR: '+err.map(err=>err.text).join('\n')
     console.error(errtext)
@@ -111,19 +138,19 @@ function validateOptions(rawOptions) {
 
 
 async function handleError(err) {
-  CONSOLE.error(err)
+  KONSOLE.error(err)
   exit(err)
 }
 
 
 function version() {
-  CONSOLE.log(Pkg.version)
+  KONSOLE.log(Pkg.version)
 }
 
 
 function help() {
   const s = 'TODO'
-  CONSOLE.log(s)
+  KONSOLE.log(s)
 }
 
 
@@ -159,6 +186,8 @@ async function generate(options) {
     base,
     require: process.cwd(),
     debug: options.debug,
+    dryrun: options.dryrun,
+    build: options.build,
 
     // TODO: read more complex options from elsewhere?
     watch: {

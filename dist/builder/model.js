@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.model_builder = void 0;
 const path_1 = __importDefault(require("path"));
-const promises_1 = require("fs/promises");
 // Builds the main model file, after unification.
 const model_builder = async (build, ctx) => {
     if ('post' !== ctx.step) {
@@ -23,7 +22,8 @@ const model_builder = async (build, ctx) => {
         path: file,
         note: file.replace(process.cwd(), '.')
     });
-    await (0, promises_1.writeFile)(file, json);
+    build.fs.mkdirSync(path_1.default.dirname(file), { recursive: true });
+    build.fs.writeFileSync(file, json);
     return { ok: true, step: ctx.step, active: true, errs: [], runlog: [] };
 };
 exports.model_builder = model_builder;

@@ -1,4 +1,6 @@
+import Fs from 'node:fs';
 import Pino from 'pino';
+type FST = typeof Fs;
 type Log = ReturnType<typeof Pino>;
 interface Build {
     id: string;
@@ -18,6 +20,7 @@ interface Build {
     ctx: BuildContext;
     run: (rspec: RunSpec) => Promise<BuildResult>;
     log: Log;
+    fs: FST;
 }
 interface BuildResult {
     ok: boolean;
@@ -51,12 +54,14 @@ interface BuildSpec {
     idle?: number;
     name?: string;
     debug?: boolean | string;
+    dryrun?: boolean;
+    buildargs?: any;
     watch?: {
         mod?: boolean;
         add?: boolean;
         rem?: boolean;
     };
-    fs: any;
+    fs: FST;
 }
 type Run = {
     canon: string;
@@ -84,6 +89,8 @@ interface ModelSpec {
     log?: Log;
     idle?: number;
     debug?: boolean | string;
+    dryrun?: boolean;
+    buildargs?: any;
     fs?: any;
     watch?: {
         mod?: boolean;
@@ -91,4 +98,4 @@ interface ModelSpec {
         rem?: boolean;
     };
 }
-export type { Build, BuildResult, BuildAction, Builder, BuildContext, BuildSpec, Log, Run, Canon, ChangeItem, RunSpec, ModelSpec, };
+export type { Build, BuildResult, BuildAction, Builder, BuildContext, BuildSpec, Log, Run, Canon, ChangeItem, RunSpec, ModelSpec, FST, };
