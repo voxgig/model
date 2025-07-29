@@ -7,5 +7,5 @@ module.exports = async function css(model, build) {
   // FIX: this is the build path of the config!!!
   let root = Path.resolve(build.path, '..', '..')
 
-  await build.fs.writeFile(Path.resolve(root,'foo.txt'), 'FOO', ()=>{})
+  build.fs.writeFileSync(Path.resolve(root,'foo.txt'), 'FOO:'+model.pre)
 }

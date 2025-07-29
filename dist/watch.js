@@ -1,5 +1,5 @@
 "use strict";
-/* Copyright © 2021-2024 Voxgig Ltd, MIT License. */
+/* Copyright © 2021-2025 Voxgig Ltd, MIT License. */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };

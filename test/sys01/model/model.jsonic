@@ -27,3 +27,6 @@ color: green: {
 }
 
 color: @"color.jsonic"
+
+
+pre: @"pre.jsonic"

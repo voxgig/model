@@ -1,10 +1,16 @@
 {
   "sys": {
     "model": {
-      "builders": {
+      "action": {
         "foo": {
           "load": "build/foo"
+        },
+        "pre": {
+          "load": "build/pre"
         }
+      },
+      "order": {
+        "action": "pre,foo"
       }
     }
   }

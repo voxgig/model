@@ -1,11 +1,11 @@
 
 import Path from 'path'
 
-import type { Build, Builder, BuildContext } from '../types'
+import type { Build, Producer, BuildContext, ProducerResult } from '../types'
 
 
-// Runs any builders local to the repo.
-const local_builder: Builder = async (build: Build, ctx: BuildContext) => {
+// Runs any producers local to the repo.
+const local_producer: Producer = async (build: Build, ctx: BuildContext) => {
   ctx.state.local = (ctx.state.local || {})
   let actionDefs = ctx.state.local.actionDefs
 
@@ -20,17 +20,21 @@ const local_builder: Builder = async (build: Build, ctx: BuildContext) => {
     let configBuild = configBuildResult?.build()
     let config = configBuild?.model || {}
 
-    let builders = config.sys?.model.builders || {}
+    let actions = config.sys?.model?.action ||
+      // NOTE: backwards compat
+      config.sys?.model?.builders ||
+      {}
 
-    // console.log('LOCAL BUILDERS', builders)
+    let ordering = config.sys?.model?.order?.action
+    ordering = null == ordering ? Object.keys(actions) :
+      ordering.split(/\s*,+\s*/).filter((n: string) => null != n && '' != n)
 
-    // TODO: order by comma sep string
-    // Load builders
-    for (let name in builders) {
-      let builder = builders[name]
-      let action_path = Path.join(root, builder.load)
+    // load actions
+    for (let name of ordering) {
+      let actiondef = actions[name]
+      let actionpath = Path.join(root, actiondef.load)
 
-      let action = require(action_path)
+      let action = require(actionpath)
 
       if (action instanceof Promise) {
         action = await action
@@ -38,10 +42,8 @@ const local_builder: Builder = async (build: Build, ctx: BuildContext) => {
 
       const step = action.step || 'post'
 
-      actionDefs.push({ name, builder, action, step })
+      actionDefs.push({ name, actiondef, action, step })
     }
-
-    // console.log('LOCAL ACTION DEFS', actionDefs)
   }
 
   const runActionDefs = actionDefs.filter((ad: any) => ctx.step === ad.step || 'all' === ad.step)
@@ -53,11 +55,14 @@ const local_builder: Builder = async (build: Build, ctx: BuildContext) => {
 
   let ok = true
   let areslog = []
+  let reload = false
 
   for (let actionDef of runActionDefs) {
     try {
       let ares = await actionDef.action(build.model, build, ctx)
       ok = ok && (null == ares || !!ares.ok)
+      reload = reload || ares?.reload
+
       areslog.push(ares)
 
       if (!ok) { break }
@@ -75,10 +80,20 @@ const local_builder: Builder = async (build: Build, ctx: BuildContext) => {
     }
   }
 
-  return { ok, step: ctx.step, active: true, errs: [], runlog: [] }
+  let pr: ProducerResult = {
+    ok,
+    reload,
+    name: 'local',
+    step: ctx.step,
+    active: true,
+    errs: [],
+    runlog: []
+  }
+
+  return pr
 }
 
 
 export {
-  local_builder
+  local_producer
 }

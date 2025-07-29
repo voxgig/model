@@ -1,13 +1,23 @@
 
 import Path from 'path'
 
-import type { Build, Builder, BuildContext } from '../types'
+import type { Build, Producer, BuildContext, ProducerResult } from '../types'
 
 
 // Builds the main model file, after unification.
-const model_builder: Builder = async (build: Build, ctx: BuildContext) => {
+const model_producer: Producer = async (build: Build, ctx: BuildContext) => {
+  let pr: ProducerResult = {
+    ok: true,
+    name: 'model',
+    reload: false,
+    step: ctx.step,
+    active: true,
+    errs: [],
+    runlog: []
+  }
+
   if ('post' !== ctx.step) {
-    return { ok: true, step: ctx.step, active: false, errs: [], runlog: [] }
+    return pr
   }
 
   let json = JSON.stringify(build.model, null, 2)
@@ -29,9 +39,10 @@ const model_builder: Builder = async (build: Build, ctx: BuildContext) => {
   build.fs.mkdirSync(Path.dirname(file), { recursive: true })
   build.fs.writeFileSync(file, json)
 
-  return { ok: true, step: ctx.step, active: true, errs: [], runlog: [] }
+
+  return pr
 }
 
 export {
-  model_builder
+  model_producer
 }

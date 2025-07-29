@@ -39,7 +39,7 @@ describe('build', () => {
               expect(build.root.canon).equal('{"foo":1,"bar":2}')
               expect(build.model).equal({ foo: 1, bar: 2 })
             }
-            return { ok: true, errs: [], runlog: [] }
+            return { ok: true, step: '', name: 'test', active: true, reload: false, errs: [], runlog: [] }
           },
         },
         {
@@ -58,15 +58,16 @@ describe('build', () => {
               await writeFile(__dirname + '/../test/p01/doc.html', doc)
             }
 
-            return { ok: true, errs: [], runlog: [] }
+            return {
+              ok: true, name: 'gendoc', step: '',
+              active: true, reload: false, errs: [], runlog: []
+            }
           },
         }
       ]
     }, log)
 
     let v0 = await b0.run({ watch: false })
-
-    // console.log(v0)
 
     expect(v0.ok).equal(true)
     expect(b0.root.canon).equal('{"foo":1,"bar":2}')
@@ -81,6 +82,8 @@ describe('build', () => {
   test('project-sys01', async () => {
     const folder = __dirname + '/../test/sys01/'
     await writeFile(folder + 'foo.txt', 'BAD')
+    await writeFile(folder + 'pre.txt', 'BAD')
+    await writeFile(folder + 'model/pre.jsonic', 'BAD')
     await writeFile(folder + 'model/model.json', 'BAD')
     await writeFile(folder + 'model/.model-config/model-config.json', 'BAD')
 
@@ -98,14 +101,20 @@ describe('build', () => {
     expect(br.ok)
 
     expect(readFileSync(folder + 'foo.txt').toString()).equal('BAD')
+    expect(readFileSync(folder + 'pre.txt').toString()).equal('BAD')
+    expect(readFileSync(folder + 'model/pre.jsonic').toString()).equal('BAD')
     expect(readFileSync(folder + 'model/model.json').toString()).equal('BAD')
     expect(readFileSync(folder + 'model/.model-config/model-config.json').toString())
       .equal('BAD')
 
-
     model = new Model({
       path,
       base,
+      buildargs: {
+        pre: {
+          bar: 'BAR'
+        }
+      }
     })
     br = await model.run()
 
@@ -122,7 +131,9 @@ describe('build', () => {
       .equal(JSON.stringify(CONFIG_MODEL, undefined, 2))
 
     expect(await readFile(__dirname + '/../test/sys01/foo.txt', { encoding: 'utf8' }))
-      .equal('FOO')
+      .equal('FOO:OK')
+    expect(await readFile(__dirname + '/../test/sys01/pre.txt', { encoding: 'utf8' }))
+      .equal('PRE:BAR')
   })
 
 
@@ -134,6 +145,7 @@ describe('build', () => {
 
 const SYS_MODEL =
 {
+  "pre": "OK",
   "color": {
     "blue": {
       "name": "blue",
@@ -347,10 +359,16 @@ const SYS_MODEL =
 const CONFIG_MODEL = {
   "sys": {
     "model": {
-      "builders": {
+      "action": {
         "foo": {
           "load": "build/foo"
+        },
+        "pre": {
+          "load": "build/pre"
         }
+      },
+      "order": {
+        "action": "pre,foo"
       }
     }
   }

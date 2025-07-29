@@ -10,21 +10,21 @@ import { prettyPino } from '@voxgig/util'
 import type {
   Build,
   BuildResult,
-  BuildAction,
+  ProducerDef,
   BuildContext,
   BuildSpec,
   ModelSpec,
   Log,
   FST,
+  ProducerResult,
 } from './types'
 
 
 import { Config } from './config'
 import { Watch } from './watch'
 
-import { model_builder } from './builder/model'
-import { local_builder } from './builder/local'
-
+import { model_producer } from './producer/model'
+import { local_producer } from './producer/local'
 
 
 class Model {
@@ -62,11 +62,15 @@ class Model {
     this.config = makeConfig(mspec, this.log, this.fs, {
       path: '/',
       build: async function trigger_model(build: Build, ctx: BuildContext) {
-        if ('post' !== ctx.step) {
-          return { ok: true, errs: [], runlog: [] }
+        let pres: ProducerResult = {
+          ok: false, name: 'config', step: '', active: true, reload: false, errs: [], runlog: []
         }
 
-        let res: BuildResult = { ok: false, errs: [], runlog: [] }
+        if ('post' !== ctx.step) {
+          pres.ok = true
+          return pres
+        }
+
 
         if (self.trigger_model) {
 
@@ -75,11 +79,13 @@ class Model {
             self.build.use.config.watch.last.build = build
           }
 
-          res = await self.watch.run('model', true)
+          const br = await self.watch.run('model', true)
+          pres.ok = br.ok
+          pres.errs = br.errs
         }
         else {
           self.trigger_model = true
-          res = { ok: true, errs: [], runlog: [] }
+          pres.ok = true
         }
 
         if (ctx.watch) {
@@ -92,7 +98,7 @@ class Model {
           }
         }
 
-        return res
+        return pres
       }
     })
 
@@ -107,11 +113,11 @@ class Model {
       res: [
         {
           path: '/',
-          build: model_builder
+          build: model_producer
         },
         {
           path: '/',
-          build: local_builder
+          build: local_producer
         }
       ],
       require: mspec.require,
@@ -146,7 +152,7 @@ class Model {
 }
 
 
-function makeConfig(mspec: ModelSpec, log: Log, fs: any, trigger_model_build: BuildAction) {
+function makeConfig(mspec: ModelSpec, log: Log, fs: any, trigger_model_build: ProducerDef) {
   let cbase = mspec.base + '/.model-config'
   let cpath = cbase + '/model-config.jsonic'
 
@@ -155,7 +161,7 @@ function makeConfig(mspec: ModelSpec, log: Log, fs: any, trigger_model_build: Bu
     fs.writeFileSync(cpath, `
 @"@voxgig/model/model/.model-config/model-config.jsonic"
 
-sys: model: builders: {}
+sys: model: action: {}
 `)
   }
 
@@ -169,7 +175,7 @@ sys: model: builders: {}
       // Generate full config model and save as a file.
       {
         path: '/',
-        build: model_builder
+        build: model_producer
       },
 
       // Trigger main model build.

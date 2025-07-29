@@ -1,4 +1,4 @@
-/* Copyright © 2021-2024 Voxgig Ltd, MIT License. */
+/* Copyright © 2021-2025 Voxgig Ltd, MIT License. */
 
 
 import type { BuildResult, BuildSpec, Log } from './types'

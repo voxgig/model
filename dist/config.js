@@ -1,5 +1,5 @@
 "use strict";
-/* Copyright © 2021-2024 Voxgig Ltd, MIT License. */
+/* Copyright © 2021-2025 Voxgig Ltd, MIT License. */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Config = void 0;
 const watch_1 = require("./watch");

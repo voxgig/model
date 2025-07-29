@@ -1,4 +1,7 @@
 
-sys: model: builders: {
+sys: model: action: {
   foo: load: 'build/foo'
+  pre: load: 'build/pre'
 }
+
+sys: model: order: action: 'pre,foo'

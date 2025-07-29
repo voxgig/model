@@ -29,7 +29,7 @@ const model_2 = require("../dist/builder/model");
                             (0, code_1.expect)(build.root.canon).equal('{"foo":1,"bar":2}');
                             (0, code_1.expect)(build.model).equal({ foo: 1, bar: 2 });
                         }
-                        return { ok: true, errs: [], runlog: [] };
+                        return { ok: true, step: '', name: 'test', active: true, reload: false, errs: [], runlog: [] };
                     },
                 },
                 {
@@ -46,13 +46,15 @@ const model_2 = require("../dist/builder/model");
 </body></html>`;
                             await (0, promises_1.writeFile)(__dirname + '/../test/p01/doc.html', doc);
                         }
-                        return { ok: true, errs: [], runlog: [] };
+                        return {
+                            ok: true, name: 'gendoc', step: '',
+                            active: true, reload: false, errs: [], runlog: []
+                        };
                     },
                 }
             ]
         }, log);
         let v0 = await b0.run({ watch: false });
-        // console.log(v0)
         (0, code_1.expect)(v0.ok).equal(true);
         (0, code_1.expect)(b0.root.canon).equal('{"foo":1,"bar":2}');
         (0, code_1.expect)(await (0, promises_1.readFile)(__dirname + '/../test/p01/doc.html', { encoding: 'utf8' }))
@@ -64,6 +66,8 @@ const model_2 = require("../dist/builder/model");
     (0, node_test_1.test)('project-sys01', async () => {
         const folder = __dirname + '/../test/sys01/';
         await (0, promises_1.writeFile)(folder + 'foo.txt', 'BAD');
+        await (0, promises_1.writeFile)(folder + 'pre.txt', 'BAD');
+        await (0, promises_1.writeFile)(folder + 'model/pre.jsonic', 'BAD');
         await (0, promises_1.writeFile)(folder + 'model/model.json', 'BAD');
         await (0, promises_1.writeFile)(folder + 'model/.model-config/model-config.json', 'BAD');
         let base = __dirname + '/../test/sys01/model';
@@ -77,12 +81,19 @@ const model_2 = require("../dist/builder/model");
         let br = await model.run();
         (0, code_1.expect)(br.ok);
         (0, code_1.expect)((0, node_fs_1.readFileSync)(folder + 'foo.txt').toString()).equal('BAD');
+        (0, code_1.expect)((0, node_fs_1.readFileSync)(folder + 'pre.txt').toString()).equal('BAD');
+        (0, code_1.expect)((0, node_fs_1.readFileSync)(folder + 'model/pre.jsonic').toString()).equal('BAD');
         (0, code_1.expect)((0, node_fs_1.readFileSync)(folder + 'model/model.json').toString()).equal('BAD');
         (0, code_1.expect)((0, node_fs_1.readFileSync)(folder + 'model/.model-config/model-config.json').toString())
             .equal('BAD');
         model = new model_1.Model({
             path,
             base,
+            buildargs: {
+                pre: {
+                    bar: 'BAR'
+                }
+            }
         });
         br = await model.run();
         (0, code_1.expect)(br.ok);
@@ -93,10 +104,13 @@ const model_2 = require("../dist/builder/model");
         (0, code_1.expect)(await (0, promises_1.readFile)(base + '/.model-config/model-config.json', { encoding: 'utf8' }))
             .equal(JSON.stringify(CONFIG_MODEL, undefined, 2));
         (0, code_1.expect)(await (0, promises_1.readFile)(__dirname + '/../test/sys01/foo.txt', { encoding: 'utf8' }))
-            .equal('FOO');
+            .equal('FOO:OK');
+        (0, code_1.expect)(await (0, promises_1.readFile)(__dirname + '/../test/sys01/pre.txt', { encoding: 'utf8' }))
+            .equal('PRE:BAR');
     });
 });
 const SYS_MODEL = {
+    "pre": "OK",
     "color": {
         "blue": {
             "name": "blue",
@@ -308,10 +322,16 @@ const SYS_MODEL = {
 const CONFIG_MODEL = {
     "sys": {
         "model": {
-            "builders": {
+            "action": {
                 "foo": {
                     "load": "build/foo"
+                },
+                "pre": {
+                    "load": "build/pre"
                 }
+            },
+            "order": {
+                "action": "pre,foo"
             }
         }
     }

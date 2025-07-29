@@ -15,7 +15,7 @@ interface Build {
   path: string
   root: any
   opts: { [key: string]: any }
-  res: BuildAction[]
+  pdef: ProducerDef[]
   spec: BuildSpec
   model: any
   use: { [name: string]: any }
@@ -25,6 +25,8 @@ interface Build {
   run: (rspec: RunSpec) => Promise<BuildResult>
   log: Log
   fs: FST
+  dryrun: boolean
+  args: any
 }
 
 
@@ -32,17 +34,11 @@ interface BuildResult {
   ok: boolean
   builder?: string
   path?: string
-  builders?: BuildResult[]
+  producers?: ProducerResult[]
   step?: string
   errs: any[]
   runlog: string[]
-
   build?: () => Build
-}
-
-interface BuildAction {
-  path: string
-  build: Builder
 }
 
 
@@ -52,16 +48,11 @@ interface BuildContext {
   state: Record<string, any>
 }
 
-type Builder = (
-  build: Build,
-  ctx: BuildContext,
-) => Promise<BuildResult>
-
 
 interface BuildSpec {
   path?: string
   base?: string
-  res?: BuildAction[]
+  res?: ProducerDef[]
   require?: any
   use?: { [name: string]: any }
   log?: Log
@@ -76,6 +67,28 @@ interface BuildSpec {
     rem?: boolean // file deletion
   }
   fs: FST
+}
+
+
+interface ProducerDef {
+  path: string
+  build: Producer
+}
+
+type Producer = (
+  build: Build,
+  ctx: BuildContext,
+) => Promise<ProducerResult>
+
+
+interface ProducerResult {
+  ok: boolean
+  name: string
+  active: boolean
+  errs: any[]
+  runlog: string[]
+  step: string
+  reload: boolean
 }
 
 
@@ -126,8 +139,9 @@ interface ModelSpec {
 export type {
   Build,
   BuildResult,
-  BuildAction,
-  Builder,
+  ProducerDef,
+  Producer,
+  ProducerResult,
   BuildContext,
   BuildSpec,
   Log,

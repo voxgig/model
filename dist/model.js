@@ -40,8 +40,8 @@ const memfs_1 = require("memfs");
 const util_1 = require("@voxgig/util");
 const config_1 = require("./config");
 const watch_1 = require("./watch");
-const model_1 = require("./builder/model");
-const local_1 = require("./builder/local");
+const model_1 = require("./producer/model");
+const local_1 = require("./producer/local");
 class Model {
     constructor(mspec) {
         this.trigger_model = false;
@@ -63,20 +63,25 @@ class Model {
         this.config = makeConfig(mspec, this.log, this.fs, {
             path: '/',
             build: async function trigger_model(build, ctx) {
+                let pres = {
+                    ok: false, name: 'config', step: '', active: true, reload: false, errs: [], runlog: []
+                };
                 if ('post' !== ctx.step) {
-                    return { ok: true, errs: [], runlog: [] };
+                    pres.ok = true;
+                    return pres;
                 }
-                let res = { ok: false, errs: [], runlog: [] };
                 if (self.trigger_model) {
                     // TODO: better design
                     if (self.build.use) {
                         self.build.use.config.watch.last.build = build;
                     }
-                    res = await self.watch.run('model', true);
+                    const br = await self.watch.run('model', true);
+                    pres.ok = br.ok;
+                    pres.errs = br.errs;
                 }
                 else {
                     self.trigger_model = true;
-                    res = { ok: true, errs: [], runlog: [] };
+                    pres.ok = true;
                 }
                 if (ctx.watch) {
                     const watchmap = build.model?.sys?.model?.watch;
@@ -86,7 +91,7 @@ class Model {
                         });
                     }
                 }
-                return res;
+                return pres;
             }
         });
         // The actual model.
@@ -100,11 +105,11 @@ class Model {
             res: [
                 {
                     path: '/',
-                    build: model_1.model_builder
+                    build: model_1.model_producer
                 },
                 {
                     path: '/',
-                    build: local_1.local_builder
+                    build: local_1.local_producer
                 }
             ],
             require: mspec.require,
@@ -139,7 +144,7 @@ function makeConfig(mspec, log, fs, trigger_model_build) {
         fs.writeFileSync(cpath, `
 @"@voxgig/model/model/.model-config/model-config.jsonic"
 
-sys: model: builders: {}
+sys: model: action: {}
 `);
     }
     let cspec = {
@@ -151,7 +156,7 @@ sys: model: builders: {}
             // Generate full config model and save as a file.
             {
                 path: '/',
-                build: model_1.model_builder
+                build: model_1.model_producer
             },
             // Trigger main model build.
             trigger_model_build

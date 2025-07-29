@@ -11,8 +11,8 @@ import type {
   BuildSpec,
   RunSpec,
   Log,
+  ProducerDef
 } from './types'
-
 
 
 class BuildImpl implements Build {
@@ -21,20 +21,25 @@ class BuildImpl implements Build {
   path
   root: any = Nil.make()
   opts: any
-  res: any[]
-  spec
+  pdef: ProducerDef[]
+  spec: BuildSpec
   model: any
   use = {}
   errs: any[] = []
   ctx: BuildContext
   log: Log
   fs: any
+  dryrun: boolean
+  args: any
 
   constructor(spec: BuildSpec, log: Log) {
     this.id = String(Math.random()).substring(3, 9)
     this.log = log
 
     this.spec = spec
+
+    this.dryrun = !!spec.dryrun
+    this.args = spec.buildargs
     this.fs = spec.fs
     this.base = null == spec.base ? '' : spec.base
     this.path = null == spec.path ? '' : spec.path
@@ -50,7 +55,7 @@ class BuildImpl implements Build {
       this.opts.require = spec.require
     }
 
-    this.res = spec.res || []
+    this.pdef = spec.res || []
 
     Object.assign(this.use, spec.use || {})
   }
@@ -60,27 +65,24 @@ class BuildImpl implements Build {
     let hasErr = false
     let runlog = []
 
-    // console.log('BUILD RUN RES', this.res)
-
     this.ctx = { step: 'pre', state: {}, watch: rspec.watch }
-    const brlog: any[] = []
+    const plog: any[] = []
 
     if (!hasErr) {
       runlog.push('model:initial')
       hasErr = await this.resolveModel()
-      // console.log('MODEL', this.path, hasErr, rspec, this.errs)
     }
 
+    let reload = false
+
     if (!hasErr) {
-      for (let builder of this.res) {
+      for (let poducer of this.pdef) {
         try {
-          runlog.push('builder:pre:' + builder.build.name)
-          let br = await builder.build(this, this.ctx)
-          br.step = this.ctx.step
-          br.path = builder.path
-          br.builder = builder.build.name
-          brlog.push(br)
-          if (!br.ok) {
+          runlog.push('producer:pre:' + poducer.build.name)
+          let pr = await poducer.build(this, this.ctx)
+          reload = reload || pr.reload
+          plog.push(pr)
+          if (!pr.ok) {
             hasErr = true
             break
           }
@@ -94,7 +96,7 @@ class BuildImpl implements Build {
     }
 
     // TODO: only reload if mode changed
-    if (!hasErr) {
+    if (!hasErr || reload) {
       runlog.push('model:full')
       hasErr = await this.resolveModel()
     }
@@ -102,15 +104,12 @@ class BuildImpl implements Build {
     if (!hasErr) {
       this.ctx.step = 'post'
 
-      for (let builder of this.res) {
+      for (let producer of this.pdef) {
         try {
-          runlog.push('builder:post:' + builder.build.name)
-          let br = await builder.build(this, this.ctx)
-          br.step = this.ctx.step
-          br.path = builder.path
-          br.builder = builder.build.name
-          brlog.push(br)
-          if (!br.ok) {
+          runlog.push('producer:post:' + producer.build.name)
+          let pr = await producer.build(this, this.ctx)
+          plog.push(pr)
+          if (!pr.ok) {
             hasErr = true
             break
           }
@@ -130,12 +129,10 @@ class BuildImpl implements Build {
       build: () => this,
 
       ok: !hasErr,
-      builders: brlog,
+      producers: plog,
       errs: this.errs,
       runlog
     }
-
-    // console.log('BUILD RESULT', br.ok, br.runlog)
 
     return br
   }
@@ -161,7 +158,6 @@ class BuildImpl implements Build {
 
       if (hasErr) {
         this.errs.push(...this.root.err)
-        // console.log('AONTU PARSE ERRS', this.errs)
       }
     }
 
@@ -169,12 +165,9 @@ class BuildImpl implements Build {
       let genctx = new Context({ root: this.root })
       this.model = this.root.gen(genctx)
 
-      // console.log('AAA', Object.keys(this.model.main?.api?.entity || {}))
-
       hasErr = genctx.err && 0 < genctx.err.length
       if (hasErr) {
         this.errs.push(...genctx.err)
-        // console.log('AONTU GEN ERRS', this.errs)
       }
     }
 

@@ -10,7 +10,7 @@ interface Build {
     opts: {
         [key: string]: any;
     };
-    res: BuildAction[];
+    pdef: ProducerDef[];
     spec: BuildSpec;
     model: any;
     use: {
@@ -21,31 +21,28 @@ interface Build {
     run: (rspec: RunSpec) => Promise<BuildResult>;
     log: Log;
     fs: FST;
+    dryrun: boolean;
+    args: any;
 }
 interface BuildResult {
     ok: boolean;
     builder?: string;
     path?: string;
-    builders?: BuildResult[];
+    producers?: ProducerResult[];
     step?: string;
     errs: any[];
     runlog: string[];
     build?: () => Build;
-}
-interface BuildAction {
-    path: string;
-    build: Builder;
 }
 interface BuildContext {
     step: 'pre' | 'post';
     watch: boolean;
     state: Record<string, any>;
 }
-type Builder = (build: Build, ctx: BuildContext) => Promise<BuildResult>;
 interface BuildSpec {
     path?: string;
     base?: string;
-    res?: BuildAction[];
+    res?: ProducerDef[];
     require?: any;
     use?: {
         [name: string]: any;
@@ -62,6 +59,20 @@ interface BuildSpec {
         rem?: boolean;
     };
     fs: FST;
+}
+interface ProducerDef {
+    path: string;
+    build: Producer;
+}
+type Producer = (build: Build, ctx: BuildContext) => Promise<ProducerResult>;
+interface ProducerResult {
+    ok: boolean;
+    name: string;
+    active: boolean;
+    errs: any[];
+    runlog: string[];
+    step: string;
+    reload: boolean;
 }
 type Run = {
     canon: string;
@@ -98,4 +109,4 @@ interface ModelSpec {
         rem?: boolean;
     };
 }
-export type { Build, BuildResult, BuildAction, Builder, BuildContext, BuildSpec, Log, Run, Canon, ChangeItem, RunSpec, ModelSpec, FST, };
+export type { Build, BuildResult, ProducerDef, Producer, ProducerResult, BuildContext, BuildSpec, Log, Run, Canon, ChangeItem, RunSpec, ModelSpec, FST, };
