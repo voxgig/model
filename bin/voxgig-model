@@ -8,10 +8,12 @@ const Pkg = require('../package.json')
 const { Model } = require('../dist/model.js')
 
 const { Jsonic } = require('jsonic')
-const { Gubu, Fault, One } = require('gubu')
+const { Gubu, Fault, One, Any } = require('gubu')
 
 
-let KONSOLE = console
+
+let KONSOLE = global['con'+'sole']
+
 
 run()
 
@@ -109,7 +111,7 @@ function validateOptions(rawOptions) {
     watch: Boolean,
     debug: One(String,Boolean),
     dryrun: false,
-    buildargs: '',
+    build: Any(),
     help: Boolean,
     version: Boolean,
   })
@@ -145,12 +147,6 @@ async function handleError(err) {
 
 function version() {
   KONSOLE.log(Pkg.version)
-}
-
-
-function help() {
-  const s = 'TODO'
-  KONSOLE.log(s)
 }
 
 
@@ -206,4 +202,44 @@ async function generate(options) {
     await model.run()
   }
 }
+
+
+function help() {
+  const s = `
+Build a Voxgig model and generate dependent artifacts.
+
+Usage: voxgig-model <root-file> <args> 
+
+  <root-file> is the root file of the model.
+
+  <args> are the command arguments:
+
+    --dryrun        Perform a dry run, where no files are modified.
+    -y
+
+    --build <spec>  Provide a jsonic specification for build actions. 
+    -b
+
+    --debug         Set log level (default: info): trace, error, debug, info, warn, fatal.
+    -g             
+
+    --help          Print this help message.
+    -h
+
+    --version       Print version number.
+    -v
+
+
+Examples:
+
+# Basic usage
+> voxgig-model model/model.jsonic
+# Builds a model defined in the file model/model.jsonic
+
+See also: https://voxgig.com/model
+`
+  KONSOLE.log(s)
+}
+
+
 

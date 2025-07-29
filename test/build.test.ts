@@ -16,7 +16,7 @@ import type { Build, BuildContext } from '../dist/types'
 
 import { makeBuild } from '../dist/build'
 import { Model } from '../dist/model'
-import { model_builder } from '../dist/builder/model'
+import { model_producer } from '../dist/producer/model'
 
 
 
@@ -44,7 +44,7 @@ describe('build', () => {
         },
         {
           path: '/',
-          build: model_builder
+          build: model_producer
         },
         {
           path: '/',

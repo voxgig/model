@@ -12,7 +12,7 @@ const code_1 = require("@hapi/code");
 const util_1 = require("@voxgig/util");
 const build_1 = require("../dist/build");
 const model_1 = require("../dist/model");
-const model_2 = require("../dist/builder/model");
+const model_2 = require("../dist/producer/model");
 (0, node_test_1.describe)('build', () => {
     (0, node_test_1.test)('project-p01', async () => {
         await (0, promises_1.writeFile)(__dirname + '/../test/p01/doc.html', 'BAD');
@@ -34,7 +34,7 @@ const model_2 = require("../dist/builder/model");
                 },
                 {
                     path: '/',
-                    build: model_2.model_builder
+                    build: model_2.model_producer
                 },
                 {
                     path: '/',
