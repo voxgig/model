@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "7.1.0",
+  "version": "7.2.0",
   "main": "dist/model.js",
   "type": "commonjs",
   "types": "dist/model.d.ts",
@@ -46,7 +46,7 @@
     "aontu": "0.28.0",
     "chokidar": "4.0.3",
     "gubu": "^9.0.0",
-    "memfs": "^4.23.0"
+    "memfs": "^4.25.0"
   },
   "peerDependencies": {
     "@voxgig/util": ">=0",
