@@ -36,7 +36,6 @@ describe('build', () => {
           path: '/',
           build: async function test(build: Build, ctx: BuildContext) {
             if ('post' === ctx.step) {
-              expect(build.root.canon).equal('{"foo":1,"bar":2}')
               expect(build.model).equal({ foo: 1, bar: 2 })
             }
             return { ok: true, step: '', name: 'test', active: true, reload: false, errs: [], runlog: [] }
@@ -70,7 +69,7 @@ describe('build', () => {
     let v0 = await b0.run({ watch: false })
 
     expect(v0.ok).equal(true)
-    expect(b0.root.canon).equal('{"foo":1,"bar":2}')
+    expect(b0.model).equal({ "foo": 1, "bar": 2 })
     expect(await readFile(__dirname + '/../test/p01/doc.html', { encoding: 'utf8' }))
       .equal(`<html><head><title>Docs</title></head><body>
 <p>FOO: 1</p>
@@ -225,134 +224,137 @@ const SYS_MODEL =
     },
   },
   "sys": {
-    "shape": {
-      "srv": {
-        "base": {
-          "in": {},
-          "out": {},
-          "deps": {},
-          "api": {
-            "web": {
-              "path": {},
-              "cors": {}
-            }
-          },
-          "env": {
-            "lambda": {
-              "handler": {
-                "path": {}
+    /*
+      "shape": {
+        "srv": {
+          "base": {
+            "in": {},
+            "out": {},
+            "deps": {},
+            "api": {
+              "web": {
+                "path": {},
+                "cors": {}
+              }
+            },
+            "env": {
+              "lambda": {
+                "handler": {
+                  "path": {}
+                }
               }
             }
+          },
+          "std": {
+            "api": {
+              "web": {
+                "active": true,
+                "method": "POST",
+                "cors": {
+                  "active": false
+                },
+                "path": {
+                  "prefix": "/api/"
+                }
+              }
+            },
+            "env": {
+              "lambda": {
+                "active": false,
+                "timeout": 30,
+                "handler": {
+                  "path": {
+                    "suffix": ".handler"
+                  }
+                },
+                "kind": "standard"
+              }
+            },
+            "in": {},
+            "out": {},
+            "deps": {}
+          },
+          "std_js": {
+            "env": {
+              "lambda": {
+                "handler": {
+                  "path": {
+                    "prefix": "src/handler/lambda/",
+                    "suffix": ".handler"
+                  }
+                },
+                "active": false,
+                "timeout": 30,
+                "kind": "standard"
+              }
+            },
+            "api": {
+              "web": {
+                "active": true,
+                "method": "POST",
+                "cors": {
+                  "active": false
+                },
+                "path": {
+                  "prefix": "/api/"
+                }
+              }
+            },
+            "in": {},
+            "out": {},
+            "deps": {}
+          },
+          "std_ts": {
+            "env": {
+              "lambda": {
+                "handler": {
+                  "path": {
+                    "prefix": "dist/handler/lambda/",
+                    "suffix": ".handler"
+                  }
+                },
+                "active": false,
+                "timeout": 30,
+                "kind": "standard"
+              }
+            },
+            "api": {
+              "web": {
+                "active": true,
+                "method": "POST",
+                "cors": {
+                  "active": false
+                },
+                "path": {
+                  "prefix": "/api/"
+                }
+              }
+            },
+            "in": {},
+            "out": {},
+            "deps": {}
           }
         },
-        "std": {
-          "api": {
-            "web": {
+        "app": {},
+        "ent": {
+          "field": {
+            "id": {
               "active": true,
-              "method": "POST",
-              "cors": {
-                "active": false
-              },
-              "path": {
-                "prefix": "/api/"
-              }
-            }
+              "dx": {},
+              "kind": "Text",
+              "ux": {},
+            },
           },
-          "env": {
-            "lambda": {
-              "active": false,
-              "timeout": 30,
-              "handler": {
-                "path": {
-                  "suffix": ".handler"
-                }
-              },
-              "kind": "standard"
-            }
-          },
-          "in": {},
-          "out": {},
-          "deps": {}
-        },
-        "std_js": {
-          "env": {
-            "lambda": {
-              "handler": {
-                "path": {
-                  "prefix": "src/handler/lambda/",
-                  "suffix": ".handler"
-                }
-              },
-              "active": false,
-              "timeout": 30,
-              "kind": "standard"
-            }
-          },
-          "api": {
-            "web": {
-              "active": true,
-              "method": "POST",
-              "cors": {
-                "active": false
-              },
-              "path": {
-                "prefix": "/api/"
-              }
-            }
-          },
-          "in": {},
-          "out": {},
-          "deps": {}
-        },
-        "std_ts": {
-          "env": {
-            "lambda": {
-              "handler": {
-                "path": {
-                  "prefix": "dist/handler/lambda/",
-                  "suffix": ".handler"
-                }
-              },
-              "active": false,
-              "timeout": 30,
-              "kind": "standard"
-            }
-          },
-          "api": {
-            "web": {
-              "active": true,
-              "method": "POST",
-              "cors": {
-                "active": false
-              },
-              "path": {
-                "prefix": "/api/"
-              }
-            }
-          },
-          "in": {},
-          "out": {},
-          "deps": {}
-        }
-      },
-      "app": {},
-      "ent": {
-        "field": {
           "id": {
-            "active": true,
-            "dx": {},
-            "kind": "Text",
-            "ux": {},
+            "field": "id",
           },
-        },
-        "id": {
-          "field": "id",
-        },
-      }, "part": {
-        "img": {}
+        }, "part": {
+          "img": {}
+        }
       }
-    }
+    */
   }
+
 }
 
 

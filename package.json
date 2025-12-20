@@ -20,7 +20,7 @@
   },
   "scripts": {
     "test": "node --enable-source-maps --test dist-test/**/*.test.js",
-    "test-some": "node --enable-source-maps --test-name-pattern=\"$npm_config_pattern\" --test dist-test/**/*.test.js",
+    "test-some": "node --enable-source-maps --test-name-pattern=\"$TEST_PATTERN\" --test dist-test/**/*.test.js",
     "test-cov": "rm -rf ./coverage && mkdir -p ./coverage && node --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info --enable-source-maps --test \"dist-test/*.test.js\"",
     "watch": "tsc --build src test -w",
     "build": "tsc --build src test",
@@ -43,15 +43,15 @@
     "LICENSE"
   ],
   "dependencies": {
-    "aontu": "0.28.0",
+    "aontu": "0.34.5",
     "chokidar": "4.0.3",
     "gubu": "^9.0.0",
-    "memfs": "^4.25.0"
+    "memfs": "^4.51.1"
   },
   "peerDependencies": {
     "@voxgig/util": ">=0",
-    "pino": ">=9",
-    "readdirp": "4.1.2"
+    "pino": ">=10",
+    "readdirp": "5.0.0"
   },
   "peerDependenciesMeta": {
     "readdirp": {
@@ -60,12 +60,12 @@
   },
   "devDependencies": {
     "@hapi/code": "^9.0.3",
-    "@types/node": "24.1.0",
-    "typescript": "^5.8.3"
+    "@types/node": "25.0.3",
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "chokidar": {
-      "readdirp": "4.1.2"
+      "readdirp": "5.0.0"
     }
   }
 }

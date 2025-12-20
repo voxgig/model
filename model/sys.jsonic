@@ -1,8 +1,9 @@
 
 
-# Service Shapes
-# --------------
+# # Service Shapes
+# # --------------
 
+sys: shape: type({})
 
 # Service base has no defaults.
 sys: shape: srv: base: {
@@ -17,9 +18,9 @@ sys: shape: srv: base: {
   api: web: {
     active: boolean
     path: {
-      prefix: string
-      area: string
-      suffix: string 
+      prefix?: string
+      area?: string
+      suffix?: string 
     }
     method: string
     cors: {
@@ -29,11 +30,9 @@ sys: shape: srv: base: {
   env: lambda: {
     active: boolean
     timeout: integer
-    handler: {
-    path: {
+    handler: path: {
       prefix: string
       suffix: string
-      }
     }
   }
 }
@@ -58,7 +57,7 @@ sys: shape: srv: std: $.sys.shape.srv.base & {
 }
 
 
-# Javascript service defaults
+# # Javascript service defaults
 sys: shape: srv: std_js: $.sys.shape.srv.std & {
   env: lambda: handler: path: {
     prefix: *'src/handler/lambda/' | string
@@ -88,19 +87,19 @@ sys: shape: ent: {
   }
 }
 
-sys: shape: ent: field: &: {
-  active: *true | boolean
-  kind: *'Text' | string  
-  title: string
+# sys: shape: ent: field: &: {
+#   active: *true | boolean
+#   kind: *'Text' | string  
+#   title: string
   
-  # Developer model (backend)
-  dx: {}
+#   # Developer model (backend)
+#   dx: {}
 
-  # User inerface model (frontend)
-  ux: {
-    desc: string
-  }
-} 
+#   # User inerface model (frontend)
+#   ux: {
+#     desc: string
+#   }
+# } 
 
 
 

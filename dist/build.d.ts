@@ -1,10 +1,9 @@
-import { Val } from 'aontu';
+import { Aontu } from 'aontu';
 import type { Build, BuildResult, BuildContext, BuildSpec, RunSpec, Log, ProducerDef } from './types';
 declare class BuildImpl implements Build {
     id: string;
     base: string;
     path: string;
-    root: any;
     opts: any;
     pdef: ProducerDef[];
     spec: BuildSpec;
@@ -16,9 +15,11 @@ declare class BuildImpl implements Build {
     fs: any;
     dryrun: boolean;
     args: any;
+    aontu: Aontu;
+    deps: any;
     constructor(spec: BuildSpec, log: Log);
     run(rspec: RunSpec): Promise<BuildResult>;
     resolveModel(): Promise<boolean>;
 }
 declare function makeBuild(spec: BuildSpec, log: Log): BuildImpl;
-export { makeBuild, BuildSpec, Val };
+export { makeBuild, BuildSpec, };

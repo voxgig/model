@@ -1,7 +1,7 @@
 /* Copyright © 2021-2024 Voxgig Ltd, MIT License. */
 
 
-import { Aontu, Val, Nil, Context } from 'aontu'
+import { Aontu } from 'aontu'
 
 
 import type {
@@ -19,7 +19,6 @@ class BuildImpl implements Build {
   id
   base
   path
-  root: any = Nil.make()
   opts: any
   pdef: ProducerDef[]
   spec: BuildSpec
@@ -31,6 +30,9 @@ class BuildImpl implements Build {
   fs: any
   dryrun: boolean
   args: any
+  aontu: Aontu
+  deps: any
+
 
   constructor(spec: BuildSpec, log: Log) {
     this.id = String(Math.random()).substring(3, 9)
@@ -58,6 +60,9 @@ class BuildImpl implements Build {
     this.pdef = spec.res || []
 
     Object.assign(this.use, spec.use || {})
+
+    this.deps = {}
+    this.aontu = new Aontu()
   }
 
 
@@ -73,14 +78,14 @@ class BuildImpl implements Build {
       hasErr = await this.resolveModel()
     }
 
-    let reload = false
+    let forceReload = false
 
     if (!hasErr) {
-      for (let poducer of this.pdef) {
+      for (let producer of this.pdef) {
         try {
-          runlog.push('producer:pre:' + poducer.build.name)
-          let pr = await poducer.build(this, this.ctx)
-          reload = reload || pr.reload
+          runlog.push('producer:pre:' + producer.build.name)
+          let pr = await producer.build(this, this.ctx)
+          forceReload = forceReload || pr.reload
           plog.push(pr)
           if (!pr.ok) {
             hasErr = true
@@ -95,8 +100,11 @@ class BuildImpl implements Build {
       }
     }
 
+    // Reload after pre production since model files may have been modified.
+    const reload = forceReload || !hasErr
+
     // TODO: only reload if mode changed
-    if (!hasErr || reload) {
+    if (reload) {
       runlog.push('model:full')
       hasErr = await this.resolveModel()
     }
@@ -153,22 +161,14 @@ class BuildImpl implements Build {
     }
 
     if (!hasErr) {
-      this.root = Aontu(src, this.opts)
-      hasErr = this.root.err && 0 < this.root.err.length
+      this.opts.errs = this.errs
+      this.opts.deps = this.deps
+      this.opts.fs = this.fs
+      this.model = this.aontu.generate(src, this.opts)
 
-      if (hasErr) {
-        this.errs.push(...this.root.err)
-      }
-    }
-
-    if (!hasErr) {
-      let genctx = new Context({ root: this.root })
-      this.model = this.root.gen(genctx)
-
-      hasErr = genctx.err && 0 < genctx.err.length
-      if (hasErr) {
-        this.errs.push(...genctx.err)
-      }
+      // console.dir(this.model, { depth: null })
+      // console.log(this.errs, this.deps)
+      hasErr = this.opts.errs && 0 < this.opts.errs.length
     }
 
     return hasErr
@@ -183,7 +183,6 @@ function makeBuild(spec: BuildSpec, log: Log) {
 export {
   makeBuild,
   BuildSpec,
-  Val
 }
 
 

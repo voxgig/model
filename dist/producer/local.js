@@ -7,6 +7,7 @@ exports.local_producer = void 0;
 const path_1 = __importDefault(require("path"));
 // Runs any producers local to the repo.
 const local_producer = async (build, ctx) => {
+    console.log('LOCAL', 'ctx:' + ctx.step);
     ctx.state.local = (ctx.state.local || {});
     let actionDefs = ctx.state.local.actionDefs;
     if (null == actionDefs) {
@@ -46,6 +47,7 @@ const local_producer = async (build, ctx) => {
     let reload = false;
     for (let actionDef of runActionDefs) {
         try {
+            // TODO: this call signature needs to be well-defined as it is an external interface
             let ares = await actionDef.action(build.model, build, ctx);
             ok = ok && (null == ares || !!ares.ok);
             reload = reload || ares?.reload;

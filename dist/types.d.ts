@@ -1,12 +1,12 @@
 import Fs from 'node:fs';
 import Pino from 'pino';
+import type { Aontu } from 'aontu';
 type FST = typeof Fs;
 type Log = ReturnType<typeof Pino>;
 interface Build {
     id: string;
     base: string;
     path: string;
-    root: any;
     opts: {
         [key: string]: any;
     };
@@ -18,11 +18,13 @@ interface Build {
     };
     errs: any[];
     ctx: BuildContext;
+    deps: any;
     run: (rspec: RunSpec) => Promise<BuildResult>;
     log: Log;
     fs: FST;
     dryrun: boolean;
     args: any;
+    aontu: Aontu;
 }
 interface BuildResult {
     ok: boolean;

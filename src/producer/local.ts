@@ -6,6 +6,8 @@ import type { Build, Producer, BuildContext, ProducerResult } from '../types'
 
 // Runs any producers local to the repo.
 const local_producer: Producer = async (build: Build, ctx: BuildContext) => {
+  console.log('LOCAL', 'ctx:' + ctx.step)
+
   ctx.state.local = (ctx.state.local || {})
   let actionDefs = ctx.state.local.actionDefs
 
@@ -59,6 +61,7 @@ const local_producer: Producer = async (build: Build, ctx: BuildContext) => {
 
   for (let actionDef of runActionDefs) {
     try {
+      // TODO: this call signature needs to be well-defined as it is an external interface
       let ares = await actionDef.action(build.model, build, ctx)
       ok = ok && (null == ares || !!ares.ok)
       reload = reload || ares?.reload

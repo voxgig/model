@@ -100,8 +100,6 @@ class Watch {
       // this.lastChange.path !== this.lastTrigger.path
 
       if (trigger) {
-        // console.log('TRIGGER', this.idle < idleDuration, this.idle, idleDuration)
-
         // Only add to build queue if we've been idle.
         // This allows external compilation outputting multiple files to complete fully.
         // IMPORTANT: always trigger a new build if there were changes *inside* a build period
@@ -118,7 +116,6 @@ class Watch {
             start: now,
             end: -1,
           }
-          // console.log('RUNQ ENTRY', entry)
           this.runq.push(entry)
 
           // Defer builds to the event loop to keep idle checking separate.
@@ -195,16 +192,12 @@ class Watch {
   async update(br: BuildResult) {
     let build = br.build ? br.build() : undefined
 
-    // console.log('UPDATE BR BUILD', build)
-
-    if (build?.root?.deps) {
+    if (build?.deps) {
       let files: string[] =
-        Object.keys(build.root.deps).reduce((files: string[], target: any) => {
-          files = files.concat(Object.keys(build.root.deps[target]))
+        Object.keys(build.deps).reduce((files: string[], target: any) => {
+          files = files.concat(Object.keys(build.deps[target]))
           return files
         }, [build.path])
-
-      // console.log('DEPS', files)
 
       // TODO: remove deleted files
       files.forEach(async (file: string) => {
@@ -238,7 +231,7 @@ class Watch {
       let br: BuildResult = await this.build.run(rspec)
 
       if (br.ok) {
-        const deps = this.descDeps(br.build ? br.build().root?.deps : undefined)
+        const deps = this.descDeps(br.build ? br.build().deps : undefined)
         this.log.debug({
           point: 'deps', deps,
           note: 'watch:' + name + ' deps:\n' + deps
