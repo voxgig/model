@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "7.2.0",
+  "version": "7.3.0",
   "main": "dist/model.js",
   "type": "commonjs",
   "types": "dist/model.d.ts",
@@ -50,8 +50,7 @@
   },
   "peerDependencies": {
     "@voxgig/util": ">=0",
-    "pino": ">=10",
-    "readdirp": "5.0.0"
+    "pino": ">=10"
   },
   "peerDependenciesMeta": {
     "readdirp": {
@@ -62,10 +61,5 @@
     "@hapi/code": "^9.0.3",
     "@types/node": "25.2.3",
     "typescript": "^5.9.3"
-  },
-  "overrides": {
-    "chokidar": {
-      "readdirp": "5.0.0"
-    }
   }
 }
