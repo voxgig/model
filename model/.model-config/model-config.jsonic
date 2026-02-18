@@ -4,5 +4,5 @@ sys: model: action: &: {
   load: string
 }
 
-sys: model: order: action: string
+sys: model: order: action: *''
 
