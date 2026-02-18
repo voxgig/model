@@ -7,7 +7,6 @@ exports.local_producer = void 0;
 const path_1 = __importDefault(require("path"));
 // Runs any producers local to the repo.
 const local_producer = async (build, ctx) => {
-    console.log('LOCAL', 'ctx:' + ctx.step);
     ctx.state.local = (ctx.state.local || {});
     let actionDefs = ctx.state.local.actionDefs;
     if (null == actionDefs) {

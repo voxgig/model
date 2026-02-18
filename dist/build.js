@@ -111,8 +111,6 @@ class BuildImpl {
             this.opts.deps = this.deps;
             this.opts.fs = this.fs;
             this.model = this.aontu.generate(src, this.opts);
-            // console.dir(this.model, { depth: null })
-            // console.log(this.errs, this.deps)
             hasErr = this.opts.errs && 0 < this.opts.errs.length;
         }
         return hasErr;

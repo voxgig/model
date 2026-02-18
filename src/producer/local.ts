@@ -6,7 +6,6 @@ import type { Build, Producer, BuildContext, ProducerResult } from '../types'
 
 // Runs any producers local to the repo.
 const local_producer: Producer = async (build: Build, ctx: BuildContext) => {
-  console.log('LOCAL', 'ctx:' + ctx.step)
 
   ctx.state.local = (ctx.state.local || {})
   let actionDefs = ctx.state.local.actionDefs
