@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "7.3.2",
+  "version": "7.4.0",
   "main": "dist/model.js",
   "type": "commonjs",
   "types": "dist/model.d.ts",
@@ -43,10 +43,10 @@
     "LICENSE"
   ],
   "dependencies": {
-    "aontu": "0.36.0",
+    "aontu": "0.37.0",
     "chokidar": "5.0.0",
     "gubu": "^9.0.0",
-    "memfs": "^4.56.10"
+    "memfs": "^4.56.11"
   },
   "peerDependencies": {
     "@voxgig/util": ">=0",
@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@hapi/code": "^9.0.3",
-    "@types/node": "25.2.3",
+    "@types/node": "25.5.0",
     "typescript": "^5.9.3"
   }
 }
