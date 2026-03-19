@@ -43,7 +43,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "aontu": "0.37.0",
+    "aontu": "0.38.0",
     "chokidar": "5.0.0",
     "gubu": "^9.0.0",
     "memfs": "^4.56.11"
