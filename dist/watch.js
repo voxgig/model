@@ -14,7 +14,6 @@ class Watch {
         this.wspec = bspec;
         this.log = log;
         this.name = bspec.name || 'model';
-        this.fsw = new chokidar_1.FSWatcher();
         this.lastChangeTime = 0;
         this.runq = [];
         this.doneq = [];
@@ -30,19 +29,26 @@ class Watch {
             add: true === bspec.watch?.add,
             rem: true === bspec.watch?.rem,
         };
-        const handleChange = this.handleChange.bind(this);
-        if (this.mode.mod) {
-            this.fsw.on('change', handleChange);
+    }
+    ensureFSW() {
+        if (!this.fsw) {
+            this.fsw = new chokidar_1.FSWatcher();
+            const handleChange = this.handleChange.bind(this);
+            if (this.mode.mod) {
+                this.fsw.on('change', handleChange);
+            }
+            if (this.mode.add) {
+                this.fsw.on('add', handleChange);
+            }
+            if (this.mode.rem) {
+                this.fsw.on('unlink', handleChange);
+            }
         }
-        if (this.mode.add) {
-            this.fsw.on('add', handleChange);
-        }
-        if (this.mode.rem) {
-            this.fsw.on('unlink', handleChange);
-        }
+        return this.fsw;
     }
     // Returns first BuildResult
     start() {
+        this.ensureFSW();
         this.startTime = Date.now();
         this.handleChange('<start>');
         // Check if there have been no recent changes, if so, run build.
@@ -121,7 +127,7 @@ class Watch {
             when: Date.now()
         };
         this.canons.push(canon);
-        this.fsw.add(path);
+        this.ensureFSW().add(path);
     }
     async update(br) {
         let build = br.build ? br.build() : undefined;
@@ -202,7 +208,9 @@ class Watch {
         }
     }
     async stop() {
-        await this.fsw.close();
+        if (this.fsw) {
+            await this.fsw.close();
+        }
     }
     descDeps(deps) {
         if (null == deps) {

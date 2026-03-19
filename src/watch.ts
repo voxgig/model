@@ -22,7 +22,7 @@ import { stat } from 'fs/promises'
 
 
 class Watch {
-  fsw: FSWatcher
+  fsw: FSWatcher | undefined
   wspec: any
   last?: BuildResult
   lastChangeTime: number
@@ -49,7 +49,6 @@ class Watch {
     this.log = log
 
     this.name = bspec.name || 'model'
-    this.fsw = new FSWatcher()
     this.lastChangeTime = 0
     this.runq = []
     this.doneq = []
@@ -67,25 +66,34 @@ class Watch {
       add: true === bspec.watch?.add,
       rem: true === bspec.watch?.rem,
     }
+  }
 
-    const handleChange = this.handleChange.bind(this)
 
-    if (this.mode.mod) {
-      this.fsw.on('change', handleChange)
+  ensureFSW(): FSWatcher {
+    if (!this.fsw) {
+      this.fsw = new FSWatcher()
+
+      const handleChange = this.handleChange.bind(this)
+
+      if (this.mode.mod) {
+        this.fsw.on('change', handleChange)
+      }
+
+      if (this.mode.add) {
+        this.fsw.on('add', handleChange)
+      }
+
+      if (this.mode.rem) {
+        this.fsw.on('unlink', handleChange)
+      }
     }
-
-    if (this.mode.add) {
-      this.fsw.on('add', handleChange)
-    }
-
-    if (this.mode.rem) {
-      this.fsw.on('unlink', handleChange)
-    }
+    return this.fsw
   }
 
 
   // Returns first BuildResult
   start() {
+    this.ensureFSW()
     this.startTime = Date.now()
     this.handleChange('<start>')
 
@@ -185,7 +193,7 @@ class Watch {
 
     this.canons.push(canon)
 
-    this.fsw.add(path)
+    this.ensureFSW().add(path)
   }
 
 
@@ -287,7 +295,9 @@ class Watch {
 
 
   async stop() {
-    await this.fsw.close()
+    if (this.fsw) {
+      await this.fsw.close()
+    }
   }
 
 

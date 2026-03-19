@@ -1,7 +1,7 @@
 import type { Build, BuildResult, Log, Run, Canon, ChangeItem, BuildSpec } from './types';
 import { FSWatcher } from 'chokidar';
 declare class Watch {
-    fsw: FSWatcher;
+    fsw: FSWatcher | undefined;
     wspec: any;
     last?: BuildResult;
     lastChangeTime: number;
@@ -23,6 +23,7 @@ declare class Watch {
         rem: boolean;
     };
     constructor(bspec: BuildSpec, log: Log);
+    ensureFSW(): FSWatcher;
     start(): void;
     canon(path: string): string;
     handleChange(path: string): void;
