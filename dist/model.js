@@ -86,7 +86,7 @@ class Model {
                 if (ctx.watch) {
                     const watchmap = build.model?.sys?.model?.watch;
                     if (watchmap) {
-                        Object.keys(watchmap).map((file) => {
+                        Object.keys(watchmap).forEach((file) => {
                             self.watch.add(file);
                         });
                     }

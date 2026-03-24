@@ -3,6 +3,7 @@ import Path from 'path'
 
 import type { Build, Producer, BuildContext, ProducerResult } from '../types'
 
+const ORDERING_SPLIT_RE = /\s*,+\s*/
 
 // Runs any producers local to the repo.
 const local_producer: Producer = async (build: Build, ctx: BuildContext) => {
@@ -28,7 +29,7 @@ const local_producer: Producer = async (build: Build, ctx: BuildContext) => {
 
     let ordering = config.sys?.model?.order?.action
     ordering = null == ordering ? Object.keys(actions) :
-      ordering.split(/\s*,+\s*/).filter((n: string) => null != n && '' != n)
+      ordering.split(ORDERING_SPLIT_RE).filter((n: string) => null != n && '' != n)
 
     // load actions
     for (let name of ordering) {

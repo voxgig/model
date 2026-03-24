@@ -92,7 +92,7 @@ class Model {
           const watchmap = build.model?.sys?.model?.watch
 
           if (watchmap) {
-            Object.keys(watchmap).map((file: string) => {
+            Object.keys(watchmap).forEach((file: string) => {
               self.watch.add(file)
             })
           }

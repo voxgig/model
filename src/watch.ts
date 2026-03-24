@@ -30,8 +30,10 @@ class Watch {
   runq: Run[]
   doneq: Run[]
   canons: Canon[]
+  canonPaths: Set<string>
   lastrun: Run | undefined
   idle: number
+  intervalId: ReturnType<typeof setInterval> | undefined
   startTime: number
   running: boolean
   lastChange: ChangeItem
@@ -53,6 +55,8 @@ class Watch {
     this.runq = []
     this.doneq = []
     this.canons = []
+    this.canonPaths = new Set()
+    this.intervalId = undefined
     this.startTime = 0
     this.lastChange = { path: '', when: 0 }
     this.lastTrigger = { path: '', when: 0 }
@@ -98,7 +102,7 @@ class Watch {
     this.handleChange('<start>')
 
     // Check if there have been no recent changes, if so, run build.
-    setInterval(() => {
+    this.intervalId = setInterval(() => {
       // const start = this.startTime
       const now = Date.now()
       const idleDuration = now - this.lastChange.when
@@ -179,8 +183,8 @@ class Watch {
       path = Path.join(this.wspec.require, path)
     }
 
-    // Ignore if aleady added
-    if (this.canons.find((c: Canon) => c.path === path)) {
+    // Ignore if already added
+    if (this.canonPaths.has(path)) {
       return
     }
 
@@ -192,6 +196,7 @@ class Watch {
     }
 
     this.canons.push(canon)
+    this.canonPaths.add(path)
 
     this.ensureFSW().add(path)
   }
@@ -201,21 +206,17 @@ class Watch {
     let build = br.build ? br.build() : undefined
 
     if (build?.deps) {
-      let files: string[] =
-        Object.keys(build.deps).reduce((files: string[], target: any) => {
-          files = files.concat(Object.keys(build.deps[target]))
-          return files
-        }, [build.path])
+      let files: string[] = [build.path]
+      for (const target of Object.keys(build.deps)) {
+        files.push(...Object.keys(build.deps[target]))
+      }
 
       // TODO: remove deleted files
-      files.forEach(async (file: string) => {
-        if ('string' === typeof (file) &&
-          '' !== file &&
-          build.opts.base !== file
-        ) {
+      for (const file of files) {
+        if ('string' === typeof file && '' !== file && build.opts.base !== file) {
           await this.add(file)
         }
-      })
+      }
     }
   }
 
@@ -263,7 +264,7 @@ class Watch {
       }
       else {
         let errs = br.errs || [new Error('Unknown build error')]
-        errs.filter(err => !err.__logged__).map((err: any) => {
+        errs.filter(err => !err.__logged__).forEach((err: any) => {
           this.log.error({
             fail: 'build', point: 'run-build', build: this, err
           })
@@ -295,6 +296,10 @@ class Watch {
 
 
   async stop() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId)
+      this.intervalId = undefined
+    }
     if (this.fsw) {
       await this.fsw.close()
     }

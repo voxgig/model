@@ -9,8 +9,10 @@ declare class Watch {
     runq: Run[];
     doneq: Run[];
     canons: Canon[];
+    canonPaths: Set<string>;
     lastrun: Run | undefined;
     idle: number;
+    intervalId: ReturnType<typeof setInterval> | undefined;
     startTime: number;
     running: boolean;
     lastChange: ChangeItem;
