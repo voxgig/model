@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.local_producer = void 0;
 const path_1 = __importDefault(require("path"));
+const ORDERING_SPLIT_RE = /\s*,+\s*/;
 // Runs any producers local to the repo.
 const local_producer = async (build, ctx) => {
     ctx.state.local = (ctx.state.local || {});
@@ -23,7 +24,7 @@ const local_producer = async (build, ctx) => {
             {};
         let ordering = config.sys?.model?.order?.action;
         ordering = null == ordering ? Object.keys(actions) :
-            ordering.split(/\s*,+\s*/).filter((n) => null != n && '' != n);
+            ordering.split(ORDERING_SPLIT_RE).filter((n) => null != n && '' != n);
         // load actions
         for (let name of ordering) {
             let actiondef = actions[name];

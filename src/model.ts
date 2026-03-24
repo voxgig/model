@@ -51,12 +51,14 @@ class Model {
     this.log = pino.child({ cmp: 'model' })
 
     this.log.info({ point: 'model-init' })
-    this.log.debug({
-      point: 'model-spec', mspec, note: '\n' +
-        JSON.stringify({ ...mspec, src: '<NOT-SHOWN>' }, null, 2)
-          .replace(/"/g, '')
-          .replaceAll(process.cwd(), '.')
-    })
+    if (this.log.isLevelEnabled('debug')) {
+      this.log.debug({
+        point: 'model-spec', mspec, note: '\n' +
+          JSON.stringify({ ...mspec, src: '<NOT-SHOWN>' }, null, 2)
+            .replace(/"/g, '')
+            .replaceAll(process.cwd(), '.')
+      })
+    }
 
     // Config is a special Watch to handle model config.
     this.config = makeConfig(mspec, this.log, this.fs, {
@@ -92,7 +94,7 @@ class Model {
           const watchmap = build.model?.sys?.model?.watch
 
           if (watchmap) {
-            Object.keys(watchmap).map((file: string) => {
+            Object.keys(watchmap).forEach((file: string) => {
               self.watch.add(file)
             })
           }
