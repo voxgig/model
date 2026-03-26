@@ -8,7 +8,7 @@ const fs_1 = __importDefault(require("fs"));
 const promises_1 = require("node:fs/promises");
 const node_fs_1 = require("node:fs");
 const node_test_1 = require("node:test");
-const code_1 = require("@hapi/code");
+const node_assert_1 = __importDefault(require("node:assert"));
 const util_1 = require("@voxgig/util");
 const build_1 = require("../dist/build");
 const model_1 = require("../dist/model");
@@ -26,7 +26,7 @@ const model_2 = require("../dist/producer/model");
                     path: '/',
                     build: async function test(build, ctx) {
                         if ('post' === ctx.step) {
-                            (0, code_1.expect)(build.model).equal({ foo: 1, bar: 2 });
+                            node_assert_1.default.deepStrictEqual(build.model, { foo: 1, bar: 2 });
                         }
                         return { ok: true, step: '', name: 'test', active: true, reload: false, errs: [], runlog: [] };
                     },
@@ -54,10 +54,9 @@ const model_2 = require("../dist/producer/model");
             ]
         }, log);
         let v0 = await b0.run({ watch: false });
-        (0, code_1.expect)(v0.ok).equal(true);
-        (0, code_1.expect)(b0.model).equal({ "foo": 1, "bar": 2 });
-        (0, code_1.expect)(await (0, promises_1.readFile)(__dirname + '/../test/p01/doc.html', { encoding: 'utf8' }))
-            .equal(`<html><head><title>Docs</title></head><body>
+        node_assert_1.default.strictEqual(v0.ok, true);
+        node_assert_1.default.deepStrictEqual(b0.model, { "foo": 1, "bar": 2 });
+        node_assert_1.default.strictEqual(await (0, promises_1.readFile)(__dirname + '/../test/p01/doc.html', { encoding: 'utf8' }), `<html><head><title>Docs</title></head><body>
 <p>FOO: 1</p>
 <p>BAR: 2</p>
 </body></html>`);
@@ -78,13 +77,12 @@ const model_2 = require("../dist/producer/model");
             dryrun: true
         });
         let br = await model.run();
-        (0, code_1.expect)(br.ok);
-        (0, code_1.expect)((0, node_fs_1.readFileSync)(folder + 'foo.txt').toString()).equal('BAD');
-        (0, code_1.expect)((0, node_fs_1.readFileSync)(folder + 'pre.txt').toString()).equal('BAD');
-        (0, code_1.expect)((0, node_fs_1.readFileSync)(folder + 'model/pre.jsonic').toString()).equal('BAD');
-        (0, code_1.expect)((0, node_fs_1.readFileSync)(folder + 'model/model.json').toString()).equal('BAD');
-        (0, code_1.expect)((0, node_fs_1.readFileSync)(folder + 'model/.model-config/model-config.json').toString())
-            .equal('BAD');
+        node_assert_1.default.ok(br.ok);
+        node_assert_1.default.strictEqual((0, node_fs_1.readFileSync)(folder + 'foo.txt').toString(), 'BAD');
+        node_assert_1.default.strictEqual((0, node_fs_1.readFileSync)(folder + 'pre.txt').toString(), 'BAD');
+        node_assert_1.default.strictEqual((0, node_fs_1.readFileSync)(folder + 'model/pre.jsonic').toString(), 'BAD');
+        node_assert_1.default.strictEqual((0, node_fs_1.readFileSync)(folder + 'model/model.json').toString(), 'BAD');
+        node_assert_1.default.strictEqual((0, node_fs_1.readFileSync)(folder + 'model/.model-config/model-config.json').toString(), 'BAD');
         model = new model_1.Model({
             path,
             base,
@@ -95,17 +93,12 @@ const model_2 = require("../dist/producer/model");
             }
         });
         br = await model.run();
-        (0, code_1.expect)(br.ok);
+        node_assert_1.default.ok(br.ok);
         let model_json = await (0, promises_1.readFile)(base + '/model.json', { encoding: 'utf8' });
-        (0, code_1.expect)(JSON.parse(model_json))
-            // .equal(JSON.stringify(SYS_MODEL, undefined, 2))
-            .equal(SYS_MODEL);
-        (0, code_1.expect)(await (0, promises_1.readFile)(base + '/.model-config/model-config.json', { encoding: 'utf8' }))
-            .equal(JSON.stringify(CONFIG_MODEL, undefined, 2));
-        (0, code_1.expect)(await (0, promises_1.readFile)(__dirname + '/../test/sys01/foo.txt', { encoding: 'utf8' }))
-            .equal('FOO:OK');
-        (0, code_1.expect)(await (0, promises_1.readFile)(__dirname + '/../test/sys01/pre.txt', { encoding: 'utf8' }))
-            .equal('PRE:BAR');
+        node_assert_1.default.deepStrictEqual(JSON.parse(model_json), SYS_MODEL);
+        node_assert_1.default.strictEqual(await (0, promises_1.readFile)(base + '/.model-config/model-config.json', { encoding: 'utf8' }), JSON.stringify(CONFIG_MODEL, undefined, 2));
+        node_assert_1.default.strictEqual(await (0, promises_1.readFile)(__dirname + '/../test/sys01/foo.txt', { encoding: 'utf8' }), 'FOO:OK');
+        node_assert_1.default.strictEqual(await (0, promises_1.readFile)(__dirname + '/../test/sys01/pre.txt', { encoding: 'utf8' }), 'PRE:BAR');
     });
 });
 const SYS_MODEL = {

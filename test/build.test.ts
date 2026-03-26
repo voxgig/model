@@ -5,8 +5,7 @@ import Fs from 'fs'
 import { writeFile, readFile } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
 import { test, describe } from 'node:test'
-
-import { expect } from '@hapi/code'
+import assert from 'node:assert'
 
 
 import { prettyPino } from '@voxgig/util'
@@ -36,7 +35,7 @@ describe('build', () => {
           path: '/',
           build: async function test(build: Build, ctx: BuildContext) {
             if ('post' === ctx.step) {
-              expect(build.model).equal({ foo: 1, bar: 2 })
+              assert.deepStrictEqual(build.model, { foo: 1, bar: 2 })
             }
             return { ok: true, step: '', name: 'test', active: true, reload: false, errs: [], runlog: [] }
           },
@@ -68,10 +67,10 @@ describe('build', () => {
 
     let v0 = await b0.run({ watch: false })
 
-    expect(v0.ok).equal(true)
-    expect(b0.model).equal({ "foo": 1, "bar": 2 })
-    expect(await readFile(__dirname + '/../test/p01/doc.html', { encoding: 'utf8' }))
-      .equal(`<html><head><title>Docs</title></head><body>
+    assert.strictEqual(v0.ok, true)
+    assert.deepStrictEqual(b0.model, { "foo": 1, "bar": 2 })
+    assert.strictEqual(await readFile(__dirname + '/../test/p01/doc.html', { encoding: 'utf8' }),
+      `<html><head><title>Docs</title></head><body>
 <p>FOO: 1</p>
 <p>BAR: 2</p>
 </body></html>`)
@@ -97,14 +96,14 @@ describe('build', () => {
     })
     let br = await model.run()
 
-    expect(br.ok)
+    assert.ok(br.ok)
 
-    expect(readFileSync(folder + 'foo.txt').toString()).equal('BAD')
-    expect(readFileSync(folder + 'pre.txt').toString()).equal('BAD')
-    expect(readFileSync(folder + 'model/pre.jsonic').toString()).equal('BAD')
-    expect(readFileSync(folder + 'model/model.json').toString()).equal('BAD')
-    expect(readFileSync(folder + 'model/.model-config/model-config.json').toString())
-      .equal('BAD')
+    assert.strictEqual(readFileSync(folder + 'foo.txt').toString(), 'BAD')
+    assert.strictEqual(readFileSync(folder + 'pre.txt').toString(), 'BAD')
+    assert.strictEqual(readFileSync(folder + 'model/pre.jsonic').toString(), 'BAD')
+    assert.strictEqual(readFileSync(folder + 'model/model.json').toString(), 'BAD')
+    assert.strictEqual(readFileSync(folder + 'model/.model-config/model-config.json').toString(),
+      'BAD')
 
     model = new Model({
       path,
@@ -117,22 +116,20 @@ describe('build', () => {
     })
     br = await model.run()
 
-    expect(br.ok)
+    assert.ok(br.ok)
 
     let model_json = await readFile(base + '/model.json', { encoding: 'utf8' })
 
-    expect(JSON.parse(model_json))
-      // .equal(JSON.stringify(SYS_MODEL, undefined, 2))
-      .equal(SYS_MODEL)
+    assert.deepStrictEqual(JSON.parse(model_json), SYS_MODEL)
 
-    expect(await readFile(base + '/.model-config/model-config.json',
-      { encoding: 'utf8' }))
-      .equal(JSON.stringify(CONFIG_MODEL, undefined, 2))
+    assert.strictEqual(await readFile(base + '/.model-config/model-config.json',
+      { encoding: 'utf8' }),
+      JSON.stringify(CONFIG_MODEL, undefined, 2))
 
-    expect(await readFile(__dirname + '/../test/sys01/foo.txt', { encoding: 'utf8' }))
-      .equal('FOO:OK')
-    expect(await readFile(__dirname + '/../test/sys01/pre.txt', { encoding: 'utf8' }))
-      .equal('PRE:BAR')
+    assert.strictEqual(await readFile(__dirname + '/../test/sys01/foo.txt', { encoding: 'utf8' }),
+      'FOO:OK')
+    assert.strictEqual(await readFile(__dirname + '/../test/sys01/pre.txt', { encoding: 'utf8' }),
+      'PRE:BAR')
   })
 
 

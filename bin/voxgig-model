@@ -8,7 +8,7 @@ const Pkg = require('../package.json')
 const { Model } = require('../dist/model.js')
 
 const { Jsonic } = require('jsonic')
-const { Gubu, Fault, One, Any } = require('gubu')
+const { Shape, Fault, One, Any } = require('shape')
 
 
 
@@ -106,7 +106,7 @@ function resolveOptions() {
 
 
 function validateOptions(rawOptions) {
-  const optShape = Gubu({
+  const optShape = Shape({
     model: Fault('The first command line argument must be the model file path.', String),
     watch: Boolean,
     debug: One(String,Boolean),

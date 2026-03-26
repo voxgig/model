@@ -1,7 +1,6 @@
 
 import { test, describe } from 'node:test'
-
-import { expect } from '@hapi/code'
+import assert from 'node:assert'
 
 
 import { Model } from '../dist/model'
