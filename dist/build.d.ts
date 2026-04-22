@@ -17,9 +17,12 @@ declare class BuildImpl implements Build {
     args: any;
     aontu: Aontu;
     deps: any;
+    cacheSig: Map<string, number> | null;
     constructor(spec: BuildSpec, log: Log);
     run(rspec: RunSpec): Promise<BuildResult>;
     resolveModel(): Promise<boolean>;
+    snapshotSig(): Map<string, number>;
+    cacheHit(): boolean;
 }
 declare function makeBuild(spec: BuildSpec, log: Log): BuildImpl;
 export { makeBuild, BuildSpec, };

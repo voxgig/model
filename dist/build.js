@@ -7,6 +7,9 @@ class BuildImpl {
     constructor(spec, log) {
         this.use = {};
         this.errs = [];
+        // Signature of the last successful generate: path -> mtimeMs (-1 = missing).
+        // When every tracked file still matches, resolveModel() reuses this.model.
+        this.cacheSig = null;
         this.id = String(Math.random()).substring(3, 9);
         this.log = log;
         this.spec = spec;
@@ -58,9 +61,9 @@ class BuildImpl {
                 }
             }
         }
-        // Reload after pre production since model files may have been modified.
-        const reload = forceReload || !hasErr;
-        // TODO: only reload if mode changed
+        // Only reload when a pre-producer actually modified model sources
+        // (signalled via pr.reload). Previously this always ran on success.
+        const reload = forceReload && !hasErr;
         if (reload) {
             runlog.push('model:full');
             hasErr = await this.resolveModel();
@@ -95,6 +98,9 @@ class BuildImpl {
         return br;
     }
     async resolveModel() {
+        if (this.model && this.cacheSig && this.cacheHit()) {
+            return false;
+        }
         let hasErr = false;
         let src = '';
         if (!hasErr) {
@@ -113,7 +119,37 @@ class BuildImpl {
             this.model = this.aontu.generate(src, this.opts);
             hasErr = this.opts.errs && 0 < this.opts.errs.length;
         }
+        this.cacheSig = hasErr ? null : this.snapshotSig();
         return hasErr;
+    }
+    // Collect mtimeMs for the root file and every file aontu recorded as a dep.
+    snapshotSig() {
+        const sig = new Map();
+        sig.set(this.path, mtime(this.fs, this.path));
+        for (const parent of Object.keys(this.deps)) {
+            for (const child of Object.keys(this.deps[parent])) {
+                if (!sig.has(child))
+                    sig.set(child, mtime(this.fs, child));
+            }
+        }
+        return sig;
+    }
+    cacheHit() {
+        if (!this.cacheSig)
+            return false;
+        for (const [path, prev] of this.cacheSig) {
+            if (mtime(this.fs, path) !== prev)
+                return false;
+        }
+        return true;
+    }
+}
+function mtime(fs, path) {
+    try {
+        return fs.statSync(path).mtimeMs;
+    }
+    catch {
+        return -1;
     }
 }
 function makeBuild(spec, log) {

@@ -30,6 +30,20 @@ const model_producer: Producer = async (build: Build, ctx: BuildContext) => {
 
   let file = build.opts.base + '/' + filename + '.json'
 
+  // Skip write when output is unchanged — avoids mtime churn that would
+  // invalidate caches (here and in downstream watchers).
+  let existing: string | undefined
+  try { existing = build.fs.readFileSync(file, 'utf8') } catch { }
+
+  if (existing === json) {
+    build.log.debug({
+      point: 'write-model-skip',
+      path: file,
+      note: file.replace(process.cwd(), '.') + ' (unchanged)'
+    })
+    return pr
+  }
+
   build.log.info({
     point: 'write-model',
     path: file,

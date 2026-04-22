@@ -43,7 +43,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "aontu": "0.40.0",
+    "aontu": "0.41.0",
     "chokidar": "5.0.0",
     "shape": "^10.0.1",
     "memfs": "^4.57.2"
@@ -59,6 +59,6 @@
   },
   "devDependencies": {
     "@types/node": "25.6.0",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   }
 }

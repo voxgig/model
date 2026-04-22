@@ -33,6 +33,10 @@ class BuildImpl implements Build {
   aontu: Aontu
   deps: any
 
+  // Signature of the last successful generate: path -> mtimeMs (-1 = missing).
+  // When every tracked file still matches, resolveModel() reuses this.model.
+  cacheSig: Map<string, number> | null = null
+
 
   constructor(spec: BuildSpec, log: Log) {
     this.id = String(Math.random()).substring(3, 9)
@@ -100,10 +104,10 @@ class BuildImpl implements Build {
       }
     }
 
-    // Reload after pre production since model files may have been modified.
-    const reload = forceReload || !hasErr
+    // Only reload when a pre-producer actually modified model sources
+    // (signalled via pr.reload). Previously this always ran on success.
+    const reload = forceReload && !hasErr
 
-    // TODO: only reload if mode changed
     if (reload) {
       runlog.push('model:full')
       hasErr = await this.resolveModel()
@@ -147,6 +151,10 @@ class BuildImpl implements Build {
 
 
   async resolveModel() {
+    if (this.model && this.cacheSig && this.cacheHit()) {
+      return false
+    }
+
     let hasErr = false
 
     let src: string = ''
@@ -169,8 +177,38 @@ class BuildImpl implements Build {
       hasErr = this.opts.errs && 0 < this.opts.errs.length
     }
 
+    this.cacheSig = hasErr ? null : this.snapshotSig()
+
     return hasErr
   }
+
+
+  // Collect mtimeMs for the root file and every file aontu recorded as a dep.
+  snapshotSig(): Map<string, number> {
+    const sig = new Map<string, number>()
+    sig.set(this.path, mtime(this.fs, this.path))
+    for (const parent of Object.keys(this.deps)) {
+      for (const child of Object.keys(this.deps[parent])) {
+        if (!sig.has(child)) sig.set(child, mtime(this.fs, child))
+      }
+    }
+    return sig
+  }
+
+
+  cacheHit(): boolean {
+    if (!this.cacheSig) return false
+    for (const [path, prev] of this.cacheSig) {
+      if (mtime(this.fs, path) !== prev) return false
+    }
+    return true
+  }
+}
+
+
+function mtime(fs: any, path: string): number {
+  try { return fs.statSync(path).mtimeMs }
+  catch { return -1 }
 }
 
 
