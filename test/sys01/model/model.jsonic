@@ -14,7 +14,7 @@ main: srv: bar: {
 
 
 color: &: {
-  name: .$KEY
+  name: key()
   value: string
 }
 
