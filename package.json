@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "8.0.0",
+  "version": "8.1.0",
   "main": "dist/model.js",
   "type": "commonjs",
   "types": "dist/model.d.ts",
@@ -43,7 +43,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "aontu": "0.43.0",
+    "aontu": "0.44.0",
     "chokidar": "5.0.0",
     "shape": "10.1.0",
     "memfs": "4.57.2"
