@@ -86,13 +86,13 @@ CLI (bin/voxgig-model)
 
 | Component | File | Responsibility |
 |-----------|------|----------------|
-| `Model` | `src/model.ts` | Public entry. Wires a config build and a model build together; exposes `run`/`start`/`stop`. |
-| `Config` | `src/config.ts` | A specialized build for `.model-config/model-config.jsonic`. |
-| `Watch` | `src/watch.ts` | File watching, debouncing, the rebuild queue, dependency tracking. |
-| `Build` / `BuildImpl` | `src/build.ts` | One build: resolve the model via aontu, run the producer pipeline, cache by mtime. |
-| `model_producer` | `src/producer/model.ts` | Serialize the unified model to JSON. |
-| `local_producer` | `src/producer/local.ts` | Load action modules from config and run them. |
-| types | `src/types.ts` | The shared interfaces (`Build`, `BuildSpec`, `Producer`, …). |
+| `Model` | `ts/src/model.ts` | Public entry. Wires a config build and a model build together; exposes `run`/`start`/`stop`. |
+| `Config` | `ts/src/config.ts` | A specialized build for `.model-config/model-config.jsonic`. |
+| `Watch` | `ts/src/watch.ts` | File watching, debouncing, the rebuild queue, dependency tracking. |
+| `Build` / `BuildImpl` | `ts/src/build.ts` | One build: resolve the model via aontu, run the producer pipeline, cache by mtime. |
+| `model_producer` | `ts/src/producer/model.ts` | Serialize the unified model to JSON. |
+| `local_producer` | `ts/src/producer/local.ts` | Load action modules from config and run them. |
+| types | `ts/src/types.ts` | The shared interfaces (`Build`, `BuildSpec`, `Producer`, …). |
 
 `aontu` (unification), `chokidar` (file watching), `memfs` (the dry-run
 filesystem), and `pino`/`@voxgig/util` (logging) are the external moving parts.

@@ -585,8 +585,9 @@ notes are shown relative to the current working directory.
 
 ## npm scripts
 
-For working **on** this repository (see [AGENTS.md](../AGENTS.md) for the full
-contributor/agent guide):
+For working **on** the TypeScript package — run these from the `ts/` directory
+(see [AGENTS.md](../AGENTS.md) for the full contributor/agent guide, including
+the Go module and the root `Makefile` that builds and tests both):
 
 | Script | What it does |
 |--------|--------------|
@@ -602,7 +603,7 @@ contributor/agent guide):
 
 > Always `build` before `test`: tests run against compiled output in
 > `dist-test/`, importing the compiled library from `dist/`. Run these scripts
-> from the repository root.
+> from the `ts/` directory.
 
 
 ## Troubleshooting

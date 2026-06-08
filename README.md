@@ -15,12 +15,24 @@ once or watch and rebuild on change.
 
 ## Install
 
+The TypeScript package (npm):
+
 ```bash
 npm install @voxgig/model pino
 ```
 
 `pino` is a peer dependency (logging). Requires Node.js — CI runs Node 24;
 Node 20.19+ generally works.
+
+The Go module:
+
+```bash
+go get github.com/voxgig/model/go
+```
+
+Both implementations live in this repository — `ts/` (TypeScript, canonical)
+and `go/` (Go, kept in parity). See [go/README.md](./go/README.md) for Go usage
+and [AGENTS.md](./AGENTS.md) for working on the repo.
 
 
 ## Quick start

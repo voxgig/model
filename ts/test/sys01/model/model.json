@@ -2,15 +2,18 @@
   "main": {
     "srv": {
       "foo": {
+        "in": {},
+        "out": {},
+        "deps": {},
         "api": {
           "web": {
             "active": true,
+            "path": {
+              "prefix": "/api/"
+            },
             "method": "POST",
             "cors": {
               "active": false
-            },
-            "path": {
-              "prefix": "/api/"
             }
           }
         },
@@ -20,46 +23,43 @@
             "timeout": 30,
             "handler": {
               "path": {
-                "suffix": ".handler",
-                "prefix": "src/handler/lambda/"
+                "prefix": "src/handler/lambda/",
+                "suffix": ".handler"
               }
             },
             "kind": "standard"
           }
-        },
-        "in": {},
-        "out": {},
-        "deps": {}
+        }
       },
       "bar": {
+        "in": {},
+        "out": {},
+        "deps": {},
+        "api": {
+          "web": {
+            "active": true,
+            "path": {
+              "prefix": "/api/"
+            },
+            "method": "POST",
+            "cors": {
+              "active": false
+            }
+          }
+        },
         "env": {
           "lambda": {
             "active": true,
             "timeout": 30,
             "handler": {
               "path": {
-                "suffix": ".handler",
-                "prefix": "src/handler/lambda/"
+                "prefix": "src/handler/lambda/",
+                "suffix": ".handler"
               }
             },
             "kind": "standard"
           }
-        },
-        "api": {
-          "web": {
-            "active": true,
-            "method": "POST",
-            "cors": {
-              "active": false
-            },
-            "path": {
-              "prefix": "/api/"
-            }
-          }
-        },
-        "in": {},
-        "out": {},
-        "deps": {}
+        }
       }
     }
   },
