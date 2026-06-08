@@ -77,8 +77,12 @@ class Model {
         if (self.trigger_model) {
 
           // TODO: better design
-          if (self.build.use) {
-            self.build.use.config.watch.last.build = build
+          // Point the config's last result at the current build so the model
+          // producer reads fresh config state. It must be a thunk to satisfy
+          // BuildResult.build's `() => Build` contract (consumers call it).
+          const lastConfig = self.build.use?.config?.watch?.last
+          if (lastConfig) {
+            lastConfig.build = () => build
           }
 
           const br = await self.watch.run('model', true)
@@ -149,6 +153,9 @@ class Model {
 
 
   async stop() {
+    // start() also spins up a config-file watcher; stop both so no
+    // chokidar handle is left open keeping the process alive.
+    await this.config.stop()
     return this.watch.stop()
   }
 }
@@ -223,8 +230,6 @@ function makeReadOnly(fsm: FST) {
     'unlink',
     'unlinkSync',
     'write',
-    'writeFile',
-    'writeFileSync',
     'writev',
   ]
 
@@ -234,6 +239,20 @@ function makeReadOnly(fsm: FST) {
     if ((fs as any)[w]) {
       (fsm as any)[w] = (fs as any)[w].bind(fs)
     }
+  }
+
+  // Also redirect the promise-based writers. fsm.promises is shared by
+  // reference with the real fs module, so replace it with a copy rather
+  // than mutating the caller's fs.
+  const memPromises = (fs as any).promises
+  if ((fsm as any).promises && memPromises) {
+    const promises: any = { ...(fsm as any).promises }
+    for (let w of writers) {
+      if ('function' === typeof memPromises[w]) {
+        promises[w] = memPromises[w].bind(memPromises)
+      }
+    }
+    ;(fsm as any).promises = promises
   }
 
   return fsm

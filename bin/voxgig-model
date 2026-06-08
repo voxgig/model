@@ -183,7 +183,7 @@ async function generate(options) {
     require: process.cwd(),
     debug: options.debug,
     dryrun: options.dryrun,
-    build: options.build,
+    buildargs: options.buildargs,
 
     // TODO: read more complex options from elsewhere?
     watch: {

@@ -48,7 +48,8 @@ class Watch {
         }
         return this.fsw;
     }
-    // Returns first BuildResult
+    // Begin watching. The initial build, and every subsequent rebuild, is
+    // enqueued asynchronously once the watcher settles, so nothing is returned.
     start() {
         this.ensureFSW();
         this.startTime = Date.now();
@@ -116,7 +117,7 @@ class Watch {
     }
     async add(path) {
         if (!node_path_1.default.isAbsolute(path)) {
-            path = node_path_1.default.join(this.wspec.require, path);
+            path = node_path_1.default.join(this.wspec.require || process.cwd(), path);
         }
         // Ignore if already added
         if (this.canonPaths.has(path)) {

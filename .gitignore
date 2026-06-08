@@ -107,6 +107,9 @@ typings/
 coverage
 test/cov
 
+# Generated fixtures written by tests at runtime
+test/_gen
+
 package-lock.json
 yarn.lock
 

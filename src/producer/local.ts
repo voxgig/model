@@ -34,6 +34,18 @@ const local_producer: Producer = async (build: Build, ctx: BuildContext) => {
     // load actions
     for (let name of ordering) {
       let actiondef = actions[name]
+
+      if (null == actiondef) {
+        throw new Error(
+          'Unknown model action "' + name +
+          '" referenced in sys.model.order.action')
+      }
+
+      if (null == actiondef.load) {
+        throw new Error(
+          'Model action "' + name + '" is missing a "load" path')
+      }
+
       let actionpath = Path.join(root, actiondef.load)
 
       let action = require(actionpath)

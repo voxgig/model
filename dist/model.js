@@ -74,8 +74,12 @@ class Model {
                 }
                 if (self.trigger_model) {
                     // TODO: better design
-                    if (self.build.use) {
-                        self.build.use.config.watch.last.build = build;
+                    // Point the config's last result at the current build so the model
+                    // producer reads fresh config state. It must be a thunk to satisfy
+                    // BuildResult.build's `() => Build` contract (consumers call it).
+                    const lastConfig = self.build.use?.config?.watch?.last;
+                    if (lastConfig) {
+                        lastConfig.build = () => build;
                     }
                     const br = await self.watch.run('model', true);
                     pres.ok = br.ok;
@@ -134,6 +138,9 @@ class Model {
         return br.ok ? this.watch.start() : br;
     }
     async stop() {
+        // start() also spins up a config-file watcher; stop both so no
+        // chokidar handle is left open keeping the process alive.
+        await this.config.stop();
         return this.watch.stop();
     }
 }
@@ -199,8 +206,6 @@ function makeReadOnly(fsm) {
         'unlink',
         'unlinkSync',
         'write',
-        'writeFile',
-        'writeFileSync',
         'writev',
     ];
     const { fs } = (0, memfs_1.memfs)({ [process.cwd()]: {} });
@@ -208,6 +213,20 @@ function makeReadOnly(fsm) {
         if (fs[w]) {
             fsm[w] = fs[w].bind(fs);
         }
+    }
+    // Also redirect the promise-based writers. fsm.promises is shared by
+    // reference with the real fs module, so replace it with a copy rather
+    // than mutating the caller's fs.
+    const memPromises = fs.promises;
+    if (fsm.promises && memPromises) {
+        const promises = { ...fsm.promises };
+        for (let w of writers) {
+            if ('function' === typeof memPromises[w]) {
+                promises[w] = memPromises[w].bind(memPromises);
+            }
+        }
+        ;
+        fsm.promises = promises;
     }
     return fsm;
 }

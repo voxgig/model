@@ -95,7 +95,8 @@ class Watch {
   }
 
 
-  // Returns first BuildResult
+  // Begin watching. The initial build, and every subsequent rebuild, is
+  // enqueued asynchronously once the watcher settles, so nothing is returned.
   start() {
     this.ensureFSW()
     this.startTime = Date.now()
@@ -180,7 +181,7 @@ class Watch {
 
   async add(path: string) {
     if (!Path.isAbsolute(path)) {
-      path = Path.join(this.wspec.require, path)
+      path = Path.join(this.wspec.require || process.cwd(), path)
     }
 
     // Ignore if already added

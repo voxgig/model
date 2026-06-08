@@ -35,6 +35,11 @@ class BuildImpl {
     async run(rspec) {
         let hasErr = false;
         let runlog = [];
+        // Reset per-run error state. The BuildImpl is reused across watch
+        // rebuilds, so without this a single failure would stick to every
+        // later build. Reassign (don't clear in place) so a previously
+        // returned BuildResult keeps its own errors.
+        this.errs = [];
         this.ctx = { step: 'pre', state: {}, watch: rspec.watch };
         const plog = [];
         if (!hasErr) {
@@ -113,11 +118,26 @@ class BuildImpl {
             }
         }
         if (!hasErr) {
-            this.opts.errs = this.errs;
+            // Collect this generation's errors into a fresh array. The option key
+            // is `err` (not `errs`) — that is what aontu reads, and providing it
+            // puts aontu in collect mode so model errors are gathered rather than
+            // thrown. A per-call array avoids leaking errors into later builds.
+            const modelErrs = [];
+            this.opts.err = modelErrs;
             this.opts.deps = this.deps;
             this.opts.fs = this.fs;
-            this.model = this.aontu.generate(src, this.opts);
-            hasErr = this.opts.errs && 0 < this.opts.errs.length;
+            try {
+                this.model = this.aontu.generate(src, this.opts);
+            }
+            catch (err) {
+                // collect mode normally prevents throws, but guard the rare cases
+                // (e.g. unresolved imports) so they surface as build errors.
+                modelErrs.push(err);
+            }
+            if (0 < modelErrs.length) {
+                hasErr = true;
+                this.errs.push(...modelErrs);
+            }
         }
         this.cacheSig = hasErr ? null : this.snapshotSig();
         return hasErr;
