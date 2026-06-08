@@ -51,21 +51,15 @@ func ModelProducer(b *Build, ctx *BuildContext) ProducerResult {
 }
 
 // LocalProducer runs the registered actions whose step matches the current
-// phase, in the configured order (or sorted action names when no order is
-// given). An order entry naming an unregistered action fails the build.
+// phase, in the order the config model declares (sys.model.order.action, then
+// the keys of sys.model.action). With no config, it falls back to the build
+// spec's order, then to the sorted registry keys. An order entry naming an
+// unregistered action fails the build.
 func LocalProducer(b *Build, ctx *BuildContext) ProducerResult {
 	pr := ProducerResult{OK: true, Name: "local", Step: ctx.Step, Active: true}
 
-	order := b.spec.Order
-	if len(order) == 0 {
-		for name := range b.spec.Actions {
-			order = append(order, name)
-		}
-		sort.Strings(order)
-	}
-
 	var ran []string
-	for _, name := range order {
+	for _, name := range actionOrder(b) {
 		def, ok := b.spec.Actions[name]
 		if !ok {
 			pr.OK = false
@@ -100,6 +94,76 @@ func LocalProducer(b *Build, ctx *BuildContext) ProducerResult {
 
 	b.Log.Info(string(ctx.Step)+"-actions", strings.Join(ran, ";"))
 	return pr
+}
+
+// actionOrder resolves the ordered list of action names to run: from the
+// linked config model if present, else the build spec's Order, else the
+// sorted registry keys.
+func actionOrder(b *Build) []string {
+	if cfg, ok := b.Use["config"].(*Config); ok {
+		if o := configOrder(cfg.Model()); len(o) > 0 {
+			return o
+		}
+	}
+	if len(b.spec.Order) > 0 {
+		return b.spec.Order
+	}
+	names := make([]string, 0, len(b.spec.Actions))
+	for name := range b.spec.Actions {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
+}
+
+// configOrder reads the action order from a config model: an explicit
+// sys.model.order.action string, otherwise the sorted keys of
+// sys.model.action.
+func configOrder(m map[string]any) []string {
+	model := nestedMap(m, "sys", "model")
+	if model == nil {
+		return nil
+	}
+	if order := asMap(model["order"]); order != nil {
+		if s, ok := order["action"].(string); ok && s != "" {
+			return splitOrder(s)
+		}
+	}
+	if action := asMap(model["action"]); len(action) > 0 {
+		names := make([]string, 0, len(action))
+		for name := range action {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		return names
+	}
+	return nil
+}
+
+func nestedMap(m map[string]any, keys ...string) map[string]any {
+	cur := m
+	for _, k := range keys {
+		if cur == nil {
+			return nil
+		}
+		cur = asMap(cur[k])
+	}
+	return cur
+}
+
+func asMap(v any) map[string]any {
+	m, _ := v.(map[string]any)
+	return m
+}
+
+func splitOrder(s string) []string {
+	var out []string
+	for _, p := range strings.Split(s, ",") {
+		if p = strings.TrimSpace(p); p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 func fail(name string, step Step, err error) ProducerResult {

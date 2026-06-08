@@ -5,7 +5,7 @@ const Fs = require('node:fs')
 const Path = require('node:path')
 
 const Pkg = require('../package.json')
-const { Model } = require('../dist/model.js')
+const { Model, initModel } = require('../dist/model.js')
 
 const { Jsonic } = require('jsonic')
 const { Shape, Fault, One, Any } = require('shape')
@@ -20,6 +20,11 @@ run()
 
 async function run() {
   try {
+    if('init' === process.argv[2]) {
+      doInit(process.argv[3])
+      exit()
+    }
+
     let options = resolveOptions()
 
     if(options.version) {
@@ -150,6 +155,15 @@ function version() {
 }
 
 
+function doInit(dir) {
+  dir = dir || '.'
+  const res = initModel(dir, Fs)
+  res.created.forEach(p => KONSOLE.log('created: ' + p))
+  res.skipped.forEach(p => KONSOLE.log('exists:  ' + p))
+  KONSOLE.log('Next: voxgig-model ' + Path.join(dir, 'model', 'model.jsonic'))
+}
+
+
 function exit(err) {
   let code = 0
   if(err) {
@@ -208,7 +222,10 @@ function help() {
   const s = `
 Build a Voxgig model and generate dependent artifacts.
 
-Usage: voxgig-model <root-file> <args> 
+Usage:
+  voxgig-model <root-file> [args]   Build a model.
+  voxgig-model init [dir]           Scaffold a new model and config under
+                                    <dir>/model (default: current directory).
 
   <root-file> is the root file of the model.
 
@@ -231,6 +248,10 @@ Usage: voxgig-model <root-file> <args>
 
 
 Examples:
+
+# Scaffold a new model in ./model, then build it
+> voxgig-model init
+> voxgig-model model/model.jsonic
 
 # Basic usage
 > voxgig-model model/model.jsonic

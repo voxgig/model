@@ -26,6 +26,8 @@ import { Watch } from './watch'
 import { model_producer } from './producer/model'
 import { local_producer } from './producer/local'
 
+import { initModel } from './init'
+
 
 class Model {
   config: Config
@@ -270,6 +272,7 @@ function makeReadOnly(fsm: FST) {
 export {
   Model,
   BuildSpec,
+  initModel,
 }
 
 

@@ -4,6 +4,7 @@ Focused recipes for specific tasks. Each is self-contained. If you are new to
 the tool, do the [tutorial](./tutorial.md) first; for exhaustive detail see the
 [reference](./reference.md).
 
+- [Initialize a new model](#initialize-a-new-model)
 - [Build once vs. watch](#build-once-vs-watch)
 - [Pass build arguments to actions](#pass-build-arguments-to-actions)
 - [Write a build action](#write-a-build-action)
@@ -18,6 +19,31 @@ the tool, do the [tutorial](./tutorial.md) first; for exhaustive detail see the
 - [Control logging](#control-logging)
 - [Handle and surface build errors](#handle-and-surface-build-errors)
 - [Tune watch behavior](#tune-watch-behavior)
+
+
+## Initialize a new model
+
+Scaffold a starter `model/model.jsonic` and `model/.model-config/model-config.jsonic`:
+
+```bash
+voxgig-model init            # in the current directory
+voxgig-model init my-project # under my-project/
+```
+
+Existing files are left untouched. Then build it:
+
+```bash
+voxgig-model model/model.jsonic
+```
+
+The Go CLI is identical (`go run github.com/voxgig/model/go/cmd/voxgig-model init`).
+From code, use `initModel(dir, fs)` (TypeScript) or `model.Init(dir)` (Go):
+
+```js
+const Fs = require('node:fs')
+const { initModel } = require('@voxgig/model')
+const { created, skipped } = initModel('.', Fs)
+```
 
 
 ## Build once vs. watch

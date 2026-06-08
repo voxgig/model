@@ -61,6 +61,22 @@ voxgig-model --dryrun model/model.jsonic
 voxgig-model -b '{env:prod, region:eu-west-1}' model/model.jsonic
 ```
 
+### `init` — scaffold a new model
+
+```
+voxgig-model init [dir]
+```
+
+Creates a starter project under `<dir>/model` (default `dir`: the current
+directory): `model/model.jsonic` and `model/.model-config/model-config.jsonic`.
+Existing files are left untouched. Both the TypeScript and Go CLIs support
+this and produce identical files.
+
+```bash
+voxgig-model init            # scaffold ./model
+voxgig-model model/model.jsonic   # build it
+```
+
 
 ## Project layout
 

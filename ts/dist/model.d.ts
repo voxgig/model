@@ -1,6 +1,7 @@
 import type { BuildResult, BuildSpec, ModelSpec, Log } from './types';
 import { Config } from './config';
 import { Watch } from './watch';
+import { initModel } from './init';
 declare class Model {
     config: Config;
     build: BuildSpec;
@@ -13,4 +14,4 @@ declare class Model {
     start(): Promise<void | BuildResult>;
     stop(): Promise<void>;
 }
-export { Model, BuildSpec, };
+export { Model, BuildSpec, initModel, };

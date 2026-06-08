@@ -52,8 +52,11 @@ This port mirrors the architecture — the build lifecycle (pre → reload →
 post), producers, dryrun, and watch semantics — but adapts a few mechanisms to
 Go:
 
-- **Actions are registered programmatically** (`ModelSpec.Actions`) instead of
-  being loaded from a config file: Go cannot `require()` code at runtime.
+- **Actions are registered programmatically** (`ModelSpec.Actions`): the
+  `.model-config/model-config.jsonic` file still declares which actions run and
+  in what order (and is auto-created and written to `model-config.json`, as in
+  TypeScript), but Go binds each declared name to a registered func rather than
+  `require()`-ing a module.
 - **Watching polls modification times** instead of using chokidar.
 - **Imports** resolve relative to the model base directory; the resolver
   briefly changes the working directory because the Go aontu `Generate(src)`

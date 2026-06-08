@@ -77,3 +77,25 @@ func TestCLIBadModel(t *testing.T) {
 		t.Fatalf("stderr = %q", out.String())
 	}
 }
+
+func TestCLIInit(t *testing.T) {
+	dir := t.TempDir()
+
+	var out bytes.Buffer
+	if code := run([]string{"init", dir}, &out); code != 0 {
+		t.Fatalf("init exit %d: %s", code, out.String())
+	}
+	if !strings.Contains(out.String(), "created:") {
+		t.Fatalf("init output = %q", out.String())
+	}
+	root := filepath.Join(dir, "model", "model.jsonic")
+	if _, err := os.Stat(root); err != nil {
+		t.Fatalf("init did not scaffold the model: %v", err)
+	}
+
+	// The scaffold should then build through the CLI.
+	var out2 bytes.Buffer
+	if code := run([]string{"-g", "silent", root}, &out2); code != 0 {
+		t.Fatalf("building the scaffold exit %d: %s", code, out2.String())
+	}
+}
