@@ -27,6 +27,10 @@ func main() {
 // separated from main (which only adds os.Exit and signal handling) so the
 // behavior can be tested directly.
 func run(args []string, stderr io.Writer) int {
+	if len(args) > 0 && args[0] == "init" {
+		return runInit(args[1:], stderr)
+	}
+
 	fs := flag.NewFlagSet("voxgig-model", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	watch := fs.Bool("w", false, "watch and rebuild on change")
@@ -76,6 +80,27 @@ func run(args []string, stderr io.Writer) int {
 		reportErrs(br, stderr)
 		return 1
 	}
+	return 0
+}
+
+// runInit scaffolds a starter model and config under <dir>/model.
+func runInit(args []string, out io.Writer) int {
+	dir := "."
+	if len(args) > 0 && args[0] != "" {
+		dir = args[0]
+	}
+	created, skipped, err := model.Init(dir)
+	if err != nil {
+		fmt.Fprintln(out, "ERROR:", err)
+		return 1
+	}
+	for _, p := range created {
+		fmt.Fprintln(out, "created:", p)
+	}
+	for _, p := range skipped {
+		fmt.Fprintln(out, "exists: ", p)
+	}
+	fmt.Fprintln(out, "Next: voxgig-model "+filepath.Join(dir, "model", "model.jsonic"))
 	return 0
 }
 

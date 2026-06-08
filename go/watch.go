@@ -22,6 +22,10 @@ type Watch struct {
 	name  string
 	idle  time.Duration
 
+	// reload, if set, runs before each change-triggered rebuild (used to
+	// re-resolve the config so config edits are picked up).
+	reload func()
+
 	mu      sync.Mutex
 	last    *BuildResult
 	sig     map[string]int64
@@ -121,6 +125,9 @@ func (w *Watch) loop() {
 
 			if !changedAt.IsZero() && time.Since(changedAt) >= w.idle {
 				changedAt = time.Time{}
+				if w.reload != nil {
+					w.reload()
+				}
 				w.build.InvalidateCache()
 				w.Run(true)
 				w.mu.Lock()

@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Model = void 0;
+exports.initModel = exports.Model = void 0;
 const NodeFs = __importStar(require("node:fs"));
 const memfs_1 = require("memfs");
 const util_1 = require("@voxgig/util");
@@ -42,6 +42,8 @@ const config_1 = require("./config");
 const watch_1 = require("./watch");
 const model_1 = require("./producer/model");
 const local_1 = require("./producer/local");
+const init_1 = require("./init");
+Object.defineProperty(exports, "initModel", { enumerable: true, get: function () { return init_1.initModel; } });
 class Model {
     constructor(mspec) {
         this.trigger_model = false;

@@ -5,9 +5,10 @@
 // over it, once or in a rebuild-on-change watch loop.
 //
 // The TypeScript implementation in ts/ is canonical; this package is kept in
-// architectural parity. Two mechanisms differ by necessity: actions are
-// registered programmatically (Go cannot require() code at runtime), and
-// watching polls modification times (rather than using chokidar).
+// architectural parity. Two mechanisms differ by necessity: action functions
+// are registered programmatically (Go cannot require() code at runtime),
+// though the .model-config file still declares which actions run and in what
+// order; and watching polls modification times (rather than using chokidar).
 package model
 
 import (
@@ -23,11 +24,14 @@ const Version = "0.1.0"
 const DefaultIdle = 111 * time.Millisecond
 
 // Model unifies a .jsonic model and runs producers (the model writer and any
-// registered actions) over it. It can build once or watch and rebuild.
+// registered actions) over it. It can build once or watch and rebuild, and
+// resolves a .model-config/model-config.jsonic config (auto-created when
+// missing) that declares the action order.
 type Model struct {
-	build *Build
-	watch *Watch
-	log   Log
+	config *Config
+	build  *Build
+	watch  *Watch
+	log    Log
 }
 
 // New creates a Model from a spec.
@@ -47,7 +51,9 @@ func New(spec ModelSpec) *Model {
 		idle = DefaultIdle
 	}
 
-	bspec := BuildSpec{
+	config := newConfig(base, spec, log)
+
+	build := NewBuild(BuildSpec{
 		Name:     "model",
 		Path:     spec.Path,
 		Base:     base,
@@ -63,25 +69,48 @@ func New(spec ModelSpec) *Model {
 			{Path: "/", Build: ModelProducer},
 			{Path: "/", Build: LocalProducer},
 		},
+	})
+	build.Use["config"] = config
+
+	m := &Model{
+		config: config,
+		build:  build,
+		watch:  NewWatch(build, "model", idle),
+		log:    log,
 	}
 
-	build := NewBuild(bspec)
-	return &Model{
-		build: build,
-		watch: NewWatch(build, "model", idle),
-		log:   log,
+	// Re-resolve the config on each watch rebuild so config edits are picked up.
+	m.watch.reload = func() {
+		config.build.InvalidateCache()
+		config.Run()
 	}
+
+	return m
 }
 
-// Run builds the model once and returns the result.
-func (m *Model) Run() *BuildResult { return m.watch.Run(false) }
+// Run builds the config and then the model once, returning the model result.
+// A failed config build is returned instead.
+func (m *Model) Run() *BuildResult {
+	if cr := m.config.Run(); !cr.OK {
+		return cr
+	}
+	return m.watch.Run(false)
+}
 
-// Start builds once, then watches and rebuilds until Stop is called. It
-// returns the initial build result.
-func (m *Model) Start() *BuildResult { return m.watch.Start() }
+// Start builds once (config then model), then watches and rebuilds until Stop
+// is called. It returns the initial model result.
+func (m *Model) Start() *BuildResult {
+	if cr := m.config.Run(); !cr.OK {
+		return cr
+	}
+	return m.watch.Start()
+}
 
 // Stop ends watching and releases the watcher.
 func (m *Model) Stop() { m.watch.Stop() }
 
-// Build returns the underlying Build (valid after Run or Start).
+// Build returns the underlying model Build (valid after Run or Start).
 func (m *Model) Build() *Build { return m.build }
+
+// Config returns the model's config build.
+func (m *Model) Config() *Config { return m.config }

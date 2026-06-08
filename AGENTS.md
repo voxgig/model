@@ -99,10 +99,13 @@ The Go module ports the **architecture**, not every mechanism. The build
 lifecycle (pre → reload → post), producers, model output, dryrun, and watch
 semantics match TypeScript. Two things differ by necessity:
 
-- **Actions are a registry, not dynamic modules.** TypeScript declares actions
-  in a config file and loads them with `require()`. Go cannot load code at
-  runtime, so actions are registered programmatically via `ModelSpec.Actions`
-  (`map[string]ActionDef`) — see `go/producer.go`.
+- **The config declares actions; the registry binds them.** Like TypeScript,
+  Go resolves `.model-config/model-config.jsonic` (auto-created when missing),
+  writes `model-config.json`, and takes the action order from
+  `sys.model.order.action` (`go/config.go`). But Go cannot load code at
+  runtime, so the action *functions* are registered programmatically via
+  `ModelSpec.Actions` (`map[string]ActionDef`) and bound to the
+  config-declared names — see `go/producer.go`.
 - **Watching polls modification times** (`go/watch.go`) rather than using
   chokidar.
 
