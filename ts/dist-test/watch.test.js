@@ -98,5 +98,30 @@ async function read(file) {
             await model.stop();
         }
     });
+    // A failed rebuild while watching is reported, and the watcher recovers when
+    // the model is fixed.
+    (0, node_test_1.test)('recovers-from-error-while-watching', async () => {
+        const base = GEN + '/wat03/model';
+        await (0, promises_1.rm)(GEN + '/wat03', { recursive: true, force: true });
+        await (0, promises_1.mkdir)(base + '/.model-config', { recursive: true });
+        await (0, promises_1.writeFile)(base + '/model.jsonic', 'val: 1\n');
+        await (0, promises_1.writeFile)(base + '/.model-config/model-config.jsonic', 'sys: model: action: {}\n');
+        const out = base + '/model.json';
+        const model = new model_1.Model({ path: base + '/model.jsonic', base, debug: 'silent' });
+        try {
+            await model.start();
+            node_assert_1.default.ok(await waitFor(async () => (await readVal(out)) === 1), 'initial build should produce val:1');
+            // Break the model: conflicting scalar values do not unify.
+            await new Promise(r => setTimeout(r, 200));
+            await (0, promises_1.writeFile)(base + '/model.jsonic', 'val: 1\nval: 2\n');
+            await new Promise(r => setTimeout(r, 400)); // let the failed rebuild run
+            // Fix it; the watcher should recover.
+            await (0, promises_1.writeFile)(base + '/model.jsonic', 'val: 9\n');
+            node_assert_1.default.ok(await waitFor(async () => (await readVal(out)) === 9), 'watcher should recover to val:9 after the model is fixed');
+        }
+        finally {
+            await model.stop();
+        }
+    });
 });
 //# sourceMappingURL=watch.test.js.map

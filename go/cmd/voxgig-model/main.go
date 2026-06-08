@@ -10,6 +10,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -19,29 +20,40 @@ import (
 )
 
 func main() {
-	watch := flag.Bool("w", false, "watch and rebuild on change")
-	dryrun := flag.Bool("y", false, "dry run (write nothing to disk)")
-	level := flag.String("g", "info", "log level: trace|debug|info|warn|error|silent")
-	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: voxgig-model [-w] [-y] [-g level] <root-file>")
-		flag.PrintDefaults()
-	}
-	flag.Parse()
+	os.Exit(run(os.Args[1:], os.Stderr))
+}
 
-	path := flag.Arg(0)
+// run parses args and builds the model, returning a process exit code. It is
+// separated from main (which only adds os.Exit and signal handling) so the
+// behavior can be tested directly.
+func run(args []string, stderr io.Writer) int {
+	fs := flag.NewFlagSet("voxgig-model", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	watch := fs.Bool("w", false, "watch and rebuild on change")
+	dryrun := fs.Bool("y", false, "dry run (write nothing to disk)")
+	level := fs.String("g", "info", "log level: trace|debug|info|warn|error|silent")
+	fs.Usage = func() {
+		fmt.Fprintln(stderr, "usage: voxgig-model [-w] [-y] [-g level] <root-file>")
+		fs.PrintDefaults()
+	}
+	if err := fs.Parse(args); err != nil {
+		return 2
+	}
+
+	path := fs.Arg(0)
 	if path == "" {
-		flag.Usage()
-		os.Exit(1)
+		fs.Usage()
+		return 1
 	}
 
 	abs, err := filepath.Abs(path)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "ERROR:", err)
-		os.Exit(1)
+		fmt.Fprintln(stderr, "ERROR:", err)
+		return 1
 	}
 	if _, serr := os.Stat(abs); serr != nil {
-		fmt.Fprintln(os.Stderr, "ERROR: model file does not exist:", path)
-		os.Exit(1)
+		fmt.Fprintln(stderr, "ERROR: model file does not exist:", path)
+		return 1
 	}
 
 	m := model.New(model.ModelSpec{
@@ -52,27 +64,26 @@ func main() {
 	})
 
 	if *watch {
-		br := m.Start()
-		reportErrs(br)
+		reportErrs(m.Start(), stderr)
 		sig := make(chan os.Signal, 1)
 		signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 		<-sig
 		m.Stop()
-		return
+		return 0
 	}
 
-	br := m.Run()
-	if !br.OK {
-		reportErrs(br)
-		os.Exit(1)
+	if br := m.Run(); !br.OK {
+		reportErrs(br, stderr)
+		return 1
 	}
+	return 0
 }
 
-func reportErrs(br *model.BuildResult) {
+func reportErrs(br *model.BuildResult, stderr io.Writer) {
 	if br == nil {
 		return
 	}
 	for _, e := range br.Errs {
-		fmt.Fprintln(os.Stderr, "ERROR:", e)
+		fmt.Fprintln(stderr, "ERROR:", e)
 	}
 }
