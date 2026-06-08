@@ -1,0 +1,64 @@
+{
+  "name": "@voxgig/model",
+  "version": "8.1.0",
+  "main": "dist/model.js",
+  "type": "commonjs",
+  "types": "dist/model.d.ts",
+  "bin": {
+    "voxgig-model": "bin/voxgig-model"
+  },
+  "description": "Voxgig Model.",
+  "homepage": "https://github.com/voxgig/model",
+  "keywords": [
+    "voxgig",
+    "model"
+  ],
+  "author": "Richard Rodger (http://richardrodger.com)",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/voxgig/model.git"
+  },
+  "scripts": {
+    "test": "node --enable-source-maps --test dist-test/**/*.test.js",
+    "test-some": "node --enable-source-maps --test-name-pattern=\"$TEST_PATTERN\" --test dist-test/**/*.test.js",
+    "test-cov": "rm -rf ./coverage && mkdir -p ./coverage && node --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info --enable-source-maps --test \"dist-test/*.test.js\"",
+    "watch": "tsc --build src test -w",
+    "build": "tsc --build src test",
+    "test-model": "voxgig-model test/sys01/model/model.jsonic",
+    "model": "voxgig-model -w model/sys.jsonic",
+    "model-build": "voxgig-model -g debug model/sys.jsonic",
+    "clean": "rm -rf node_modules dist dist-test yarn.lock package-lock.json",
+    "reset": "npm run clean && npm i && npm run build && npm test",
+    "repo-tag": "REPO_VERSION=`node -e \"console.log(require('./package').version)\"` && echo TAG: v$REPO_VERSION && git commit -a -m v$REPO_VERSION && git push && git tag v$REPO_VERSION && git push --tags;",
+    "repo-publish": "npm run clean && npm i && npm run repo-publish-quick",
+    "repo-publish-quick": "npm run build && npm run test && npm run repo-tag && npm publish --registry https://registry.npmjs.org --access=public"
+  },
+  "license": "MIT",
+  "files": [
+    "model.ts",
+    "lib",
+    "dist",
+    "bin",
+    "model",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "aontu": "0.45.1",
+    "chokidar": "5.0.0",
+    "shape": "10.1.0",
+    "memfs": "4.57.6"
+  },
+  "peerDependencies": {
+    "@voxgig/util": ">=0",
+    "pino": ">=10"
+  },
+  "peerDependenciesMeta": {
+    "readdirp": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "25.9.2",
+    "typescript": "6.0.3"
+  }
+}

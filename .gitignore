@@ -105,7 +105,10 @@ typings/
 
 
 coverage
-test/cov
+ts/test/cov
+
+# Generated fixtures written by tests at runtime
+ts/test/_gen
 
 package-lock.json
 yarn.lock
@@ -113,5 +116,5 @@ yarn.lock
 
 *~
 
-test/coverage.html
+ts/test/coverage.html
 

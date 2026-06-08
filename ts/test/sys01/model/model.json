@@ -1,0 +1,82 @@
+{
+  "main": {
+    "srv": {
+      "foo": {
+        "in": {},
+        "out": {},
+        "deps": {},
+        "api": {
+          "web": {
+            "active": true,
+            "path": {
+              "prefix": "/api/"
+            },
+            "method": "POST",
+            "cors": {
+              "active": false
+            }
+          }
+        },
+        "env": {
+          "lambda": {
+            "active": false,
+            "timeout": 30,
+            "handler": {
+              "path": {
+                "prefix": "src/handler/lambda/",
+                "suffix": ".handler"
+              }
+            },
+            "kind": "standard"
+          }
+        }
+      },
+      "bar": {
+        "in": {},
+        "out": {},
+        "deps": {},
+        "api": {
+          "web": {
+            "active": true,
+            "path": {
+              "prefix": "/api/"
+            },
+            "method": "POST",
+            "cors": {
+              "active": false
+            }
+          }
+        },
+        "env": {
+          "lambda": {
+            "active": true,
+            "timeout": 30,
+            "handler": {
+              "path": {
+                "prefix": "src/handler/lambda/",
+                "suffix": ".handler"
+              }
+            },
+            "kind": "standard"
+          }
+        }
+      }
+    }
+  },
+  "color": {
+    "red": {
+      "value": "f00",
+      "name": "red"
+    },
+    "green": {
+      "value": "0f0",
+      "name": "green"
+    },
+    "blue": {
+      "value": "00f",
+      "name": "blue"
+    }
+  },
+  "pre": "OK",
+  "sys": {}
+}
