@@ -6,7 +6,7 @@ declare class Config {
     log: Log;
     constructor(spec: BuildSpec, log: Log);
     run(watch: boolean): Promise<BuildResult>;
-    start(): Promise<void>;
+    start(initial?: boolean): Promise<void>;
     stop(): Promise<void>;
 }
 export { Config, BuildSpec };

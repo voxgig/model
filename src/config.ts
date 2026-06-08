@@ -33,8 +33,8 @@ class Config {
     return this.watch.run('config', watch, '<config>')
   }
 
-  async start() {
-    return this.watch.start()
+  async start(initial: boolean = true) {
+    return this.watch.start(initial)
   }
 
   async stop() {

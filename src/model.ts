@@ -144,11 +144,19 @@ class Model {
   }
 
 
-  // Start watching for file changes. Run once initially.
+  // Start watching for file changes. Runs an initial build, then watches
+  // both the model files and the config files for ongoing changes.
   async start() {
     this.trigger_model = false
     const br = await this.config.run(true)
-    return br.ok ? this.watch.start() : br
+    if (!br.ok) {
+      return br
+    }
+    // Watch config files too. The initial config build is already done
+    // above, so start without forcing another one; a later config change
+    // rebuilds the config and re-triggers the model build.
+    this.config.start(false)
+    return this.watch.start()
   }
 
 

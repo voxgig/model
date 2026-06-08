@@ -57,6 +57,44 @@ const GEN = __dirname + '/../test/_gen';
         const msg = String(br.errs[0]?.message ?? br.errs[0] ?? '');
         node_assert_1.default.match(msg, /Unknown model action "ghost"/);
     });
+    // An action definition with no load path should also fail clearly.
+    (0, node_test_1.test)('clear-error-on-missing-load', async () => {
+        const dir = GEN + '/act02';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
+        await (0, promises_1.writeFile)(dir + '/model/model.jsonic', 'top: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.jsonic', 'sys: model: action: { noload: {} }\n' +
+            "sys: model: order: action: 'noload'\n");
+        const model = new model_1.Model({
+            path: dir + '/model/model.jsonic',
+            base: dir + '/model',
+            debug: 'silent',
+        });
+        const br = await model.run();
+        node_assert_1.default.strictEqual(br.ok, false, 'action without load should fail');
+        const msg = String(br.errs[0]?.message ?? br.errs[0] ?? '');
+        node_assert_1.default.match(msg, /Model action "noload" is missing a "load" path/);
+    });
+    // An action that throws at run time must fail the build and surface the
+    // error rather than silently passing.
+    (0, node_test_1.test)('action-error-fails-build', async () => {
+        const dir = GEN + '/throw01';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
+        await (0, promises_1.mkdir)(dir + '/build', { recursive: true });
+        await (0, promises_1.writeFile)(dir + '/model/model.jsonic', 'top: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.jsonic', "sys: model: action: { boom: load: 'build/boom' }\n");
+        await (0, promises_1.writeFile)(dir + '/build/boom.js', "module.exports = async () => { throw new Error('boom-action') }\n");
+        const model = new model_1.Model({
+            path: dir + '/model/model.jsonic',
+            base: dir + '/model',
+            debug: 'silent',
+        });
+        const br = await model.run();
+        node_assert_1.default.strictEqual(br.ok, false, 'a throwing action should fail the build');
+        const msg = String(br.errs[0]?.message ?? br.errs[0] ?? '');
+        node_assert_1.default.match(msg, /boom-action/);
+    });
     // dryrun must not write to the real filesystem, including via the
     // promise-based fs API.
     (0, node_test_1.test)('dryrun-readonly-promises', async () => {

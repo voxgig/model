@@ -97,10 +97,14 @@ class Watch {
 
   // Begin watching. The initial build, and every subsequent rebuild, is
   // enqueued asynchronously once the watcher settles, so nothing is returned.
-  start() {
+  // Pass initial=false to start watching without forcing that first build
+  // (e.g. when the caller has already produced one).
+  start(initial: boolean = true) {
     this.ensureFSW()
     this.startTime = Date.now()
-    this.handleChange('<start>')
+    if (initial) {
+      this.handleChange('<start>')
+    }
 
     // Check if there have been no recent changes, if so, run build.
     this.intervalId = setInterval(() => {

@@ -26,7 +26,7 @@ declare class Watch {
     };
     constructor(bspec: BuildSpec, log: Log);
     ensureFSW(): FSWatcher;
-    start(): void;
+    start(initial?: boolean): void;
     canon(path: string): string;
     handleChange(path: string): void;
     drain(): Promise<void>;

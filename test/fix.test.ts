@@ -75,6 +75,57 @@ describe('fix', () => {
   })
 
 
+  // An action definition with no load path should also fail clearly.
+  test('clear-error-on-missing-load', async () => {
+    const dir = GEN + '/act02'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir + '/model/.model-config', { recursive: true })
+
+    await writeFile(dir + '/model/model.jsonic', 'top: 1\n')
+    await writeFile(dir + '/model/.model-config/model-config.jsonic',
+      'sys: model: action: { noload: {} }\n' +
+      "sys: model: order: action: 'noload'\n")
+
+    const model = new Model({
+      path: dir + '/model/model.jsonic',
+      base: dir + '/model',
+      debug: 'silent',
+    })
+    const br = await model.run()
+
+    assert.strictEqual(br.ok, false, 'action without load should fail')
+    const msg = String(br.errs[0]?.message ?? br.errs[0] ?? '')
+    assert.match(msg, /Model action "noload" is missing a "load" path/)
+  })
+
+
+  // An action that throws at run time must fail the build and surface the
+  // error rather than silently passing.
+  test('action-error-fails-build', async () => {
+    const dir = GEN + '/throw01'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir + '/model/.model-config', { recursive: true })
+    await mkdir(dir + '/build', { recursive: true })
+
+    await writeFile(dir + '/model/model.jsonic', 'top: 1\n')
+    await writeFile(dir + '/model/.model-config/model-config.jsonic',
+      "sys: model: action: { boom: load: 'build/boom' }\n")
+    await writeFile(dir + '/build/boom.js',
+      "module.exports = async () => { throw new Error('boom-action') }\n")
+
+    const model = new Model({
+      path: dir + '/model/model.jsonic',
+      base: dir + '/model',
+      debug: 'silent',
+    })
+    const br = await model.run()
+
+    assert.strictEqual(br.ok, false, 'a throwing action should fail the build')
+    const msg = String(br.errs[0]?.message ?? br.errs[0] ?? '')
+    assert.match(msg, /boom-action/)
+  })
+
+
   // dryrun must not write to the real filesystem, including via the
   // promise-based fs API.
   test('dryrun-readonly-promises', async () => {
