@@ -1,0 +1,70 @@
+# Builds and tests both implementations: TypeScript (ts/) and Go (go/).
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  ts:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [24.x]
+
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        working-directory: ts
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm i
+    - run: npm run build --if-present
+    - run: npm test
+
+    - name: test-cov
+      if: matrix.os == 'ubuntu-latest'
+      run: npm run test-cov
+
+    - name: coveralls
+      if: matrix.os == 'ubuntu-latest'
+      uses: coverallsapp/github-action@main
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: ./ts/coverage/lcov.info
+
+  go:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        working-directory: go
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+    - run: go build ./...
+    - run: go vet ./...
+    - name: gofmt
+      if: matrix.os == 'ubuntu-latest'
+      run: test -z "$(gofmt -l .)"
+    - run: go test ./...
