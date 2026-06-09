@@ -18,7 +18,7 @@ import (
 
 // Version is the released version of the Go module. It is rewritten by
 // `make publish-go V=x.y.z` to match the git tag (go/vx.y.z).
-const Version = "0.1.1"
+const Version = "0.1.2"
 
 // DefaultIdle is the default watch debounce period.
 const DefaultIdle = 111 * time.Millisecond
