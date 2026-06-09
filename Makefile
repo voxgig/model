@@ -37,7 +37,7 @@ clean-go:
 # Publish the Go module: make publish-go V=0.1.1
 publish-go: vet-go test-go
 	@test -n "$(V)" || (echo "Usage: make publish-go V=x.y.z" && exit 1)
-	sed -i 's/^const Version = ".*"/const Version = "$(V)"/' go/model.go
+	sed -i '' 's/^const Version = ".*"/const Version = "$(V)"/' go/model.go
 	git add go/model.go
 	git commit -m "go: v$(V)"
 	git tag go/v$(V)
