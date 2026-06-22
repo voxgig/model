@@ -134,9 +134,14 @@ Other notes:
   so `AontuResolver` briefly `chdir`s to the model base (guarded by a mutex)
   so `@"..."` imports resolve. aontu/go does not report import deps, so the
   watcher tracks `*.jsonic` files under the base directory.
-- **JSON key order** differs: Go's `encoding/json` sorts object keys;
-  TypeScript preserves insertion order. Content is otherwise equivalent — an
-  accepted cross-language difference.
+- **Model JSON output is byte-for-byte identical** across the two
+  implementations. Go's `encoding/json` sorts object keys, so the TypeScript
+  model producer sorts them too (`ts/src/producer/model.ts: sortKeys`); both
+  use a two-space indent and emit HTML characters (`<`, `>`, `&`) literally
+  (Go disables `encoding/json`'s HTML escaping in `go/producer.go:
+  marshalModel`). Arrays keep their order. The byte parity is locked down by
+  `ts/test/parity.test.ts` and `go/parity_test.go`, which share one expected
+  string — keep them in step.
 - **`const Version`** lives in `go/model.go`; `make publish-go V=x.y.z`
   rewrites it and tags `go/vx.y.z`.
 - The Go port depends on **`aontu/go` only**; it does not use `util/go` (the
