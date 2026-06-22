@@ -82,7 +82,12 @@ function resolveOptions() {
         short: 'b',
         default: ''
       },
-      
+
+      // Skip the .model-config build and run the model on its own.
+      'no-config': {
+        type: 'boolean',
+      },
+
       help: {
         type: 'boolean',
         short: 'h',
@@ -102,6 +107,7 @@ function resolveOptions() {
     debug: args.values.debug,
     dryrun: args.values.dryrun,
     build: args.values.build,
+    config: !args.values['no-config'],
     help: !!args.values.help,
     version: !!args.values.version,
   }
@@ -117,6 +123,7 @@ function validateOptions(rawOptions) {
     debug: One(String,Boolean),
     dryrun: false,
     build: Any(),
+    config: Boolean,
     help: Boolean,
     version: Boolean,
   })
@@ -198,6 +205,7 @@ async function generate(options) {
     debug: options.debug,
     dryrun: options.dryrun,
     buildargs: options.buildargs,
+    config: options.config,
 
     // TODO: read more complex options from elsewhere?
     watch: {
@@ -234,11 +242,13 @@ Usage:
     --dryrun        Perform a dry run, where no files are modified.
     -y
 
-    --build <spec>  Provide a jsonic specification for build actions. 
+    --build <spec>  Provide a jsonic specification for build actions.
     -b
 
+    --no-config     Skip the .model-config build and run the model on its own.
+
     --debug         Set log level (default: info): trace, error, debug, info, warn, fatal.
-    -g             
+    -g
 
     --help          Print this help message.
     -h

@@ -30,7 +30,7 @@ import { initModel } from './init'
 
 
 class Model {
-  config: Config
+  config?: Config
   build: BuildSpec
   watch: Watch
 
@@ -62,8 +62,12 @@ class Model {
       })
     }
 
-    // Config is a special Watch to handle model config.
-    this.config = makeConfig(mspec, this.log, this.fs, {
+    // Config is a special Watch to handle model config. It is optional: when
+    // mspec.config is false, the .model-config/ build is skipped entirely and
+    // the model runs on its own (see run/start below).
+    const useConfig = false !== mspec.config
+
+    this.config = !useConfig ? undefined : makeConfig(mspec, this.log, this.fs, {
       path: '/',
       build: async function trigger_model(build: Build, ctx: BuildContext) {
         let pres: ProducerResult = {
@@ -117,7 +121,7 @@ class Model {
       debug: mspec.debug,
       dryrun: mspec.dryrun,
       buildargs: mspec.buildargs,
-      use: { config: self.config },
+      use: self.config ? { config: self.config } : {},
       res: [
         {
           path: '/',
@@ -138,18 +142,26 @@ class Model {
   }
 
 
-  // Run once.
+  // Run once. With config enabled, the config build runs first and triggers
+  // the model build; without it, the model build runs directly.
   async run(): Promise<BuildResult> {
     this.trigger_model = false
+    if (!this.config) {
+      return this.watch.run('model', false, '<start>')
+    }
     const br = await this.config.run(false)
     return br.ok ? this.watch.run('model', false, '<start>') : br
   }
 
 
   // Start watching for file changes. Runs an initial build, then watches
-  // both the model files and the config files for ongoing changes.
+  // both the model files and (when enabled) the config files for ongoing
+  // changes.
   async start() {
     this.trigger_model = false
+    if (!this.config) {
+      return this.watch.start()
+    }
     const br = await this.config.run(true)
     if (!br.ok) {
       return br
@@ -165,7 +177,7 @@ class Model {
   async stop() {
     // start() also spins up a config-file watcher; stop both so no
     // chokidar handle is left open keeping the process alive.
-    await this.config.stop()
+    await this.config?.stop()
     return this.watch.stop()
   }
 }

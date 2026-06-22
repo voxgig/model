@@ -36,8 +36,9 @@ func run(args []string, stderr io.Writer) int {
 	watch := fs.Bool("w", false, "watch and rebuild on change")
 	dryrun := fs.Bool("y", false, "dry run (write nothing to disk)")
 	level := fs.String("g", "info", "log level: trace|debug|info|warn|error|silent")
+	noConfig := fs.Bool("no-config", false, "skip the .model-config build and run the model on its own")
 	fs.Usage = func() {
-		fmt.Fprintln(stderr, "usage: voxgig-model [-w] [-y] [-g level] <root-file>")
+		fmt.Fprintln(stderr, "usage: voxgig-model [-w] [-y] [-g level] [-no-config] <root-file>")
 		fs.PrintDefaults()
 	}
 	if err := fs.Parse(args); err != nil {
@@ -60,10 +61,12 @@ func run(args []string, stderr io.Writer) int {
 		return 1
 	}
 
+	enableConfig := !*noConfig
 	m := model.New(model.ModelSpec{
 		Path:   abs,
 		Base:   filepath.Dir(abs),
 		Dryrun: *dryrun,
+		Config: &enableConfig,
 		Log:    model.NewLog(*level),
 	})
 

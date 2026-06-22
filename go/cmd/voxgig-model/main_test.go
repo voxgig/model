@@ -31,6 +31,23 @@ func TestCLIWritesModel(t *testing.T) {
 	}
 }
 
+func TestCLINoConfigSkipsConfig(t *testing.T) {
+	dir := t.TempDir()
+	root := filepath.Join(dir, "m.jsonic")
+	write(t, root, "a: 1\n")
+
+	var out bytes.Buffer
+	if code := run([]string{"-no-config", "-g", "silent", root}, &out); code != 0 {
+		t.Fatalf("exit %d: %s", code, out.String())
+	}
+	if _, err := os.Stat(filepath.Join(dir, "m.json")); err != nil {
+		t.Fatalf("model JSON not written: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, ".model-config")); !os.IsNotExist(err) {
+		t.Fatal("-no-config should not create .model-config")
+	}
+}
+
 func TestCLIDryrunWritesNothing(t *testing.T) {
 	dir := t.TempDir()
 	root := filepath.Join(dir, "m.jsonic")

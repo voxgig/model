@@ -3,7 +3,7 @@ import { Config } from './config';
 import { Watch } from './watch';
 import { initModel } from './init';
 declare class Model {
-    config: Config;
+    config?: Config;
     build: BuildSpec;
     watch: Watch;
     trigger_model: boolean;

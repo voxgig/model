@@ -131,6 +131,10 @@ interface ModelSpec {
   dryrun?: boolean
   buildargs?: any
   fs?: any
+  // Resolve a .model-config/model-config.jsonic (auto-created when missing)
+  // that declares the build actions and their order. Defaults to true; set
+  // false to skip the config entirely and run the model on its own.
+  config?: boolean
   watch?: {
     mod?: boolean // file modification
     add?: boolean // file addition

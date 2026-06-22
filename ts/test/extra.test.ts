@@ -161,6 +161,58 @@ describe('extra', () => {
   })
 
 
+  // With config disabled, the model builds on its own: no .model-config/ is
+  // created, no actions run, but the model JSON is still written.
+  test('config-optional-skips-config', async () => {
+    const dir = GEN + '/ex-noconfig'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir + '/model', { recursive: true })
+    await writeFile(dir + '/model/m.jsonic', 'a: 1\n')
+
+    const model = new Model({
+      path: dir + '/model/m.jsonic', base: dir + '/model', debug: 'silent',
+      config: false,
+    })
+    const br = await model.run()
+
+    assert.ok(br.ok, 'build failed: ' + JSON.stringify(br.errs))
+    assert.deepStrictEqual(JSON.parse(await readFile(dir + '/model/m.json', 'utf8')), { a: 1 })
+    assert.strictEqual(Fs.existsSync(dir + '/model/.model-config'), false,
+      '.model-config should not be created when config is disabled')
+  })
+
+
+  // An action declared in config is ignored when config is disabled, even if a
+  // .model-config file already exists.
+  test('config-optional-ignores-existing-config', async () => {
+    const dir = GEN + '/ex-noconfig-existing'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir + '/model/.model-config', { recursive: true })
+    await mkdir(dir + '/build', { recursive: true })
+
+    await writeFile(dir + '/model/m.jsonic', 'a: 1\n')
+    await writeFile(dir + '/model/.model-config/model-config.jsonic',
+      "sys: model: action: { p: load: 'build/p' }\n")
+    await writeFile(dir + '/build/p.js',
+      "const Path = require('node:path')\n" +
+      'module.exports = async function p(model, build) {\n' +
+      "  const root = Path.resolve(build.path, '..', '..')\n" +
+      "  build.fs.writeFileSync(Path.resolve(root, 'p.txt'), 'OK')\n" +
+      '  return { ok: true }\n' +
+      '}\n')
+
+    const model = new Model({
+      path: dir + '/model/m.jsonic', base: dir + '/model', debug: 'silent',
+      config: false,
+    })
+    const br = await model.run()
+
+    assert.ok(br.ok, 'build failed: ' + JSON.stringify(br.errs))
+    assert.strictEqual(Fs.existsSync(dir + '/p.txt'), false,
+      'config action should not run when config is disabled')
+  })
+
+
   // An unresolved import makes aontu throw; the build collects it as an error
   // rather than letting it escape.
   test('unresolved-import-fails', async () => {

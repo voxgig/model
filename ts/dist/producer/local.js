@@ -15,7 +15,9 @@ const local_producer = async (build, ctx) => {
         // TODO: need to provide project root via build
         let root = path_1.default.resolve(build.path, '..', '..');
         // TODO: build should do this
-        let configBuildResult = build.use.config.watch.last;
+        // Config is optional: with no .model-config build linked in, there are no
+        // declared actions and the model runs on its own.
+        let configBuildResult = build.use.config?.watch?.last;
         let configBuild = configBuildResult?.build();
         let config = configBuild?.model || {};
         let actions = config.sys?.model?.action ||

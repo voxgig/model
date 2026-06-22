@@ -118,6 +118,12 @@ semantics match TypeScript. Two things differ by necessity:
   runtime, so the action *functions* are registered programmatically via
   `ModelSpec.Actions` (`map[string]ActionDef`) and bound to the
   config-declared names — see `go/producer.go`.
+- **The config build is optional.** It is on by default; disable it with
+  `ModelSpec.config: false` (TS) / `ModelSpec.Config *bool` (Go, `nil` = on)
+  or the `--no-config` CLI flag. Disabled, the `Model` skips the config build
+  entirely (no `.model-config/` auto-creation, no actions) and builds the
+  model alone. Go's `Config` defaults to enabled via a `*bool` because the
+  bool zero value is `false`; keep TS and Go defaults in step.
 - **Watching polls modification times** (`go/watch.go`) rather than using
   chokidar.
 

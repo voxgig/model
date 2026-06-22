@@ -29,6 +29,70 @@ func TestConfigAutoCreated(t *testing.T) {
 	}
 }
 
+// With config disabled, New skips the .model-config build entirely: nothing is
+// auto-created, Config() is nil, but the model is still written.
+func TestConfigDisabled(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "model.jsonic", "x: 1\n")
+
+	disabled := false
+	m := New(ModelSpec{
+		Path:   filepath.Join(dir, "model.jsonic"),
+		Base:   dir,
+		Config: &disabled,
+	})
+	if br := m.Run(); !br.OK {
+		t.Fatalf("run failed: %v", br.Errs)
+	}
+	if _, err := os.Stat(filepath.Join(dir, ".model-config")); !os.IsNotExist(err) {
+		t.Fatalf(".model-config should not be created when config is disabled (err=%v)", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "model.json")); err != nil {
+		t.Fatalf("model.json not written: %v", err)
+	}
+	if m.Config() != nil {
+		t.Fatal("Config() should be nil when config is disabled")
+	}
+}
+
+// With config disabled, the action order falls back to the spec's Order even
+// when a .model-config file is present (it is ignored).
+func TestConfigDisabledIgnoresFileUsesOrder(t *testing.T) {
+	dir := t.TempDir()
+	mdir := filepath.Join(dir, "model")
+	cdir := filepath.Join(mdir, ".model-config")
+	if err := os.MkdirAll(cdir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, mdir, "model.jsonic", "x: 1\n")
+	writeFile(t, cdir, "model-config.jsonic",
+		"sys: model: action: { a: load: 'x', b: load: 'y' }\n"+
+			"sys: model: order: action: 'b,a'\n")
+
+	var order []string
+	mk := func(n string) ActionDef {
+		return ActionDef{Run: func(_ map[string]any, _ *Build, _ *BuildContext) ActionResult {
+			order = append(order, n)
+			return ActionResult{OK: true}
+		}}
+	}
+	disabled := false
+	m := New(ModelSpec{
+		Path:    filepath.Join(mdir, "model.jsonic"),
+		Base:    mdir,
+		Config:  &disabled,
+		Actions: map[string]ActionDef{"a": mk("a"), "b": mk("b")},
+		Order:   []string{"a", "b"},
+	})
+	if br := m.Run(); !br.OK {
+		t.Fatalf("run failed: %v", br.Errs)
+	}
+	// Spec Order wins (a,b); the config file's order (b,a) is ignored.
+	if strings.Join(order, ",") != "a,b" {
+		t.Fatalf("action order = %v, want [a b] (from spec Order, config ignored)", order)
+	}
+}
+
 // The config's sys.model.order.action drives the action run order, overriding
 // the registry's default (sorted) order.
 func TestConfigDrivesActionOrder(t *testing.T) {

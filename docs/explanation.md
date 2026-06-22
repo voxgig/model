@@ -161,6 +161,12 @@ An internal trigger producer on the config build kicks off the model build, so
 the two stay in step. In watch mode both the model's sources and the config's
 sources are watched, and a change to either rebuilds the model.
 
+The config build is **optional**. When a `Model` is created with `config: false`
+(or the CLI is run with `--no-config`), only the model build runs: nothing is
+auto-created under `.model-config/`, no actions are declared or run, and the
+model JSON is still written. This suits cases where you only want the unified
+model — for example, generating `model.json` for another tool to consume.
+
 
 ## Watching and incremental rebuilds
 

@@ -25,8 +25,9 @@ const DefaultIdle = 111 * time.Millisecond
 
 // Model unifies a .jsonic model and runs producers (the model writer and any
 // registered actions) over it. It can build once or watch and rebuild, and
-// resolves a .model-config/model-config.jsonic config (auto-created when
-// missing) that declares the action order.
+// optionally resolves a .model-config/model-config.jsonic config (auto-created
+// when missing) that declares the action order. The config is enabled by
+// default; ModelSpec.Config can disable it (see New).
 type Model struct {
 	config *Config
 	build  *Build
@@ -51,7 +52,12 @@ func New(spec ModelSpec) *Model {
 		idle = DefaultIdle
 	}
 
-	config := newConfig(base, spec, log)
+	// Config is optional: a nil spec.Config defaults to enabled. When disabled,
+	// the .model-config/ build is skipped and the model runs on its own.
+	var config *Config
+	if spec.Config == nil || *spec.Config {
+		config = newConfig(base, spec, log)
+	}
 
 	build := NewBuild(BuildSpec{
 		Name:     "model",
@@ -70,7 +76,9 @@ func New(spec ModelSpec) *Model {
 			{Path: "/", Build: LocalProducer},
 		},
 	})
-	build.Use["config"] = config
+	if config != nil {
+		build.Use["config"] = config
+	}
 
 	m := &Model{
 		config: config,
@@ -80,28 +88,34 @@ func New(spec ModelSpec) *Model {
 	}
 
 	// Re-resolve the config on each watch rebuild so config edits are picked up.
-	m.watch.reload = func() {
-		config.build.InvalidateCache()
-		config.Run()
+	if config != nil {
+		m.watch.reload = func() {
+			config.build.InvalidateCache()
+			config.Run()
+		}
 	}
 
 	return m
 }
 
-// Run builds the config and then the model once, returning the model result.
-// A failed config build is returned instead.
+// Run builds the config (when enabled) and then the model once, returning the
+// model result. A failed config build is returned instead.
 func (m *Model) Run() *BuildResult {
-	if cr := m.config.Run(); !cr.OK {
-		return cr
+	if m.config != nil {
+		if cr := m.config.Run(); !cr.OK {
+			return cr
+		}
 	}
 	return m.watch.Run(false)
 }
 
-// Start builds once (config then model), then watches and rebuilds until Stop
-// is called. It returns the initial model result.
+// Start builds once (config when enabled, then model), then watches and
+// rebuilds until Stop is called. It returns the initial model result.
 func (m *Model) Start() *BuildResult {
-	if cr := m.config.Run(); !cr.OK {
-		return cr
+	if m.config != nil {
+		if cr := m.config.Run(); !cr.OK {
+			return cr
+		}
 	}
 	return m.watch.Start()
 }
