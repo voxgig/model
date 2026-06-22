@@ -7,7 +7,7 @@ const Path = require('node:path')
 const Pkg = require('../package.json')
 const { Model, initModel } = require('../dist/model.js')
 
-const { Jsonic } = require('jsonic')
+const { Jsonic } = require('@tabnas/jsonic')
 const { Shape, Fault, One, Any } = require('shape')
 
 
