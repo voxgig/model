@@ -92,6 +92,18 @@ Go **1.24+** is required (the `aontu/go` dependency declares `go 1.24.7`).
 5. **Generated test fixtures go in `ts/test/_gen/`** (gitignored). Tests write
    their own fixtures there at runtime; do not commit them.
 
+6. **`aontu` tracks GitHub `main` via a vendored tarball.** The npm package
+   lives in a monorepo subdir (`rjrodger/aontu` → `ts/`), which npm cannot
+   install from git, and `main` is ahead of the npm release. So
+   `ts/vendor/aontu-<version>.tgz` is committed (whitelisted in `.gitignore`
+   against the global `*.tgz` rule) and referenced as
+   `"aontu": "file:vendor/aontu-<version>.tgz"`. To bump: `git clone` aontu at
+   the target commit, `npm pack` its `ts/`, drop the new `.tgz` in
+   `ts/vendor/` (remove the old one), update the `file:` ref, then
+   `npm install && npm run build && npm test`. aontu's parser is
+   `@tabnas/jsonic`; the CLI bin requires it directly (an explicit dep, since
+   it is no longer hoisted transitively).
+
 
 ## The Go port
 
@@ -106,6 +118,12 @@ semantics match TypeScript. Two things differ by necessity:
   runtime, so the action *functions* are registered programmatically via
   `ModelSpec.Actions` (`map[string]ActionDef`) and bound to the
   config-declared names — see `go/producer.go`.
+- **The config build is optional.** It is on by default; disable it with
+  `ModelSpec.config: false` (TS) / `ModelSpec.Config *bool` (Go, `nil` = on)
+  or the `--no-config` CLI flag. Disabled, the `Model` skips the config build
+  entirely (no `.model-config/` auto-creation, no actions) and builds the
+  model alone. Go's `Config` defaults to enabled via a `*bool` because the
+  bool zero value is `false`; keep TS and Go defaults in step.
 - **Watching polls modification times** (`go/watch.go`) rather than using
   chokidar.
 

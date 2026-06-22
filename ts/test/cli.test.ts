@@ -48,4 +48,26 @@ describe('cli', () => {
     assert.deepStrictEqual(args, { outer: { inner: 'VAL' } })
   })
 
+
+  // --no-config builds the model without creating .model-config or running any
+  // config-declared action.
+  test('no-config-skips-config', async () => {
+    const { existsSync } = require('node:fs')
+    const dir = GEN + '/cli-noconfig'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir + '/model', { recursive: true })
+    await writeFile(dir + '/model/model.jsonic', 'top: 1\n')
+
+    const res = spawnSync(process.execPath,
+      [BIN, dir + '/model/model.jsonic', '--no-config', '-g', 'silent'],
+      { encoding: 'utf8' })
+
+    assert.strictEqual(res.status, 0,
+      'cli should exit 0\nstdout:' + res.stdout + '\nstderr:' + res.stderr)
+    assert.deepStrictEqual(JSON.parse(await readFile(dir + '/model/model.json', 'utf8')),
+      { top: 1 })
+    assert.strictEqual(existsSync(dir + '/model/.model-config'), false,
+      '--no-config should not create .model-config')
+  })
+
 })

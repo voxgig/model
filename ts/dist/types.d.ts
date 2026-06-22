@@ -105,6 +105,7 @@ interface ModelSpec {
     dryrun?: boolean;
     buildargs?: any;
     fs?: any;
+    config?: boolean;
     watch?: {
         mod?: boolean;
         add?: boolean;

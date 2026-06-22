@@ -37,6 +37,7 @@ generated model JSON is written next to the root file.
 | `--debug <level>` | `-g` | string | `info` | Log level: `trace`, `debug`, `info`, `warn`, `error`, `fatal`, `silent`. |
 | `--dryrun` | `-y` | boolean | `false` | Resolve and run the build, but redirect all file writes to an in-memory filesystem (nothing touches disk). |
 | `--build <jsonic>` | `-b` | string | `''` | A [jsonic](https://github.com/jsonic-lang/jsonic) document of build arguments, exposed to actions as `build.args`. |
+| `--no-config` | | boolean | `false` | Skip the `.model-config` build entirely: nothing is auto-created, no config-declared actions run, and the model is built on its own. |
 | `--help` | `-h` | boolean | | Print usage and exit. |
 | `--version` | `-v` | boolean | | Print version and exit. |
 
@@ -59,6 +60,9 @@ voxgig-model --dryrun model/model.jsonic
 
 # Pass build arguments to actions
 voxgig-model -b '{env:prod, region:eu-west-1}' model/model.jsonic
+
+# Build the model alone, without the .model-config machinery
+voxgig-model --no-config model/model.jsonic
 ```
 
 ### `init` — scaffold a new model
@@ -114,6 +118,12 @@ directory below the project root (e.g. `model/model.jsonic`).
 `<base>/.model-config/model-config.jsonic` declares the **actions** that run
 during a build. If it does not exist, the `Model` constructor creates a minimal
 one that imports the package's base config.
+
+The config is **optional**. Pass `config: false` to `ModelSpec` (or `--no-config`
+on the CLI) to skip it entirely: no `.model-config/` is created, no actions are
+loaded or run, and the model is built on its own (the model JSON is still
+written). In the Go API the field is `ModelSpec.Config *bool` — `nil` defaults to
+enabled, a pointer to `false` disables it.
 
 The config is itself a model, unified the same way as your main model. The
 keys the tool reads:
@@ -289,6 +299,7 @@ interface ModelSpec {
   buildargs?: any      // build arguments, exposed as build.args
   debug?: boolean | string  // log level (string) or true => 'debug'
   dryrun?: boolean     // redirect writes to an in-memory fs
+  config?: boolean     // resolve .model-config (default true); false skips it
   idle?: number        // watch debounce in ms (default 111)
   fs?: any             // a custom fs implementation (e.g. memfs)
   log?: Log            // a pre-built pino logger
@@ -476,7 +487,7 @@ A single build (`Build.run`) proceeds as:
 5. **post phase** — run every producer with `ctx.step = 'post'`.
 6. **result** — return a `BuildResult` with `ok`, `producers`, `errs`, `runlog`.
 
-A `Model` orchestrates **two** builds:
+A `Model` orchestrates up to **two** builds:
 
 - The **config build** resolves `.model-config/model-config.jsonic` (writing
   `model-config.json`) and, via an internal trigger producer, drives the main
@@ -486,6 +497,9 @@ A `Model` orchestrates **two** builds:
 
 In watch mode both the model's source files and the config's source files are
 watched; a change to either rebuilds the model.
+
+When config is disabled (`config: false` / `--no-config`), the config build is
+omitted: the model build runs directly and no config files are watched.
 
 See [explanation](./explanation.md) for the reasoning and the caching and watch
 designs in depth.

@@ -36,5 +36,18 @@ const BIN = __dirname + '/../bin/voxgig-model';
         const args = JSON.parse(await (0, promises_1.readFile)(out, 'utf8'));
         node_assert_1.default.deepStrictEqual(args, { outer: { inner: 'VAL' } });
     });
+    // --no-config builds the model without creating .model-config or running any
+    // config-declared action.
+    (0, node_test_1.test)('no-config-skips-config', async () => {
+        const { existsSync } = require('node:fs');
+        const dir = GEN + '/cli-noconfig';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(dir + '/model', { recursive: true });
+        await (0, promises_1.writeFile)(dir + '/model/model.jsonic', 'top: 1\n');
+        const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN, dir + '/model/model.jsonic', '--no-config', '-g', 'silent'], { encoding: 'utf8' });
+        node_assert_1.default.strictEqual(res.status, 0, 'cli should exit 0\nstdout:' + res.stdout + '\nstderr:' + res.stderr);
+        node_assert_1.default.deepStrictEqual(JSON.parse(await (0, promises_1.readFile)(dir + '/model/model.json', 'utf8')), { top: 1 });
+        node_assert_1.default.strictEqual(existsSync(dir + '/model/.model-config'), false, '--no-config should not create .model-config');
+    });
 });
 //# sourceMappingURL=cli.test.js.map
