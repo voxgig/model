@@ -15,16 +15,17 @@ import (
 // in the post phase only, and skips the write when the output is byte-for-byte
 // unchanged (avoiding mtime churn that would re-trigger watchers).
 //
-// Go's encoding/json emits object keys in sorted order, where the TypeScript
-// implementation preserves insertion order; the JSON content is otherwise
-// equivalent. This is a known, accepted cross-language difference.
+// The output is byte-for-byte identical to the TypeScript implementation: both
+// emit object keys in sorted order (Go's encoding/json sorts map keys; the TS
+// model producer sorts them explicitly) with a two-space indent and no HTML
+// escaping. See marshalModel.
 func ModelProducer(b *Build, ctx *BuildContext) ProducerResult {
 	pr := ProducerResult{OK: true, Name: "model", Step: ctx.Step, Active: true}
 	if ctx.Step != StepPost {
 		return pr
 	}
 
-	data, err := json.MarshalIndent(b.Model, "", "  ")
+	data, err := marshalModel(b.Model)
 	if err != nil {
 		return fail("model", ctx.Step, err)
 	}
@@ -164,6 +165,22 @@ func splitOrder(s string) []string {
 		}
 	}
 	return out
+}
+
+// marshalModel serializes the model to indented JSON that matches the
+// TypeScript output byte-for-byte: object keys sorted (encoding/json sorts map
+// keys), two-space indent, and HTML escaping disabled so characters like <, >
+// and & are emitted literally as JSON.stringify does. json.Encoder appends a
+// trailing newline, which JSON.stringify does not, so it is trimmed.
+func marshalModel(v any) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+	return bytes.TrimRight(buf.Bytes(), "\n"), nil
 }
 
 func fail(name string, step Step, err error) ProducerResult {

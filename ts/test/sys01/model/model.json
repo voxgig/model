@@ -1,80 +1,80 @@
 {
+  "color": {
+    "blue": {
+      "name": "blue",
+      "value": "00f"
+    },
+    "green": {
+      "name": "green",
+      "value": "0f0"
+    },
+    "red": {
+      "name": "red",
+      "value": "f00"
+    }
+  },
   "main": {
     "srv": {
-      "foo": {
-        "in": {},
-        "out": {},
-        "deps": {},
+      "bar": {
         "api": {
           "web": {
             "active": true,
-            "path": {
-              "prefix": "/api/"
-            },
-            "method": "POST",
             "cors": {
               "active": false
+            },
+            "method": "POST",
+            "path": {
+              "prefix": "/api/"
             }
           }
         },
+        "deps": {},
+        "env": {
+          "lambda": {
+            "active": true,
+            "handler": {
+              "path": {
+                "prefix": "src/handler/lambda/",
+                "suffix": ".handler"
+              }
+            },
+            "kind": "standard",
+            "timeout": 30
+          }
+        },
+        "in": {},
+        "out": {}
+      },
+      "foo": {
+        "api": {
+          "web": {
+            "active": true,
+            "cors": {
+              "active": false
+            },
+            "method": "POST",
+            "path": {
+              "prefix": "/api/"
+            }
+          }
+        },
+        "deps": {},
         "env": {
           "lambda": {
             "active": false,
-            "timeout": 30,
             "handler": {
               "path": {
                 "prefix": "src/handler/lambda/",
                 "suffix": ".handler"
               }
             },
-            "kind": "standard"
-          }
-        }
-      },
-      "bar": {
-        "in": {},
-        "out": {},
-        "deps": {},
-        "api": {
-          "web": {
-            "active": true,
-            "path": {
-              "prefix": "/api/"
-            },
-            "method": "POST",
-            "cors": {
-              "active": false
-            }
+            "kind": "standard",
+            "timeout": 30
           }
         },
-        "env": {
-          "lambda": {
-            "active": true,
-            "timeout": 30,
-            "handler": {
-              "path": {
-                "prefix": "src/handler/lambda/",
-                "suffix": ".handler"
-              }
-            },
-            "kind": "standard"
-          }
-        }
+        "in": {},
+        "out": {}
       }
-    }
-  },
-  "color": {
-    "red": {
-      "value": "f00",
-      "name": "red"
-    },
-    "green": {
-      "value": "0f0",
-      "name": "green"
-    },
-    "blue": {
-      "value": "00f",
-      "name": "blue"
     }
   },
   "pre": "OK",

@@ -46,7 +46,7 @@
     "@tabnas/jsonic": "0.2.0",
     "aontu": "file:vendor/aontu-0.47.0.tgz",
     "chokidar": "5.0.0",
-    "memfs": "4.57.6",
+    "memfs": "4.57.8",
     "shape": "10.1.0"
   },
   "peerDependencies": {
