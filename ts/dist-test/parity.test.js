@@ -39,22 +39,58 @@ nested: { z: "z", a: "a" }
 list: [ 3, 1, 2 ]
 html: "<a> & </a>"
 `;
+// A second fixture exercising arrays of objects: each element keeps its
+// position in the array, but the keys *within* each object are sorted, as are
+// the keys of nested objects. HTML characters stay literal. The identical Go
+// expectation lives in go/parity_test.go — keep the two in step.
+const EXPECTED2 = `{
+  "alpha": 1,
+  "beta": {
+    "x": 1,
+    "y": 2
+  },
+  "nums": [
+    30,
+    10,
+    20
+  ],
+  "rows": [
+    {
+      "id": 2,
+      "tag": "b<x"
+    },
+    {
+      "id": 1,
+      "tag": "a&y"
+    }
+  ]
+}`;
+const SRC2 = `beta: { y: 2, x: 1 }
+alpha: 1
+rows: [ { id: 2, tag: "b<x" }, { id: 1, tag: "a&y" } ]
+nums: [ 30, 10, 20 ]
+`;
+async function buildModelJson(name, src) {
+    const base = path_1.default.join(__dirname, '..', 'test', '_gen', name);
+    (0, node_fs_1.mkdirSync)(base, { recursive: true });
+    (0, node_fs_1.writeFileSync)(path_1.default.join(base, 'model.jsonic'), src);
+    const log = (0, util_1.prettyPino)('test', {});
+    const b = (0, build_1.makeBuild)({
+        fs: fs_1.default,
+        base,
+        path: path_1.default.join(base, 'model.jsonic'),
+        res: [{ path: '/', build: model_1.model_producer }],
+    }, log);
+    const r = await b.run({ watch: false });
+    node_assert_1.default.ok(r.ok, 'build failed: ' + JSON.stringify(r.errs));
+    return (0, node_fs_1.readFileSync)(path_1.default.join(base, 'model.json'), 'utf8');
+}
 (0, node_test_1.describe)('parity', () => {
     (0, node_test_1.test)('model-output-keys-sorted', async () => {
-        const base = path_1.default.join(__dirname, '..', 'test', '_gen', 'parity');
-        (0, node_fs_1.mkdirSync)(base, { recursive: true });
-        (0, node_fs_1.writeFileSync)(path_1.default.join(base, 'model.jsonic'), SRC);
-        const log = (0, util_1.prettyPino)('test', {});
-        const b = (0, build_1.makeBuild)({
-            fs: fs_1.default,
-            base,
-            path: path_1.default.join(base, 'model.jsonic'),
-            res: [{ path: '/', build: model_1.model_producer }],
-        }, log);
-        const r = await b.run({ watch: false });
-        node_assert_1.default.ok(r.ok, 'build failed: ' + JSON.stringify(r.errs));
-        const out = (0, node_fs_1.readFileSync)(path_1.default.join(base, 'model.json'), 'utf8');
-        node_assert_1.default.strictEqual(out, EXPECTED);
+        node_assert_1.default.strictEqual(await buildModelJson('parity', SRC), EXPECTED);
+    });
+    (0, node_test_1.test)('model-output-array-of-objects', async () => {
+        node_assert_1.default.strictEqual(await buildModelJson('parity2', SRC2), EXPECTED2);
     });
 });
 //# sourceMappingURL=parity.test.js.map

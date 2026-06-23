@@ -126,3 +126,38 @@ func TestConfigDrivesActionOrder(t *testing.T) {
 		t.Fatalf("action order = %v, want [b a] (from config order.action)", order)
 	}
 }
+
+// When the config declares actions but no explicit sys.model.order.action, the
+// run order falls back to the sorted action keys.
+func TestConfigOrderFallsBackToSortedKeys(t *testing.T) {
+	dir := t.TempDir()
+	mdir := filepath.Join(dir, "model")
+	cdir := filepath.Join(mdir, ".model-config")
+	if err := os.MkdirAll(cdir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, mdir, "model.jsonic", "x: 1\n")
+	// Two actions, declared out of order and with no order.action -> the
+	// producer should run them by sorted key (a,b).
+	writeFile(t, cdir, "model-config.jsonic",
+		"sys: model: action: { b: load: 'y', a: load: 'x' }\n")
+
+	var order []string
+	mk := func(n string) ActionDef {
+		return ActionDef{Run: func(_ map[string]any, _ *Build, _ *BuildContext) ActionResult {
+			order = append(order, n)
+			return ActionResult{OK: true}
+		}}
+	}
+	m := New(ModelSpec{
+		Path:    filepath.Join(mdir, "model.jsonic"),
+		Base:    mdir,
+		Actions: map[string]ActionDef{"a": mk("a"), "b": mk("b")},
+	})
+	if br := m.Run(); !br.OK {
+		t.Fatalf("run failed: %v", br.Errs)
+	}
+	if strings.Join(order, ",") != "a,b" {
+		t.Fatalf("action order = %v, want [a b] (sorted action keys)", order)
+	}
+}

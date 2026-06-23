@@ -45,27 +45,70 @@ html: "<a> & </a>"
 `
 
 
+// A second fixture exercising arrays of objects: each element keeps its
+// position in the array, but the keys *within* each object are sorted, as are
+// the keys of nested objects. HTML characters stay literal. The identical Go
+// expectation lives in go/parity_test.go — keep the two in step.
+const EXPECTED2 = `{
+  "alpha": 1,
+  "beta": {
+    "x": 1,
+    "y": 2
+  },
+  "nums": [
+    30,
+    10,
+    20
+  ],
+  "rows": [
+    {
+      "id": 2,
+      "tag": "b<x"
+    },
+    {
+      "id": 1,
+      "tag": "a&y"
+    }
+  ]
+}`
+
+const SRC2 = `beta: { y: 2, x: 1 }
+alpha: 1
+rows: [ { id: 2, tag: "b<x" }, { id: 1, tag: "a&y" } ]
+nums: [ 30, 10, 20 ]
+`
+
+
+async function buildModelJson(name: string, src: string): Promise<string> {
+  const base = Path.join(__dirname, '..', 'test', '_gen', name)
+  mkdirSync(base, { recursive: true })
+  writeFileSync(Path.join(base, 'model.jsonic'), src)
+
+  const log = prettyPino('test', {})
+
+  const b = makeBuild({
+    fs: Fs,
+    base,
+    path: Path.join(base, 'model.jsonic'),
+    res: [{ path: '/', build: model_producer }],
+  }, log)
+
+  const r = await b.run({ watch: false })
+  assert.ok(r.ok, 'build failed: ' + JSON.stringify(r.errs))
+
+  return readFileSync(Path.join(base, 'model.json'), 'utf8')
+}
+
+
 describe('parity', () => {
 
   test('model-output-keys-sorted', async () => {
-    const base = Path.join(__dirname, '..', 'test', '_gen', 'parity')
-    mkdirSync(base, { recursive: true })
-    writeFileSync(Path.join(base, 'model.jsonic'), SRC)
+    assert.strictEqual(await buildModelJson('parity', SRC), EXPECTED)
+  })
 
-    const log = prettyPino('test', {})
 
-    const b = makeBuild({
-      fs: Fs,
-      base,
-      path: Path.join(base, 'model.jsonic'),
-      res: [{ path: '/', build: model_producer }],
-    }, log)
-
-    const r = await b.run({ watch: false })
-    assert.ok(r.ok, 'build failed: ' + JSON.stringify(r.errs))
-
-    const out = readFileSync(Path.join(base, 'model.json'), 'utf8')
-    assert.strictEqual(out, EXPECTED)
+  test('model-output-array-of-objects', async () => {
+    assert.strictEqual(await buildModelJson('parity2', SRC2), EXPECTED2)
   })
 
 })

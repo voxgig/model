@@ -221,7 +221,13 @@ async function generate(options) {
     model.start()
   }
   else {
-    await model.run()
+    const br = await model.run()
+
+    // Propagate a failed build as a non-zero exit code (the build's own
+    // errors are reported through the model logger). Mirrors the Go CLI.
+    if(br && false === br.ok) {
+      exit(1)
+    }
   }
 }
 

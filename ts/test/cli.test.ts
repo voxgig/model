@@ -70,4 +70,41 @@ describe('cli', () => {
       '--no-config should not create .model-config')
   })
 
+
+  // A missing model file exits non-zero with a clear message rather than a
+  // stack trace.
+  test('missing-file-exits-nonzero', async () => {
+    const res = spawnSync(process.execPath,
+      [BIN, GEN + '/cli-nope/does-not-exist.jsonic', '-g', 'silent'],
+      { encoding: 'utf8' })
+
+    assert.notStrictEqual(res.status, 0, 'missing file should exit non-zero')
+    assert.match(res.stderr, /does not exist/)
+  })
+
+
+  // With no model path, the CLI reports the usage error and exits non-zero
+  // rather than trying to build an empty path.
+  test('no-args-exits-nonzero', async () => {
+    const res = spawnSync(process.execPath, [BIN], { encoding: 'utf8' })
+
+    assert.notStrictEqual(res.status, 0, 'no args should exit non-zero')
+    assert.match(res.stderr, /ERROR/)
+  })
+
+
+  // An invalid model (conflicting values) fails the build and exits non-zero.
+  test('bad-model-exits-nonzero', async () => {
+    const dir = GEN + '/cli-bad'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir + '/model', { recursive: true })
+    await writeFile(dir + '/model/model.jsonic', 'x: 1\nx: 2\n')
+
+    const res = spawnSync(process.execPath,
+      [BIN, dir + '/model/model.jsonic', '--no-config', '-g', 'silent'],
+      { encoding: 'utf8' })
+
+    assert.notStrictEqual(res.status, 0, 'invalid model should exit non-zero')
+  })
+
 })

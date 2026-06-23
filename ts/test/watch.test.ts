@@ -1,13 +1,21 @@
 /* Copyright © 2021-2025 Voxgig Ltd, MIT License. */
 
+import Fs from 'node:fs'
 import { mkdir, writeFile, readFile, appendFile, rm } from 'node:fs/promises'
 import { test, describe } from 'node:test'
 import assert from 'node:assert'
 
 import { Model } from '../dist/model'
+import { Watch } from '../dist/watch'
+
+import { prettyPino } from '@voxgig/util'
 
 
 const GEN = __dirname + '/../test/_gen'
+
+function silentLog() {
+  return prettyPino('test', { debug: 'silent' })
+}
 
 
 async function waitFor(fn: () => Promise<boolean>, ms = 6000): Promise<boolean> {
@@ -167,6 +175,79 @@ describe('watch', () => {
     finally {
       await model.stop()
     }
+  })
+
+
+  // With config disabled, start() watches the model directly (no config
+  // watcher): the initial build runs and produces output, and stop() releases
+  // the watcher cleanly.
+  test('start-without-config', async () => {
+    const base = GEN + '/wat04/model'
+    await rm(GEN + '/wat04', { recursive: true, force: true })
+    await mkdir(base, { recursive: true })
+    await writeFile(base + '/model.jsonic', 'val: 5\n')
+
+    const out = base + '/model.json'
+    const model = new Model({
+      path: base + '/model.jsonic', base, config: false, debug: 'silent',
+    })
+
+    try {
+      await model.start()
+      assert.ok(
+        await waitFor(async () => (await readVal(out)) === 5),
+        'initial build should produce val:5 with config disabled')
+      assert.strictEqual(Fs.existsSync(base + '/.model-config'), false,
+        'config disabled: no .model-config should be created')
+    }
+    finally {
+      await model.stop()
+    }
+  })
+
+})
+
+
+// Unit coverage for Watch internals that the Model-level tests don't reach:
+// the add/remove event modes and the dependency-description helper.
+describe('watch-internals', () => {
+
+  // The watcher only registers chokidar handlers for the enabled modes. With
+  // add and rem enabled, ensureFSW wires up 'add' and 'unlink' as well as the
+  // default 'change'. The watcher must still close cleanly.
+  test('add-and-rem-modes-register', async () => {
+    const dir = GEN + '/wat-modes'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir, { recursive: true })
+
+    const w: any = new Watch({
+      name: 'modes', path: dir + '/m.jsonic', base: dir, fs: Fs,
+      watch: { mod: true, add: true, rem: true },
+    } as any, silentLog())
+
+    try {
+      const fsw = w.ensureFSW()
+      assert.ok(fsw, 'ensureFSW should create a watcher')
+      // Calling again returns the same watcher (idempotent).
+      assert.strictEqual(w.ensureFSW(), fsw)
+    }
+    finally {
+      await w.stop()
+    }
+  })
+
+
+  // descDeps renders nothing for missing/empty deps and a readable tree for
+  // populated deps.
+  test('descDeps-edge-cases', () => {
+    const w: any = new Watch({ name: 'd', path: '/x', base: '/', fs: Fs } as any, silentLog())
+
+    assert.strictEqual(w.descDeps(null), '')
+    assert.strictEqual(w.descDeps({}), '')
+
+    const desc = w.descDeps({ '/a.jsonic': { '/b.jsonic': { tar: '/b.jsonic' } } })
+    assert.match(desc, /\/a\.jsonic/)
+    assert.match(desc, /\/b\.jsonic/)
   })
 
 })
