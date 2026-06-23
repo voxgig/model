@@ -4,11 +4,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const node_fs_1 = __importDefault(require("node:fs"));
 const promises_1 = require("node:fs/promises");
 const node_test_1 = require("node:test");
 const node_assert_1 = __importDefault(require("node:assert"));
 const model_1 = require("../dist/model");
+const watch_1 = require("../dist/watch");
+const util_1 = require("@voxgig/util");
 const GEN = __dirname + '/../test/_gen';
+function silentLog() {
+    return (0, util_1.prettyPino)('test', { debug: 'silent' });
+}
 async function waitFor(fn, ms = 6000) {
     const start = Date.now();
     while (Date.now() - start < ms) {
@@ -122,6 +128,62 @@ async function read(file) {
         finally {
             await model.stop();
         }
+    });
+    // With config disabled, start() watches the model directly (no config
+    // watcher): the initial build runs and produces output, and stop() releases
+    // the watcher cleanly.
+    (0, node_test_1.test)('start-without-config', async () => {
+        const base = GEN + '/wat04/model';
+        await (0, promises_1.rm)(GEN + '/wat04', { recursive: true, force: true });
+        await (0, promises_1.mkdir)(base, { recursive: true });
+        await (0, promises_1.writeFile)(base + '/model.jsonic', 'val: 5\n');
+        const out = base + '/model.json';
+        const model = new model_1.Model({
+            path: base + '/model.jsonic', base, config: false, debug: 'silent',
+        });
+        try {
+            await model.start();
+            node_assert_1.default.ok(await waitFor(async () => (await readVal(out)) === 5), 'initial build should produce val:5 with config disabled');
+            node_assert_1.default.strictEqual(node_fs_1.default.existsSync(base + '/.model-config'), false, 'config disabled: no .model-config should be created');
+        }
+        finally {
+            await model.stop();
+        }
+    });
+});
+// Unit coverage for Watch internals that the Model-level tests don't reach:
+// the add/remove event modes and the dependency-description helper.
+(0, node_test_1.describe)('watch-internals', () => {
+    // The watcher only registers chokidar handlers for the enabled modes. With
+    // add and rem enabled, ensureFSW wires up 'add' and 'unlink' as well as the
+    // default 'change'. The watcher must still close cleanly.
+    (0, node_test_1.test)('add-and-rem-modes-register', async () => {
+        const dir = GEN + '/wat-modes';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(dir, { recursive: true });
+        const w = new watch_1.Watch({
+            name: 'modes', path: dir + '/m.jsonic', base: dir, fs: node_fs_1.default,
+            watch: { mod: true, add: true, rem: true },
+        }, silentLog());
+        try {
+            const fsw = w.ensureFSW();
+            node_assert_1.default.ok(fsw, 'ensureFSW should create a watcher');
+            // Calling again returns the same watcher (idempotent).
+            node_assert_1.default.strictEqual(w.ensureFSW(), fsw);
+        }
+        finally {
+            await w.stop();
+        }
+    });
+    // descDeps renders nothing for missing/empty deps and a readable tree for
+    // populated deps.
+    (0, node_test_1.test)('descDeps-edge-cases', () => {
+        const w = new watch_1.Watch({ name: 'd', path: '/x', base: '/', fs: node_fs_1.default }, silentLog());
+        node_assert_1.default.strictEqual(w.descDeps(null), '');
+        node_assert_1.default.strictEqual(w.descDeps({}), '');
+        const desc = w.descDeps({ '/a.jsonic': { '/b.jsonic': { tar: '/b.jsonic' } } });
+        node_assert_1.default.match(desc, /\/a\.jsonic/);
+        node_assert_1.default.match(desc, /\/b\.jsonic/);
     });
 });
 //# sourceMappingURL=watch.test.js.map

@@ -38,24 +38,70 @@ list: [ 3, 1, 2 ]
 html: "<a> & </a>"
 `
 
-// ModelProducer output is byte-for-byte identical to the TypeScript producer:
-// sorted keys, two-space indent, no HTML escaping, no trailing newline.
-func TestModelProducerByteParity(t *testing.T) {
+// parityExpected2 is a second shared fixture exercising arrays of objects:
+// each element keeps its array position, but the keys within each object are
+// sorted, as are nested-object keys. HTML characters stay literal. The
+// identical TypeScript expectation lives in ts/test/parity.test.ts.
+const parityExpected2 = `{
+  "alpha": 1,
+  "beta": {
+    "x": 1,
+    "y": 2
+  },
+  "nums": [
+    30,
+    10,
+    20
+  ],
+  "rows": [
+    {
+      "id": 2,
+      "tag": "b<x"
+    },
+    {
+      "id": 1,
+      "tag": "a&y"
+    }
+  ]
+}`
+
+const parityModelSrc2 = `beta: { y: 2, x: 1 }
+alpha: 1
+rows: [ { id: 2, tag: "b<x" }, { id: 1, tag: "a&y" } ]
+nums: [ 30, 10, 20 ]
+`
+
+// buildModelJSON runs ModelProducer over src and returns the written JSON.
+func buildModelJSON(t *testing.T, src string) string {
+	t.Helper()
 	dir := t.TempDir()
 	path := filepath.Join(dir, "model.jsonic")
-	writeFile(t, dir, "model.jsonic", parityModelSrc)
+	writeFile(t, dir, "model.jsonic", src)
 
 	b := NewBuild(BuildSpec{Path: path, Base: dir,
 		Res: []ProducerDef{{Path: "/", Build: ModelProducer}}})
 	if br := b.Run(false); !br.OK {
 		t.Fatalf("build failed: %v", br.Errs)
 	}
-
 	data, err := os.ReadFile(filepath.Join(dir, "model.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(data) != parityExpected {
-		t.Fatalf("model.json parity mismatch:\n--- got ---\n%s\n--- want ---\n%s", data, parityExpected)
+	return string(data)
+}
+
+// ModelProducer output is byte-for-byte identical to the TypeScript producer:
+// sorted keys, two-space indent, no HTML escaping, no trailing newline.
+func TestModelProducerByteParity(t *testing.T) {
+	if got := buildModelJSON(t, parityModelSrc); got != parityExpected {
+		t.Fatalf("model.json parity mismatch:\n--- got ---\n%s\n--- want ---\n%s", got, parityExpected)
+	}
+}
+
+// Arrays of objects preserve element order while sorting keys within each
+// object, matching the TypeScript producer byte-for-byte.
+func TestModelProducerByteParityArrayOfObjects(t *testing.T) {
+	if got := buildModelJSON(t, parityModelSrc2); got != parityExpected2 {
+		t.Fatalf("model.json parity mismatch:\n--- got ---\n%s\n--- want ---\n%s", got, parityExpected2)
 	}
 }

@@ -49,5 +49,28 @@ const BIN = __dirname + '/../bin/voxgig-model';
         node_assert_1.default.deepStrictEqual(JSON.parse(await (0, promises_1.readFile)(dir + '/model/model.json', 'utf8')), { top: 1 });
         node_assert_1.default.strictEqual(existsSync(dir + '/model/.model-config'), false, '--no-config should not create .model-config');
     });
+    // A missing model file exits non-zero with a clear message rather than a
+    // stack trace.
+    (0, node_test_1.test)('missing-file-exits-nonzero', async () => {
+        const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN, GEN + '/cli-nope/does-not-exist.jsonic', '-g', 'silent'], { encoding: 'utf8' });
+        node_assert_1.default.notStrictEqual(res.status, 0, 'missing file should exit non-zero');
+        node_assert_1.default.match(res.stderr, /does not exist/);
+    });
+    // With no model path, the CLI reports the usage error and exits non-zero
+    // rather than trying to build an empty path.
+    (0, node_test_1.test)('no-args-exits-nonzero', async () => {
+        const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN], { encoding: 'utf8' });
+        node_assert_1.default.notStrictEqual(res.status, 0, 'no args should exit non-zero');
+        node_assert_1.default.match(res.stderr, /ERROR/);
+    });
+    // An invalid model (conflicting values) fails the build and exits non-zero.
+    (0, node_test_1.test)('bad-model-exits-nonzero', async () => {
+        const dir = GEN + '/cli-bad';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(dir + '/model', { recursive: true });
+        await (0, promises_1.writeFile)(dir + '/model/model.jsonic', 'x: 1\nx: 2\n');
+        const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN, dir + '/model/model.jsonic', '--no-config', '-g', 'silent'], { encoding: 'utf8' });
+        node_assert_1.default.notStrictEqual(res.status, 0, 'invalid model should exit non-zero');
+    });
 });
 //# sourceMappingURL=cli.test.js.map
