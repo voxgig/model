@@ -64,8 +64,6 @@ typings/
 
 # Output of 'npm pack'
 *.tgz
-# ...except the vendored aontu build (tracks aontu GitHub main; not yet on npm)
-!ts/vendor/*.tgz
 
 # Yarn Integrity file
 .yarn-integrity
