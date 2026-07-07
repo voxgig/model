@@ -168,11 +168,11 @@ class Model {
 exports.Model = Model;
 function makeConfig(mspec, log, fs, trigger_model_build) {
     let cbase = mspec.base + '/.model-config';
-    let cpath = cbase + '/model-config.jsonic';
+    let cpath = cbase + '/model-config.aontu';
     if (!fs.existsSync(cpath)) {
         fs.mkdirSync(cbase, { recursive: true });
         fs.writeFileSync(cpath, `
-@"@voxgig/model/model/.model-config/model-config.jsonic"
+@"@voxgig/model/model/.model-config/model-config.aontu"
 
 sys: model: action: {}
 `);

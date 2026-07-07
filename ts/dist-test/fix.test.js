@@ -20,7 +20,7 @@ const GEN = __dirname + '/../test/_gen';
         const dir = GEN + '/err01';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        const path = dir + '/model.jsonic';
+        const path = dir + '/model.aontu';
         const log = (0, util_1.prettyPino)('test', {});
         // Conflicting scalar values do not unify -> a collected model error.
         await (0, promises_1.writeFile)(path, 'x: 1\nx: 2\n');
@@ -42,12 +42,12 @@ const GEN = __dirname + '/../test/_gen';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
         await (0, promises_1.mkdir)(dir + '/build', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/model.jsonic', 'top: 1\n');
-        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.jsonic', "sys: model: action: { real: load: 'build/real' }\n" +
+        await (0, promises_1.writeFile)(dir + '/model/model.aontu', 'top: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', "sys: model: action: { real: load: 'build/real' }\n" +
             "sys: model: order: action: 'real,ghost'\n");
         await (0, promises_1.writeFile)(dir + '/build/real.js', 'module.exports = async () => ({ ok: true })\n');
         const model = new model_1.Model({
-            path: dir + '/model/model.jsonic',
+            path: dir + '/model/model.aontu',
             base: dir + '/model',
             // The build deliberately errors; silence the expected log noise.
             debug: 'silent',
@@ -62,11 +62,11 @@ const GEN = __dirname + '/../test/_gen';
         const dir = GEN + '/act02';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/model.jsonic', 'top: 1\n');
-        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.jsonic', 'sys: model: action: { noload: {} }\n' +
+        await (0, promises_1.writeFile)(dir + '/model/model.aontu', 'top: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', 'sys: model: action: { noload: {} }\n' +
             "sys: model: order: action: 'noload'\n");
         const model = new model_1.Model({
-            path: dir + '/model/model.jsonic',
+            path: dir + '/model/model.aontu',
             base: dir + '/model',
             debug: 'silent',
         });
@@ -82,11 +82,11 @@ const GEN = __dirname + '/../test/_gen';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
         await (0, promises_1.mkdir)(dir + '/build', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/model.jsonic', 'top: 1\n');
-        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.jsonic', "sys: model: action: { boom: load: 'build/boom' }\n");
+        await (0, promises_1.writeFile)(dir + '/model/model.aontu', 'top: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', "sys: model: action: { boom: load: 'build/boom' }\n");
         await (0, promises_1.writeFile)(dir + '/build/boom.js', "module.exports = async () => { throw new Error('boom-action') }\n");
         const model = new model_1.Model({
-            path: dir + '/model/model.jsonic',
+            path: dir + '/model/model.aontu',
             base: dir + '/model',
             debug: 'silent',
         });
@@ -102,7 +102,7 @@ const GEN = __dirname + '/../test/_gen';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
         const model = new model_1.Model({
-            path: dir + '/model.jsonic',
+            path: dir + '/model.aontu',
             base: dir,
             dryrun: true,
         });

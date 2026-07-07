@@ -10,7 +10,7 @@ module.exports = async function css(model, build) {
   
   if(!build.dryrun) {
     Fs.writeFileSync(Path.resolve(root,'pre.txt'), 'PRE:'+bar)
-    Fs.writeFileSync(Path.resolve(root,'model','pre.jsonic'), 'OK')
+    Fs.writeFileSync(Path.resolve(root,'model','pre.aontu'), 'OK')
   }
 
   return { ok: true, reload: true }

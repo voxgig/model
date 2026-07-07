@@ -43,7 +43,7 @@ function stats(arr) {
 // sys01: full Model, has pre-action with reload
 async function sys01Cold() {
   const base = Path.resolve(__dirname, 'sys01/model')
-  const path = base + '/model.jsonic'
+  const path = base + '/model.aontu'
   const times = []
   for (let i = 0; i < COLD_ITERS; i++) {
     const m = new Model({ path, base, debug: 'error' })
@@ -58,7 +58,7 @@ async function sys01Cold() {
 
 async function sys01Warm() {
   const base = Path.resolve(__dirname, 'sys01/model')
-  const path = base + '/model.jsonic'
+  const path = base + '/model.aontu'
   const m = new Model({ path, base, debug: 'error' })
   const times = []
   for (let i = 0; i < WARM_ITERS; i++) {
@@ -77,7 +77,7 @@ function makeBuildSpec(log) {
   return {
     fs: Fs,
     base: Path.resolve(__dirname, 'sys01/model'),
-    path: Path.resolve(__dirname, 'sys01/model/model.jsonic'),
+    path: Path.resolve(__dirname, 'sys01/model/model.aontu'),
     log,
     res: [
       { path: '/', build: model_producer },

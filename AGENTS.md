@@ -112,7 +112,7 @@ lifecycle (pre → reload → post), producers, model output, dryrun, and watch
 semantics match TypeScript. Two things differ by necessity:
 
 - **The config declares actions; the registry binds them.** Like TypeScript,
-  Go resolves `.model-config/model-config.jsonic` (auto-created when missing),
+  Go resolves `.model-config/model-config.aontu` (auto-created when missing),
   writes `model-config.json`, and takes the action order from
   `sys.model.order.action` (`go/config.go`). But Go cannot load code at
   runtime, so the action *functions* are registered programmatically via
@@ -133,7 +133,8 @@ Other notes:
   (`github.com/rjrodger/aontu/go`). Its `Generate(src)` has no base parameter,
   so `AontuResolver` briefly `chdir`s to the model base (guarded by a mutex)
   so `@"..."` imports resolve. aontu/go does not report import deps, so the
-  watcher tracks `*.jsonic` files under the base directory.
+  watcher tracks `*.aontu` files (plus legacy `*.aon`/`*.jsonic`) under the
+  base directory.
 - **Model JSON output is byte-for-byte identical** across the two
   implementations. Go's `encoding/json` sorts object keys, so the TypeScript
   model producer sorts them too (`ts/src/producer/model.ts: sortKeys`); both
@@ -176,7 +177,7 @@ a shell.
 
 ### Add a build action (product-level generator)
 User-space, not framework code. TypeScript: declare in
-`.model-config/model-config.jsonic`, implement under `build/`. Go: register an
+`.model-config/model-config.aontu`, implement under `build/`. Go: register an
 `ActionDef` in `ModelSpec.Actions`. See
 [docs/how-to.md](./docs/how-to.md#write-a-build-action).
 

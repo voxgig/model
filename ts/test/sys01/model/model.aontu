@@ -1,6 +1,6 @@
 
 # TODO: special search path for system models
-@"../../../model/sys.jsonic"
+@"../../../model/sys.aontu"
 
 
 main: srv: &: $.sys.shape.srv.std_js
@@ -26,8 +26,8 @@ color: green: {
   value: '0f0'
 }
 
-color: @"color.jsonic"
+color: @"color.aontu"
 
 
-pre: @"pre.jsonic"
+pre: @"pre.aontu"
 

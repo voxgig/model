@@ -32,11 +32,11 @@ func containsErr(errs []error, sub string) bool {
 // registered action that sees the resolved model.
 func TestModelRun(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, dir, "m.jsonic", "service: { name: 'orders', port: *8080 | integer }\n")
+	writeFile(t, dir, "m.aontu", "service: { name: 'orders', port: *8080 | integer }\n")
 
 	var saw string
 	m := New(ModelSpec{
-		Path: filepath.Join(dir, "m.jsonic"),
+		Path: filepath.Join(dir, "m.aontu"),
 		Base: dir,
 		Actions: map[string]ActionDef{
 			"env": {Run: func(model map[string]any, b *Build, ctx *BuildContext) ActionResult {
@@ -61,13 +61,13 @@ func TestModelRun(t *testing.T) {
 // Watch mode rebuilds when an imported source file changes.
 func TestWatchRebuild(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, dir, "m.jsonic", "val: @\"./zed.jsonic\"\n")
-	writeFile(t, dir, "zed.jsonic", "2")
+	writeFile(t, dir, "m.aontu", "val: @\"./zed.aontu\"\n")
+	writeFile(t, dir, "zed.aontu", "2")
 
 	var mu sync.Mutex
 	var last any
 	m := New(ModelSpec{
-		Path: filepath.Join(dir, "m.jsonic"),
+		Path: filepath.Join(dir, "m.aontu"),
 		Base: dir,
 		Idle: 60 * time.Millisecond,
 		Actions: map[string]ActionDef{
@@ -93,7 +93,7 @@ func TestWatchRebuild(t *testing.T) {
 
 	// Let the watcher settle, then change the imported file.
 	time.Sleep(120 * time.Millisecond)
-	writeFile(t, dir, "zed.jsonic", "7")
+	writeFile(t, dir, "zed.aontu", "7")
 
 	deadline := time.Now().Add(4 * time.Second)
 	for time.Now().Before(deadline) {
@@ -111,12 +111,12 @@ func TestWatchRebuild(t *testing.T) {
 // snapshot and triggers a rebuild.
 func TestWatchDetectsNewFile(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, dir, "m.jsonic", "x: 1\n")
+	writeFile(t, dir, "m.aontu", "x: 1\n")
 
 	var mu sync.Mutex
 	var runs int
 	m := New(ModelSpec{
-		Path: filepath.Join(dir, "m.jsonic"),
+		Path: filepath.Join(dir, "m.aontu"),
 		Base: dir,
 		Idle: 60 * time.Millisecond,
 		Actions: map[string]ActionDef{
@@ -140,7 +140,7 @@ func TestWatchDetectsNewFile(t *testing.T) {
 
 	// Let the watcher settle, then add a new source file.
 	time.Sleep(120 * time.Millisecond)
-	writeFile(t, dir, "extra.jsonic", "y: 2\n")
+	writeFile(t, dir, "extra.aontu", "y: 2\n")
 
 	deadline := time.Now().Add(4 * time.Second)
 	for time.Now().Before(deadline) {
@@ -159,11 +159,11 @@ func TestWatchDetectsNewFile(t *testing.T) {
 // watcher cleanly.
 func TestStartWithoutConfig(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, dir, "m.jsonic", "a: 1\n")
+	writeFile(t, dir, "m.aontu", "a: 1\n")
 
 	disabled := false
 	m := New(ModelSpec{
-		Path:   filepath.Join(dir, "m.jsonic"),
+		Path:   filepath.Join(dir, "m.aontu"),
 		Base:   dir,
 		Config: &disabled,
 		Idle:   60 * time.Millisecond,

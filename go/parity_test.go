@@ -75,8 +75,8 @@ nums: [ 30, 10, 20 ]
 func buildModelJSON(t *testing.T, src string) string {
 	t.Helper()
 	dir := t.TempDir()
-	path := filepath.Join(dir, "model.jsonic")
-	writeFile(t, dir, "model.jsonic", src)
+	path := filepath.Join(dir, "model.aontu")
+	writeFile(t, dir, "model.aontu", src)
 
 	b := NewBuild(BuildSpec{Path: path, Base: dir,
 		Res: []ProducerDef{{Path: "/", Build: ModelProducer}}})

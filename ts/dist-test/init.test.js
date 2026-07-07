@@ -19,8 +19,8 @@ const BIN = __dirname + '/../bin/voxgig-model';
         const r1 = (0, model_1.initModel)(dir, node_fs_1.default);
         node_assert_1.default.strictEqual(r1.created.length, 2);
         node_assert_1.default.strictEqual(r1.skipped.length, 0);
-        await (0, promises_1.stat)(dir + '/model/model.jsonic');
-        await (0, promises_1.stat)(dir + '/model/.model-config/model-config.jsonic');
+        await (0, promises_1.stat)(dir + '/model/model.aontu');
+        await (0, promises_1.stat)(dir + '/model/.model-config/model-config.aontu');
         // Second run leaves existing files untouched.
         const r2 = (0, model_1.initModel)(dir, node_fs_1.default);
         node_assert_1.default.strictEqual(r2.created.length, 0);
@@ -31,7 +31,7 @@ const BIN = __dirname + '/../bin/voxgig-model';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         (0, model_1.initModel)(dir, node_fs_1.default);
         const model = new model_1.Model({
-            path: dir + '/model/model.jsonic', base: dir + '/model', debug: 'silent',
+            path: dir + '/model/model.aontu', base: dir + '/model', debug: 'silent',
         });
         const br = await model.run();
         node_assert_1.default.ok(br.ok, 'scaffolded model failed: ' + JSON.stringify(br.errs));
@@ -42,7 +42,7 @@ const BIN = __dirname + '/../bin/voxgig-model';
         const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN, 'init', dir], { encoding: 'utf8' });
         node_assert_1.default.strictEqual(res.status, 0, res.stderr);
         node_assert_1.default.ok(res.stdout.includes('created:'), res.stdout);
-        await (0, promises_1.stat)(dir + '/model/model.jsonic');
+        await (0, promises_1.stat)(dir + '/model/model.aontu');
     });
 });
 //# sourceMappingURL=init.test.js.map

@@ -23,7 +23,7 @@ the tool, do the [tutorial](./tutorial.md) first; for exhaustive detail see the
 
 ## Initialize a new model
 
-Scaffold a starter `model/model.jsonic` and `model/.model-config/model-config.jsonic`:
+Scaffold a starter `model/model.aontu` and `model/.model-config/model-config.aontu`:
 
 ```bash
 voxgig-model init            # in the current directory
@@ -33,7 +33,7 @@ voxgig-model init my-project # under my-project/
 Existing files are left untouched. Then build it:
 
 ```bash
-voxgig-model model/model.jsonic
+voxgig-model model/model.aontu
 ```
 
 The Go CLI is identical (`go run github.com/voxgig/model/go/cmd/voxgig-model init`).
@@ -51,12 +51,12 @@ const { created, skipped } = initModel('.', Fs)
 Once, then exit:
 
 ```bash
-voxgig-model model/model.jsonic
+voxgig-model model/model.aontu
 ```
 
 ```js
 const { Model } = require('@voxgig/model')
-const model = new Model({ path: 'model/model.jsonic', base: 'model' })
+const model = new Model({ path: 'model/model.aontu', base: 'model' })
 const result = await model.run()
 if (!result.ok) process.exitCode = 1
 ```
@@ -64,11 +64,11 @@ if (!result.ok) process.exitCode = 1
 Watch and rebuild until stopped:
 
 ```bash
-voxgig-model --watch model/model.jsonic
+voxgig-model --watch model/model.aontu
 ```
 
 ```js
-const model = new Model({ path: 'model/model.jsonic', base: 'model' })
+const model = new Model({ path: 'model/model.aontu', base: 'model' })
 await model.start()
 // ... later, to release the watchers:
 await model.stop()
@@ -84,11 +84,11 @@ await model.stop()
 Build arguments are arbitrary data exposed to every action as `build.args`.
 
 ```bash
-voxgig-model -b '{env:prod, region:eu-west-1}' model/model.jsonic
+voxgig-model -b '{env:prod, region:eu-west-1}' model/model.aontu
 ```
 
 ```js
-new Model({ path: 'model/model.jsonic', base: 'model',
+new Model({ path: 'model/model.aontu', base: 'model',
             buildargs: { env: 'prod', region: 'eu-west-1' } })
 ```
 
@@ -104,7 +104,7 @@ module.exports = async function deploy(model, build) {
 
 ## Write a build action
 
-1. Declare it in `model/.model-config/model-config.jsonic`:
+1. Declare it in `model/.model-config/model-config.aontu`:
 
    ```jsonic
    sys: model: action: {
@@ -165,7 +165,7 @@ module.exports.step = 'post'   // 'pre' | 'post' | 'all'; default 'post'
 
 ## Regenerate model source, then rebuild (pre + reload)
 
-Sometimes an action must generate `.jsonic` that the model itself consumes. Run
+Sometimes an action must generate `.aontu` that the model itself consumes. Run
 it in the `pre` phase and request a reload:
 
 ```js
@@ -174,9 +174,9 @@ const Path = require('node:path')
 
 module.exports = async function genSource(model, build) {
   const root = Path.resolve(build.path, '..', '..')
-  // write a .jsonic file the root model imports
+  // write a .aontu file the root model imports
   build.fs.writeFileSync(
-    Path.resolve(root, 'model', 'generated.jsonic'),
+    Path.resolve(root, 'model', 'generated.aontu'),
     'generated: ok: true\n'
   )
   return { ok: true, reload: true }   // re-resolve before the post phase
@@ -194,14 +194,14 @@ actions and `model_producer` see the regenerated source.
 Import another file relative to the current one:
 
 ```jsonic
-@"./shapes.jsonic"
-color: @"./palette.jsonic"
+@"./shapes.aontu"
+color: @"./palette.aontu"
 ```
 
 Import from an installed package by its module path:
 
 ```jsonic
-@"@voxgig/model/model/.model-config/model-config.jsonic"
+@"@voxgig/model/model/.model-config/model-config.aontu"
 ```
 
 All imports are tracked as dependencies — editing an imported file rebuilds the
@@ -242,7 +242,7 @@ const { Model } = require('@voxgig/model')
 
 async function buildModel() {
   const model = new Model({
-    path: __dirname + '/model/model.jsonic',
+    path: __dirname + '/model/model.aontu',
     base: __dirname + '/model',
     require: __dirname,            // project root for action resolution
     buildargs: { env: process.env.NODE_ENV ?? 'dev' },
@@ -275,7 +275,7 @@ const { prettyPino } = require('@voxgig/util')
 const build = makeBuild({
   fs: Fs,
   base: __dirname + '/model',
-  path: __dirname + '/model/model.jsonic',
+  path: __dirname + '/model/model.aontu',
   res: [
     { path: '/', build: model_producer },          // write model.json
     { path: '/', build: async function summary(build, ctx) {
@@ -297,11 +297,11 @@ const result = await build.run({ watch: false })
 ## Preview without writing files (dry run)
 
 ```bash
-voxgig-model --dryrun model/model.jsonic
+voxgig-model --dryrun model/model.aontu
 ```
 
 ```js
-new Model({ path: 'model/model.jsonic', base: 'model', dryrun: true })
+new Model({ path: 'model/model.aontu', base: 'model', dryrun: true })
 ```
 
 The build runs fully — the model resolves and actions execute — but every write
@@ -322,12 +322,12 @@ const { Model } = require('@voxgig/model')
 // Seed the in-memory volume. Include a config file: a pure in-memory build
 // cannot resolve the package import that an auto-created config would use.
 const { fs, vol } = memfs({
-  '/proj/model/model.jsonic': 'service: name: orders\n',
-  '/proj/model/.model-config/model-config.jsonic': 'sys: model: action: {}\n',
+  '/proj/model/model.aontu': 'service: name: orders\n',
+  '/proj/model/.model-config/model-config.aontu': 'sys: model: action: {}\n',
 })
 
 const model = new Model({
-  path: '/proj/model/model.jsonic',
+  path: '/proj/model/model.aontu',
   base: '/proj/model',
   fs,
 })
@@ -345,9 +345,9 @@ The provided `fs` must support the synchronous methods the build uses
 Set the level with `--debug`/`debug`:
 
 ```bash
-voxgig-model -g debug model/model.jsonic     # verbose
-voxgig-model -g warn  model/model.jsonic     # quieter
-voxgig-model -g silent model/model.jsonic    # no logs
+voxgig-model -g debug model/model.aontu     # verbose
+voxgig-model -g warn  model/model.aontu     # quieter
+voxgig-model -g silent model/model.aontu    # no logs
 ```
 
 ```js

@@ -10,9 +10,10 @@ import (
 	"time"
 )
 
-// modelExts are the source extensions a watcher tracks. Generated output
-// (e.g. .json) is deliberately excluded so writing it cannot loop.
-var modelExts = map[string]bool{".jsonic": true, ".aon": true, ".aontu": true}
+// modelExts are the source extensions a watcher tracks: .aontu is canonical,
+// .aon and .jsonic are accepted as legacy. Generated output (e.g. .json) is
+// deliberately excluded so writing it cannot loop.
+var modelExts = map[string]bool{".aontu": true, ".aon": true, ".jsonic": true}
 
 // Watch rebuilds a Build when its source files change. It polls modification
 // times (stdlib only, no external dependency where the TypeScript port uses

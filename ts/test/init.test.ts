@@ -22,8 +22,8 @@ describe('init', () => {
     const r1 = initModel(dir, Fs)
     assert.strictEqual(r1.created.length, 2)
     assert.strictEqual(r1.skipped.length, 0)
-    await stat(dir + '/model/model.jsonic')
-    await stat(dir + '/model/.model-config/model-config.jsonic')
+    await stat(dir + '/model/model.aontu')
+    await stat(dir + '/model/.model-config/model-config.aontu')
 
     // Second run leaves existing files untouched.
     const r2 = initModel(dir, Fs)
@@ -38,7 +38,7 @@ describe('init', () => {
     initModel(dir, Fs)
 
     const model = new Model({
-      path: dir + '/model/model.jsonic', base: dir + '/model', debug: 'silent',
+      path: dir + '/model/model.aontu', base: dir + '/model', debug: 'silent',
     })
     const br = await model.run()
     assert.ok(br.ok, 'scaffolded model failed: ' + JSON.stringify(br.errs))
@@ -52,7 +52,7 @@ describe('init', () => {
     const res = spawnSync(process.execPath, [BIN, 'init', dir], { encoding: 'utf8' })
     assert.strictEqual(res.status, 0, res.stderr)
     assert.ok(res.stdout.includes('created:'), res.stdout)
-    await stat(dir + '/model/model.jsonic')
+    await stat(dir + '/model/model.aontu')
   })
 
 })

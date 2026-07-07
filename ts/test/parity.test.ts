@@ -82,14 +82,14 @@ nums: [ 30, 10, 20 ]
 async function buildModelJson(name: string, src: string): Promise<string> {
   const base = Path.join(__dirname, '..', 'test', '_gen', name)
   mkdirSync(base, { recursive: true })
-  writeFileSync(Path.join(base, 'model.jsonic'), src)
+  writeFileSync(Path.join(base, 'model.aontu'), src)
 
   const log = prettyPino('test', {})
 
   const b = makeBuild({
     fs: Fs,
     base,
-    path: Path.join(base, 'model.jsonic'),
+    path: Path.join(base, 'model.aontu'),
     res: [{ path: '/', build: model_producer }],
   }, log)
 

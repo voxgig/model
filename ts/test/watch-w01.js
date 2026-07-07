@@ -8,7 +8,7 @@ const { model_builder } = require('../dist/lib/builder/model')
 
 
 let b0 = new Build({
-  src: '@"model.jsonic"',
+  src: '@"model.aontu"',
   base: __dirname + '/w01/model',
   res: [
     {

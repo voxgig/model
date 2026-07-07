@@ -1,6 +1,6 @@
 # @voxgig/model (Go)
 
-A Go port of [@voxgig/model](https://github.com/voxgig/model): unify `.jsonic`
+A Go port of [@voxgig/model](https://github.com/voxgig/model): unify `.aontu`
 source into a single model (via [aontu](https://github.com/rjrodger/aontu)) and
 run generator "actions" over it, once or in a rebuild-on-change watch loop. The
 TypeScript implementation in [`../ts`](../ts) is canonical; this module is kept
@@ -23,7 +23,7 @@ import (
 
 func main() {
 	m := model.New(model.ModelSpec{
-		Path: "model/model.jsonic",
+		Path: "model/model.aontu",
 		Base: "model",
 		Actions: map[string]model.ActionDef{
 			"summary": {Run: func(mod map[string]any, b *model.Build, ctx *model.BuildContext) model.ActionResult {
@@ -53,7 +53,7 @@ post), producers, dryrun, and watch semantics — but adapts a few mechanisms to
 Go:
 
 - **Actions are registered programmatically** (`ModelSpec.Actions`): the
-  `.model-config/model-config.jsonic` file still declares which actions run and
+  `.model-config/model-config.aontu` file still declares which actions run and
   in what order (and is auto-created and written to `model-config.json`, as in
   TypeScript), but Go binds each declared name to a registered func rather than
   `require()`-ing a module.
@@ -68,7 +68,7 @@ Go:
 ## CLI
 
 ```bash
-go run github.com/voxgig/model/go/cmd/voxgig-model -w model/model.jsonic
+go run github.com/voxgig/model/go/cmd/voxgig-model -w model/model.aontu
 ```
 
 Flags: `-w` watch, `-y` dryrun, `-g <level>` log level. The CLI writes the

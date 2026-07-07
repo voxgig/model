@@ -1,6 +1,6 @@
 /* Copyright © 2021-2026 Voxgig Ltd, MIT License. */
 
-// Command voxgig-model unifies a .jsonic model and writes the resulting
+// Command voxgig-model unifies a .aontu model and writes the resulting
 // model JSON. It mirrors the core of the TypeScript CLI. Custom build
 // actions — which the TypeScript CLI loads dynamically from a config file —
 // are not available here, because Go cannot load code at runtime; embed the
@@ -103,7 +103,7 @@ func runInit(args []string, out io.Writer) int {
 	for _, p := range skipped {
 		fmt.Fprintln(out, "exists: ", p)
 	}
-	fmt.Fprintln(out, "Next: voxgig-model "+filepath.Join(dir, "model", "model.jsonic"))
+	fmt.Fprintln(out, "Next: voxgig-model "+filepath.Join(dir, "model", "model.aontu"))
 	return 0
 }
 

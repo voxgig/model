@@ -13,11 +13,11 @@ import (
 // applying defaults and types (port defaults to 8080 as an integer).
 func TestRunHappy(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, dir, "m.jsonic", "service: { name: 'orders', port: *8080 | integer }\n")
+	writeFile(t, dir, "m.aontu", "service: { name: 'orders', port: *8080 | integer }\n")
 
 	var seen map[string]any
 	spec := BuildSpec{
-		Path: filepath.Join(dir, "m.jsonic"),
+		Path: filepath.Join(dir, "m.aontu"),
 		Base: dir,
 		Res: []ProducerDef{
 			{Path: "/", Build: func(b *Build, ctx *BuildContext) ProducerResult {
@@ -45,8 +45,8 @@ func TestRunHappy(t *testing.T) {
 // A failed build must not stick to the next run on a reused Build.
 func TestErrorRecovery(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "m.jsonic")
-	writeFile(t, dir, "m.jsonic", "x: 1\nx: 2\n")
+	path := filepath.Join(dir, "m.aontu")
+	writeFile(t, dir, "m.aontu", "x: 1\nx: 2\n")
 
 	b := NewBuild(BuildSpec{Path: path, Base: dir})
 
@@ -58,7 +58,7 @@ func TestErrorRecovery(t *testing.T) {
 		t.Fatal("expected errors")
 	}
 
-	writeFile(t, dir, "m.jsonic", "x: 1\n")
+	writeFile(t, dir, "m.aontu", "x: 1\n")
 	good := b.Run(false)
 	if !good.OK {
 		t.Fatalf("expected recovery after fix: %v", good.Errs)
@@ -71,8 +71,8 @@ func TestErrorRecovery(t *testing.T) {
 // A dryrun build runs fully but writes nothing to disk.
 func TestDryrunWritesNothing(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "m.jsonic")
-	writeFile(t, dir, "m.jsonic", "a: 1\n")
+	path := filepath.Join(dir, "m.aontu")
+	writeFile(t, dir, "m.aontu", "a: 1\n")
 
 	b := NewBuild(BuildSpec{
 		Path: path, Base: dir, Dryrun: true,
@@ -93,8 +93,8 @@ func TestDryrunWritesNothing(t *testing.T) {
 // each resolve.
 func TestCacheHitSkipsResolve(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "m.jsonic")
-	writeFile(t, dir, "m.jsonic", "a: 1\n")
+	path := filepath.Join(dir, "m.aontu")
+	writeFile(t, dir, "m.aontu", "a: 1\n")
 
 	r := &countResolver{model: map[string]any{"a": int64(1)}}
 	b := NewBuild(BuildSpec{Path: path, Base: dir, Resolver: r})
@@ -132,8 +132,8 @@ func TestCacheHitSkipsResolve(t *testing.T) {
 // which the Go aontu engine does not report as deps.
 func TestInvalidateCacheForcesResolve(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "m.jsonic")
-	writeFile(t, dir, "m.jsonic", "a: 1\n")
+	path := filepath.Join(dir, "m.aontu")
+	writeFile(t, dir, "m.aontu", "a: 1\n")
 
 	r := &countResolver{model: map[string]any{"a": int64(1)}}
 	b := NewBuild(BuildSpec{Path: path, Base: dir, Resolver: r})

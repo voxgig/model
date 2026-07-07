@@ -4,7 +4,7 @@ A framework for **universal application modeling**: describe a system once as a
 single declarative model, then generate every downstream artifact — code,
 configuration, documentation, infrastructure — from that one source of truth.
 
-The core tool unifies `.jsonic` source (using [CUE](https://cuelang.org)-style
+The core tool unifies `.aontu` source (using [CUE](https://cuelang.org)-style
 unification, via [aontu](https://github.com/voxgig/aontu)) into one canonical
 JSON model, then hands that model to your generators ("actions"). It can build
 once or watch and rebuild on change.
@@ -39,16 +39,16 @@ and [AGENTS.md](./AGENTS.md) for working on the repo.
 
 ```bash
 # 1. a model
-mkdir -p model && cat > model/model.jsonic <<'EOF'
+mkdir -p model && cat > model/model.aontu <<'EOF'
 service: name: 'orders'
 service: port: *8080 | integer
 EOF
 
 # 2. build it -> writes model/model.json
-npx voxgig-model model/model.jsonic
+npx voxgig-model model/model.aontu
 
 # 3. or watch and rebuild on change
-npx voxgig-model --watch model/model.jsonic
+npx voxgig-model --watch model/model.aontu
 ```
 
 `model/model.json`:
@@ -62,7 +62,7 @@ Use it from code instead of the CLI:
 ```js
 const { Model } = require('@voxgig/model')
 
-const model = new Model({ path: 'model/model.jsonic', base: 'model' })
+const model = new Model({ path: 'model/model.aontu', base: 'model' })
 const result = await model.run()
 if (!result.ok) throw new Error(result.errs.join('; '))
 ```
@@ -70,7 +70,7 @@ if (!result.ok) throw new Error(result.errs.join('; '))
 
 ## What it does
 
-- **Unifies** `.jsonic` source — with types, defaults, references, wildcards,
+- **Unifies** `.aontu` source — with types, defaults, references, wildcards,
   and imports — into a single validated JSON model.
 - **Generates** artifacts from that model through **actions**: small JS modules
   you declare in config and that receive the unified model.
@@ -100,20 +100,20 @@ A model that generates an environment file from its services:
 ```
 my-project/
 ├─ model/
-│  ├─ model.jsonic
-│  └─ .model-config/model-config.jsonic
+│  ├─ model.aontu
+│  └─ .model-config/model-config.aontu
 └─ build/envFile.js
 ```
 
 ```jsonic
-# model/model.jsonic
+# model/model.aontu
 shape: service: { name?: string, port: *8080 | integer }
 service: orders: $.shape.service & { name: 'orders' }
 service: web:    $.shape.service & { name: 'web', port: 443 }
 ```
 
 ```jsonic
-# model/.model-config/model-config.jsonic
+# model/.model-config/model-config.aontu
 sys: model: action: { envFile: load: 'build/envFile' }
 ```
 
@@ -130,7 +130,7 @@ module.exports = async function envFile(model, build) {
 ```
 
 ```bash
-npx voxgig-model model/model.jsonic   # writes model/model.json and services.env
+npx voxgig-model model/model.aontu   # writes model/model.json and services.env
 ```
 
 See the [tutorial](./docs/tutorial.md) for the same example built up from

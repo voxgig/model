@@ -29,7 +29,7 @@ describe('build', () => {
     let b0 = makeBuild({
       fs: Fs,
       base: __dirname + '/../test/p01/model',
-      path: __dirname + '/../test/p01/model/model.jsonic',
+      path: __dirname + '/../test/p01/model/model.aontu',
       res: [
         {
           path: '/',
@@ -81,13 +81,13 @@ describe('build', () => {
     const folder = __dirname + '/../test/sys01/'
     await writeFile(folder + 'foo.txt', 'BAD')
     await writeFile(folder + 'pre.txt', 'BAD')
-    await writeFile(folder + 'model/pre.jsonic', 'BAD')
+    await writeFile(folder + 'model/pre.aontu', 'BAD')
     await writeFile(folder + 'model/model.json', 'BAD')
     await writeFile(folder + 'model/.model-config/model-config.json', 'BAD')
 
     let base = __dirname + '/../test/sys01/model'
     await writeFile(base + '/model.json', 'BAD')
-    let path = base + '/model.jsonic'
+    let path = base + '/model.aontu'
 
     let model = new Model({
       path,
@@ -100,7 +100,7 @@ describe('build', () => {
 
     assert.strictEqual(readFileSync(folder + 'foo.txt').toString(), 'BAD')
     assert.strictEqual(readFileSync(folder + 'pre.txt').toString(), 'BAD')
-    assert.strictEqual(readFileSync(folder + 'model/pre.jsonic').toString(), 'BAD')
+    assert.strictEqual(readFileSync(folder + 'model/pre.aontu').toString(), 'BAD')
     assert.strictEqual(readFileSync(folder + 'model/model.json').toString(), 'BAD')
     assert.strictEqual(readFileSync(folder + 'model/.model-config/model-config.json').toString(),
       'BAD')

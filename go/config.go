@@ -17,7 +17,7 @@ const configStub = "# Model configuration. Declare build actions and their order
 	"sys: model: action: {}\n" +
 	"sys: model: order: action: *''\n"
 
-// Config is the build for a model's .model-config/model-config.jsonic. It
+// Config is the build for a model's .model-config/model-config.aontu. It
 // mirrors the TypeScript Config: it resolves the config model, writes
 // model-config.json, and is the source of the action order. The file is
 // auto-created from configStub when missing.
@@ -29,7 +29,7 @@ type Config struct {
 // newConfig sets up (and bootstraps) the config build for a model base.
 func newConfig(base string, spec ModelSpec, log Log) *Config {
 	cbase := filepath.Join(base, ".model-config")
-	cpath := filepath.Join(cbase, "model-config.jsonic")
+	cpath := filepath.Join(cbase, "model-config.aontu")
 
 	cb := NewBuild(BuildSpec{
 		Name:     "config",

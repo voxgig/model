@@ -12,13 +12,13 @@ import (
 // New auto-creates the config file and writes model-config.json.
 func TestConfigAutoCreated(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, dir, "model.jsonic", "x: 1\n")
+	writeFile(t, dir, "model.aontu", "x: 1\n")
 
-	m := New(ModelSpec{Path: filepath.Join(dir, "model.jsonic"), Base: dir})
+	m := New(ModelSpec{Path: filepath.Join(dir, "model.aontu"), Base: dir})
 	if br := m.Run(); !br.OK {
 		t.Fatalf("run failed: %v", br.Errs)
 	}
-	if _, err := os.Stat(filepath.Join(dir, ".model-config", "model-config.jsonic")); err != nil {
+	if _, err := os.Stat(filepath.Join(dir, ".model-config", "model-config.aontu")); err != nil {
 		t.Fatalf("config file not auto-created: %v", err)
 	}
 	if _, err := os.Stat(filepath.Join(dir, ".model-config", "model-config.json")); err != nil {
@@ -33,11 +33,11 @@ func TestConfigAutoCreated(t *testing.T) {
 // auto-created, Config() is nil, but the model is still written.
 func TestConfigDisabled(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, dir, "model.jsonic", "x: 1\n")
+	writeFile(t, dir, "model.aontu", "x: 1\n")
 
 	disabled := false
 	m := New(ModelSpec{
-		Path:   filepath.Join(dir, "model.jsonic"),
+		Path:   filepath.Join(dir, "model.aontu"),
 		Base:   dir,
 		Config: &disabled,
 	})
@@ -64,8 +64,8 @@ func TestConfigDisabledIgnoresFileUsesOrder(t *testing.T) {
 	if err := os.MkdirAll(cdir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	writeFile(t, mdir, "model.jsonic", "x: 1\n")
-	writeFile(t, cdir, "model-config.jsonic",
+	writeFile(t, mdir, "model.aontu", "x: 1\n")
+	writeFile(t, cdir, "model-config.aontu",
 		"sys: model: action: { a: load: 'x', b: load: 'y' }\n"+
 			"sys: model: order: action: 'b,a'\n")
 
@@ -78,7 +78,7 @@ func TestConfigDisabledIgnoresFileUsesOrder(t *testing.T) {
 	}
 	disabled := false
 	m := New(ModelSpec{
-		Path:    filepath.Join(mdir, "model.jsonic"),
+		Path:    filepath.Join(mdir, "model.aontu"),
 		Base:    mdir,
 		Config:  &disabled,
 		Actions: map[string]ActionDef{"a": mk("a"), "b": mk("b")},
@@ -102,8 +102,8 @@ func TestConfigDrivesActionOrder(t *testing.T) {
 	if err := os.MkdirAll(cdir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	writeFile(t, mdir, "model.jsonic", "x: 1\n")
-	writeFile(t, cdir, "model-config.jsonic",
+	writeFile(t, mdir, "model.aontu", "x: 1\n")
+	writeFile(t, cdir, "model-config.aontu",
 		"sys: model: action: { a: load: 'x', b: load: 'y' }\n"+
 			"sys: model: order: action: 'b,a'\n")
 
@@ -115,7 +115,7 @@ func TestConfigDrivesActionOrder(t *testing.T) {
 		}}
 	}
 	m := New(ModelSpec{
-		Path:    filepath.Join(mdir, "model.jsonic"),
+		Path:    filepath.Join(mdir, "model.aontu"),
 		Base:    mdir,
 		Actions: map[string]ActionDef{"a": mk("a"), "b": mk("b")},
 	})
@@ -136,10 +136,10 @@ func TestConfigOrderFallsBackToSortedKeys(t *testing.T) {
 	if err := os.MkdirAll(cdir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	writeFile(t, mdir, "model.jsonic", "x: 1\n")
+	writeFile(t, mdir, "model.aontu", "x: 1\n")
 	// Two actions, declared out of order and with no order.action -> the
 	// producer should run them by sorted key (a,b).
-	writeFile(t, cdir, "model-config.jsonic",
+	writeFile(t, cdir, "model-config.aontu",
 		"sys: model: action: { b: load: 'y', a: load: 'x' }\n")
 
 	var order []string
@@ -150,7 +150,7 @@ func TestConfigOrderFallsBackToSortedKeys(t *testing.T) {
 		}}
 	}
 	m := New(ModelSpec{
-		Path:    filepath.Join(mdir, "model.jsonic"),
+		Path:    filepath.Join(mdir, "model.aontu"),
 		Base:    mdir,
 		Actions: map[string]ActionDef{"a": mk("a"), "b": mk("b")},
 	})

@@ -28,7 +28,7 @@ function bumpMtime(path) {
         const dir = GEN + '/cache-hit';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        const path = dir + '/m.jsonic';
+        const path = dir + '/m.aontu';
         await (0, promises_1.writeFile)(path, 'a: 1\n');
         const b = (0, build_1.makeBuild)({ fs: node_fs_1.default, base: dir, path, res: [] }, silentLog());
         const r1 = await b.run({ watch: false });
@@ -47,7 +47,7 @@ function bumpMtime(path) {
         const dir = GEN + '/cache-miss';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        const path = dir + '/m.jsonic';
+        const path = dir + '/m.aontu';
         await (0, promises_1.writeFile)(path, 'a: 1\n');
         const b = (0, build_1.makeBuild)({ fs: node_fs_1.default, base: dir, path, res: [] }, silentLog());
         const r1 = await b.run({ watch: false });
@@ -66,7 +66,7 @@ function bumpMtime(path) {
         const dir = GEN + '/cache-err';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        const path = dir + '/m.jsonic';
+        const path = dir + '/m.aontu';
         await (0, promises_1.writeFile)(path, 'a: 1\n');
         const b = (0, build_1.makeBuild)({ fs: node_fs_1.default, base: dir, path, res: [] }, silentLog());
         node_assert_1.default.strictEqual((await b.run({ watch: false })).ok, true);

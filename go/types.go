@@ -117,7 +117,7 @@ type ModelSpec struct {
 	Watch    WatchModes
 	Log      Log
 
-	// Config resolves a .model-config/model-config.jsonic (auto-created when
+	// Config resolves a .model-config/model-config.aontu (auto-created when
 	// missing) that declares the build action order. A nil pointer defaults to
 	// enabled; set it to a pointer-to-false to skip the config entirely and run
 	// the model on its own (action order then comes from Order, else the

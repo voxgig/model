@@ -14,8 +14,8 @@ import (
 // ModelProducer writes the model JSON and skips the write when unchanged.
 func TestModelProducerWritesAndSkips(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "m.jsonic")
-	writeFile(t, dir, "m.jsonic", "a: 1\nb: 2\n")
+	path := filepath.Join(dir, "m.aontu")
+	writeFile(t, dir, "m.aontu", "a: 1\nb: 2\n")
 
 	build := func() *Build {
 		return NewBuild(BuildSpec{Path: path, Base: dir,
@@ -52,8 +52,8 @@ func TestModelProducerWritesAndSkips(t *testing.T) {
 // Actions run in the configured order.
 func TestLocalProducerOrder(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "m.jsonic")
-	writeFile(t, dir, "m.jsonic", "x: 1\n")
+	path := filepath.Join(dir, "m.aontu")
+	writeFile(t, dir, "m.aontu", "x: 1\n")
 
 	var order []string
 	mk := func(name string) ActionDef {
@@ -79,8 +79,8 @@ func TestLocalProducerOrder(t *testing.T) {
 // An order entry naming an unregistered action fails clearly.
 func TestUnknownAction(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "m.jsonic")
-	writeFile(t, dir, "m.jsonic", "x: 1\n")
+	path := filepath.Join(dir, "m.aontu")
+	writeFile(t, dir, "m.aontu", "x: 1\n")
 
 	b := NewBuild(BuildSpec{
 		Path: path, Base: dir,

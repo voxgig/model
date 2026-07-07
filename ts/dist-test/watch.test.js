@@ -49,18 +49,18 @@ async function read(file) {
         const base = GEN + '/wat01/model';
         await (0, promises_1.rm)(GEN + '/wat01', { recursive: true, force: true });
         await (0, promises_1.mkdir)(base + '/.model-config', { recursive: true });
-        await (0, promises_1.writeFile)(base + '/model.jsonic', 'top: 1\nval: @"./zed.jsonic"\n');
-        await (0, promises_1.writeFile)(base + '/zed.jsonic', '2');
+        await (0, promises_1.writeFile)(base + '/model.aontu', 'top: 1\nval: @"./zed.aontu"\n');
+        await (0, promises_1.writeFile)(base + '/zed.aontu', '2');
         // Standalone config (no actions) so we don't depend on package resolution.
-        await (0, promises_1.writeFile)(base + '/.model-config/model-config.jsonic', 'sys: model: action: {}\n');
+        await (0, promises_1.writeFile)(base + '/.model-config/model-config.aontu', 'sys: model: action: {}\n');
         const out = base + '/model.json';
-        const model = new model_1.Model({ path: base + '/model.jsonic', base });
+        const model = new model_1.Model({ path: base + '/model.aontu', base });
         try {
             await model.start();
             node_assert_1.default.ok(await waitFor(async () => (await readVal(out)) === 2), 'initial build should produce val:2');
-            // Let the dependency watchers attach before mutating zed.jsonic.
+            // Let the dependency watchers attach before mutating zed.aontu.
             await new Promise(r => setTimeout(r, 250));
-            await (0, promises_1.writeFile)(base + '/zed.jsonic', '7');
+            await (0, promises_1.writeFile)(base + '/zed.aontu', '7');
             node_assert_1.default.ok(await waitFor(async () => (await readVal(out)) === 7), 'changing the dependency should rebuild to val:7');
         }
         finally {
@@ -76,8 +76,8 @@ async function read(file) {
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(base + '/.model-config', { recursive: true });
         await (0, promises_1.mkdir)(dir + '/build', { recursive: true });
-        await (0, promises_1.writeFile)(base + '/model.jsonic', 'top: 1\n');
-        await (0, promises_1.writeFile)(base + '/.model-config/model-config.jsonic', "sys: model: action: { mark: load: 'build/mark' }\n");
+        await (0, promises_1.writeFile)(base + '/model.aontu', 'top: 1\n');
+        await (0, promises_1.writeFile)(base + '/.model-config/model-config.aontu', "sys: model: action: { mark: load: 'build/mark' }\n");
         await (0, promises_1.writeFile)(dir + '/build/mark.js', "const Path = require('node:path')\n" +
             'let n = 0\n' +
             'module.exports = async function mark(model, build) {\n' +
@@ -87,14 +87,14 @@ async function read(file) {
             '  return { ok: true }\n' +
             '}\n');
         const mark = dir + '/mark.txt';
-        const model = new model_1.Model({ path: base + '/model.jsonic', base });
+        const model = new model_1.Model({ path: base + '/model.aontu', base });
         try {
             await model.start();
             node_assert_1.default.ok(await waitFor(async () => null != await read(mark)), 'initial build should run the mark action');
             const first = await read(mark);
             // Let the config watcher attach, then edit a config file.
             await new Promise(r => setTimeout(r, 250));
-            await (0, promises_1.appendFile)(base + '/.model-config/model-config.jsonic', '\n# touch to trigger a config rebuild\n');
+            await (0, promises_1.appendFile)(base + '/.model-config/model-config.aontu', '\n# touch to trigger a config rebuild\n');
             node_assert_1.default.ok(await waitFor(async () => {
                 const cur = await read(mark);
                 return null != cur && cur !== first;
@@ -110,19 +110,19 @@ async function read(file) {
         const base = GEN + '/wat03/model';
         await (0, promises_1.rm)(GEN + '/wat03', { recursive: true, force: true });
         await (0, promises_1.mkdir)(base + '/.model-config', { recursive: true });
-        await (0, promises_1.writeFile)(base + '/model.jsonic', 'val: 1\n');
-        await (0, promises_1.writeFile)(base + '/.model-config/model-config.jsonic', 'sys: model: action: {}\n');
+        await (0, promises_1.writeFile)(base + '/model.aontu', 'val: 1\n');
+        await (0, promises_1.writeFile)(base + '/.model-config/model-config.aontu', 'sys: model: action: {}\n');
         const out = base + '/model.json';
-        const model = new model_1.Model({ path: base + '/model.jsonic', base, debug: 'silent' });
+        const model = new model_1.Model({ path: base + '/model.aontu', base, debug: 'silent' });
         try {
             await model.start();
             node_assert_1.default.ok(await waitFor(async () => (await readVal(out)) === 1), 'initial build should produce val:1');
             // Break the model: conflicting scalar values do not unify.
             await new Promise(r => setTimeout(r, 200));
-            await (0, promises_1.writeFile)(base + '/model.jsonic', 'val: 1\nval: 2\n');
+            await (0, promises_1.writeFile)(base + '/model.aontu', 'val: 1\nval: 2\n');
             await new Promise(r => setTimeout(r, 400)); // let the failed rebuild run
             // Fix it; the watcher should recover.
-            await (0, promises_1.writeFile)(base + '/model.jsonic', 'val: 9\n');
+            await (0, promises_1.writeFile)(base + '/model.aontu', 'val: 9\n');
             node_assert_1.default.ok(await waitFor(async () => (await readVal(out)) === 9), 'watcher should recover to val:9 after the model is fixed');
         }
         finally {
@@ -136,10 +136,10 @@ async function read(file) {
         const base = GEN + '/wat04/model';
         await (0, promises_1.rm)(GEN + '/wat04', { recursive: true, force: true });
         await (0, promises_1.mkdir)(base, { recursive: true });
-        await (0, promises_1.writeFile)(base + '/model.jsonic', 'val: 5\n');
+        await (0, promises_1.writeFile)(base + '/model.aontu', 'val: 5\n');
         const out = base + '/model.json';
         const model = new model_1.Model({
-            path: base + '/model.jsonic', base, config: false, debug: 'silent',
+            path: base + '/model.aontu', base, config: false, debug: 'silent',
         });
         try {
             await model.start();
@@ -162,7 +162,7 @@ async function read(file) {
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
         const w = new watch_1.Watch({
-            name: 'modes', path: dir + '/m.jsonic', base: dir, fs: node_fs_1.default,
+            name: 'modes', path: dir + '/m.aontu', base: dir, fs: node_fs_1.default,
             watch: { mod: true, add: true, rem: true },
         }, silentLog());
         try {
@@ -181,9 +181,9 @@ async function read(file) {
         const w = new watch_1.Watch({ name: 'd', path: '/x', base: '/', fs: node_fs_1.default }, silentLog());
         node_assert_1.default.strictEqual(w.descDeps(null), '');
         node_assert_1.default.strictEqual(w.descDeps({}), '');
-        const desc = w.descDeps({ '/a.jsonic': { '/b.jsonic': { tar: '/b.jsonic' } } });
-        node_assert_1.default.match(desc, /\/a\.jsonic/);
-        node_assert_1.default.match(desc, /\/b\.jsonic/);
+        const desc = w.descDeps({ '/a.aontu': { '/b.aontu': { tar: '/b.aontu' } } });
+        node_assert_1.default.match(desc, /\/a\.aontu/);
+        node_assert_1.default.match(desc, /\/b\.aontu/);
     });
 });
 //# sourceMappingURL=watch.test.js.map

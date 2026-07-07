@@ -73,12 +73,12 @@ nums: [ 30, 10, 20 ]
 async function buildModelJson(name, src) {
     const base = path_1.default.join(__dirname, '..', 'test', '_gen', name);
     (0, node_fs_1.mkdirSync)(base, { recursive: true });
-    (0, node_fs_1.writeFileSync)(path_1.default.join(base, 'model.jsonic'), src);
+    (0, node_fs_1.writeFileSync)(path_1.default.join(base, 'model.aontu'), src);
     const log = (0, util_1.prettyPino)('test', {});
     const b = (0, build_1.makeBuild)({
         fs: fs_1.default,
         base,
-        path: path_1.default.join(base, 'model.jsonic'),
+        path: path_1.default.join(base, 'model.aontu'),
         res: [{ path: '/', build: model_1.model_producer }],
     }, log);
     const r = await b.run({ watch: false });

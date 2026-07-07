@@ -6,7 +6,7 @@ and `npm`. Follow it top to bottom — each step builds on the last.
 
 By the end you will have:
 
-- written a model in `.jsonic`,
+- written a model in `.aontu`,
 - unified it into a single JSON document,
 - generated an artifact from it with an action,
 - and watched it all rebuild on save.
@@ -36,10 +36,10 @@ mkdir -p model build
 
 ## 2. Write a model
 
-Create `model/model.jsonic`:
+Create `model/model.aontu`:
 
 ```jsonic
-# model/model.jsonic
+# model/model.aontu
 service: name: 'orders'
 service: port: 8080
 ```
@@ -47,7 +47,7 @@ service: port: 8080
 Build it once:
 
 ```bash
-npx voxgig-model model/model.jsonic
+npx voxgig-model model/model.aontu
 ```
 
 You will see a few log lines, and a new file `model/model.json`:
@@ -61,7 +61,7 @@ You will see a few log lines, and a new file `model/model.json`:
 }
 ```
 
-That is the whole job of the core tool: take your `.jsonic` source, **unify** it,
+That is the whole job of the core tool: take your `.aontu` source, **unify** it,
 and write the result as a single canonical JSON model. Everything else builds on
 that model.
 
@@ -69,10 +69,10 @@ that model.
 ## 3. Add structure with types and defaults
 
 The point of a modeling language is to capture rules, not just values. Replace
-`model/model.jsonic` with:
+`model/model.aontu` with:
 
 ```jsonic
-# model/model.jsonic
+# model/model.aontu
 
 # A reusable "shape" for a service: defaults plus type constraints.
 shape: service: {
@@ -89,7 +89,7 @@ service: web:     $.shape.service & { name: 'web', public: true, port: 443 }
 Rebuild:
 
 ```bash
-npx voxgig-model model/model.jsonic
+npx voxgig-model model/model.aontu
 ```
 
 `model/model.json` now contains:
@@ -125,10 +125,10 @@ of truth for structure and reuse it everywhere.
 
 Real models grow. Move the shape into its own file.
 
-`model/shapes.jsonic`:
+`model/shapes.aontu`:
 
 ```jsonic
-# model/shapes.jsonic
+# model/shapes.aontu
 shape: service: {
   name?: string
   port: *8080 | integer
@@ -136,17 +136,17 @@ shape: service: {
 }
 ```
 
-`model/model.jsonic`:
+`model/model.aontu`:
 
 ```jsonic
-# model/model.jsonic
-@"./shapes.jsonic"
+# model/model.aontu
+@"./shapes.aontu"
 
 service: orders: $.shape.service & { name: 'orders' }
 service: web:    $.shape.service & { name: 'web', public: true, port: 443 }
 ```
 
-Rebuild — the output is identical. `@"./shapes.jsonic"` **imports** the file and
+Rebuild — the output is identical. `@"./shapes.aontu"` **imports** the file and
 unifies it into the model. Imports are tracked as dependencies, which matters in
 step 6.
 
@@ -157,10 +157,10 @@ A model is only useful if it drives output. An **action** is a small JS module
 that receives the unified model and produces an artifact.
 
 First, declare the action in the config file
-`model/.model-config/model-config.jsonic`:
+`model/.model-config/model-config.aontu`:
 
 ```jsonic
-# model/.model-config/model-config.jsonic
+# model/.model-config/model-config.aontu
 sys: model: action: {
   envFile: load: 'build/envFile'
 }
@@ -196,7 +196,7 @@ module.exports = async function envFile(model, build) {
 Build again:
 
 ```bash
-npx voxgig-model model/model.jsonic
+npx voxgig-model model/model.aontu
 ```
 
 You now have a generated `services.env`:
@@ -218,13 +218,13 @@ Generating on demand is fine; generating as you type is better. Start watch
 mode:
 
 ```bash
-npx voxgig-model --watch model/model.jsonic
+npx voxgig-model --watch model/model.aontu
 ```
 
 Leave it running. In another terminal (or your editor), change a value — set
-`orders` to `port: 9090` in `model/model.jsonic`, or edit `model/shapes.jsonic`.
+`orders` to `port: 9090` in `model/model.aontu`, or edit `model/shapes.aontu`.
 Within a moment the tool rebuilds and `services.env` updates. Editing the
-imported `shapes.jsonic` works too, because imports are tracked dependencies.
+imported `shapes.aontu` works too, because imports are tracked dependencies.
 
 Press `Ctrl-C` to stop.
 
@@ -235,7 +235,7 @@ Before wiring a model into anything destructive, preview it without writing
 files:
 
 ```bash
-npx voxgig-model --dryrun model/model.jsonic
+npx voxgig-model --dryrun model/model.aontu
 ```
 
 The build runs exactly as normal — actions execute, the model resolves — but
@@ -244,7 +244,7 @@ every write is redirected to an in-memory filesystem. Nothing on disk changes.
 
 ## What you learned
 
-- A model is `.jsonic` source unified into one JSON document.
+- A model is `.aontu` source unified into one JSON document.
 - **Types** (`integer`, `string`, …) and **defaults** (`*value | type`) let the
   model enforce its own rules.
 - **References** (`$.path`) and **unification** (`&`) reuse structure.

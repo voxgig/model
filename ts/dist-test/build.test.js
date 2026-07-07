@@ -20,7 +20,7 @@ const model_2 = require("../dist/producer/model");
         let b0 = (0, build_1.makeBuild)({
             fs: fs_1.default,
             base: __dirname + '/../test/p01/model',
-            path: __dirname + '/../test/p01/model/model.jsonic',
+            path: __dirname + '/../test/p01/model/model.aontu',
             res: [
                 {
                     path: '/',
@@ -65,12 +65,12 @@ const model_2 = require("../dist/producer/model");
         const folder = __dirname + '/../test/sys01/';
         await (0, promises_1.writeFile)(folder + 'foo.txt', 'BAD');
         await (0, promises_1.writeFile)(folder + 'pre.txt', 'BAD');
-        await (0, promises_1.writeFile)(folder + 'model/pre.jsonic', 'BAD');
+        await (0, promises_1.writeFile)(folder + 'model/pre.aontu', 'BAD');
         await (0, promises_1.writeFile)(folder + 'model/model.json', 'BAD');
         await (0, promises_1.writeFile)(folder + 'model/.model-config/model-config.json', 'BAD');
         let base = __dirname + '/../test/sys01/model';
         await (0, promises_1.writeFile)(base + '/model.json', 'BAD');
-        let path = base + '/model.jsonic';
+        let path = base + '/model.aontu';
         let model = new model_1.Model({
             path,
             base,
@@ -80,7 +80,7 @@ const model_2 = require("../dist/producer/model");
         node_assert_1.default.ok(br.ok);
         node_assert_1.default.strictEqual((0, node_fs_1.readFileSync)(folder + 'foo.txt').toString(), 'BAD');
         node_assert_1.default.strictEqual((0, node_fs_1.readFileSync)(folder + 'pre.txt').toString(), 'BAD');
-        node_assert_1.default.strictEqual((0, node_fs_1.readFileSync)(folder + 'model/pre.jsonic').toString(), 'BAD');
+        node_assert_1.default.strictEqual((0, node_fs_1.readFileSync)(folder + 'model/pre.aontu').toString(), 'BAD');
         node_assert_1.default.strictEqual((0, node_fs_1.readFileSync)(folder + 'model/model.json').toString(), 'BAD');
         node_assert_1.default.strictEqual((0, node_fs_1.readFileSync)(folder + 'model/.model-config/model-config.json').toString(), 'BAD');
         model = new model_1.Model({

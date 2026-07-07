@@ -42,9 +42,9 @@ let P = lang.parse.bind(lang)
 // `))
 
 
-// G(A('@"'+__dirname+'/t03.jsonic"'))
+// G(A('@"'+__dirname+'/t03.aontu"'))
 
-G(A('@"'+__dirname+'/sys01/model/model.jsonic"'))
+G(A('@"'+__dirname+'/sys01/model/model.aontu"'))
 
 
 

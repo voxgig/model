@@ -7,9 +7,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.initModel = initModel;
 const node_path_1 = __importDefault(require("node:path"));
 const STARTER_MODEL = `# Voxgig model. Edit this file, then build it:
-#   voxgig-model model/model.jsonic
+#   voxgig-model model/model.aontu
 #
-# Models are unified .jsonic - add types, defaults, references, imports.
+# Models are unified .aontu - add types, defaults, references, imports.
 # Tutorial: https://github.com/voxgig/model/blob/main/docs/tutorial.md
 
 name: 'my-model'
@@ -29,8 +29,8 @@ sys: model: order: action: *''
 function initModel(dir, fs) {
     const d = dir || '.';
     const files = [
-        [node_path_1.default.join(d, 'model', 'model.jsonic'), STARTER_MODEL],
-        [node_path_1.default.join(d, 'model', '.model-config', 'model-config.jsonic'), STARTER_CONFIG],
+        [node_path_1.default.join(d, 'model', 'model.aontu'), STARTER_MODEL],
+        [node_path_1.default.join(d, 'model', '.model-config', 'model-config.aontu'), STARTER_CONFIG],
     ];
     const created = [];
     const skipped = [];

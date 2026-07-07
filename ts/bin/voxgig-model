@@ -167,7 +167,7 @@ function doInit(dir) {
   const res = initModel(dir, Fs)
   res.created.forEach(p => KONSOLE.log('created: ' + p))
   res.skipped.forEach(p => KONSOLE.log('exists:  ' + p))
-  KONSOLE.log('Next: voxgig-model ' + Path.join(dir, 'model', 'model.jsonic'))
+  KONSOLE.log('Next: voxgig-model ' + Path.join(dir, 'model', 'model.aontu'))
 }
 
 
@@ -267,11 +267,11 @@ Examples:
 
 # Scaffold a new model in ./model, then build it
 > voxgig-model init
-> voxgig-model model/model.jsonic
+> voxgig-model model/model.aontu
 
 # Basic usage
-> voxgig-model model/model.jsonic
-# Builds a model defined in the file model/model.jsonic
+> voxgig-model model/model.aontu
+# Builds a model defined in the file model/model.aontu
 
 See also: https://voxgig.com/model
 `

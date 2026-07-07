@@ -8,9 +8,9 @@ import (
 )
 
 const starterModel = "# Voxgig model. Edit this file, then build it:\n" +
-	"#   voxgig-model model/model.jsonic\n" +
+	"#   voxgig-model model/model.aontu\n" +
 	"#\n" +
-	"# Models are unified .jsonic - add types, defaults, references, imports.\n" +
+	"# Models are unified .aontu - add types, defaults, references, imports.\n" +
 	"# Tutorial: https://github.com/voxgig/model/blob/main/docs/tutorial.md\n" +
 	"\n" +
 	"name: 'my-model'\n"
@@ -32,8 +32,8 @@ func Init(dir string) (created, skipped []string, err error) {
 		dir = "."
 	}
 	files := []struct{ path, content string }{
-		{filepath.Join(dir, "model", "model.jsonic"), starterModel},
-		{filepath.Join(dir, "model", ".model-config", "model-config.jsonic"), starterConfig},
+		{filepath.Join(dir, "model", "model.aontu"), starterModel},
+		{filepath.Join(dir, "model", ".model-config", "model-config.aontu"), starterConfig},
 	}
 	for _, f := range files {
 		if _, serr := os.Stat(f.path); serr == nil {
