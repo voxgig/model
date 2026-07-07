@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "9.1.0",
+  "version": "9.2.0",
   "main": "dist/model.js",
   "type": "commonjs",
   "types": "dist/model.d.ts",
@@ -34,7 +34,7 @@
     "repo-tag-dry": "REPO_VERSION=`node -e \"console.log(require('./package').version)\"` && echo \"[dry-run] TAG: v$REPO_VERSION\" && if git rev-parse -q --verify refs/tags/v$REPO_VERSION >/dev/null; then echo \"[dry-run] WARNING: tag v$REPO_VERSION already exists - bump the version first\"; else echo \"[dry-run] would commit -a, push, tag v$REPO_VERSION and push --tags; nothing done\"; fi && git status --short",
     "repo-publish": "npm run clean && npm i && npm run repo-publish-quick",
     "repo-publish-dry": "npm run clean && npm i && npm run repo-publish-quick-dry",
-    "repo-publish-quick": "npm run build && npm run test && npm publish --registry https://registry.npmjs.org --access=public",
+    "repo-publish-quick": "npm run build && npm run test && npm run repo-tag && npm publish --registry https://registry.npmjs.org --access=public",
     "repo-publish-quick-dry": "npm run build && npm run test && ( npm publish --dry-run --registry https://registry.npmjs.org --access=public || echo \"[dry-run] npm publish refused (see npm error above) - usually the version is already published; bump package.json before a real release\" )",
     "repo-release": "npm run repo-publish && npm run repo-tag",
     "repo-release-dry": "npm run repo-publish-quick-dry && npm run repo-tag-dry"
@@ -50,9 +50,9 @@
   ],
   "dependencies": {
     "@tabnas/jsonic": "0.2.0",
-    "aontu": "file:../../../rjrodger/aontu/ts",
+    "aontu": "0.48.1",
     "chokidar": "5.0.0",
-    "memfs": "4.57.8",
+    "memfs": "4.60.0",
     "shape": "10.1.0"
   },
   "peerDependencies": {
@@ -65,7 +65,7 @@
     }
   },
   "devDependencies": {
-    "@types/node": "25.9.2",
+    "@types/node": "26.1.0",
     "typescript": "6.0.3"
   }
 }
