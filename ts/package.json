@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "9.2.1",
+  "version": "9.2.2",
   "main": "dist/model.js",
   "type": "commonjs",
   "types": "dist/model.d.ts",
