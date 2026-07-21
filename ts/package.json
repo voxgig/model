@@ -1,6 +1,6 @@
 {
   "name": "@voxgig/model",
-  "version": "9.2.2",
+  "version": "9.2.3",
   "main": "dist/model.js",
   "type": "commonjs",
   "types": "dist/model.d.ts",
@@ -49,10 +49,10 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@tabnas/jsonic": "0.2.0",
+    "@tabnas/jsonic": "0.3.1",
     "aontu": "0.48.1",
     "chokidar": "5.0.0",
-    "memfs": "4.60.0",
+    "memfs": "4.64.0",
     "shape": "10.1.0"
   },
   "peerDependencies": {
@@ -65,7 +65,7 @@
     }
   },
   "devDependencies": {
-    "@types/node": "26.1.0",
-    "typescript": "6.0.3"
+    "@types/node": "26.1.1",
+    "typescript": "7.0.2"
   }
 }
