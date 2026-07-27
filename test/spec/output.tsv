@@ -1,6 +1,8 @@
 name	args	expected
 # Model producer serialization parity: args is [aontu-src], expected is the
 # exact bytes of the model.json both implementations must write.
+# Known divergence: numeric-string object keys ("9", "10") order numerically
+# in TS (JS object semantics) but lexically in Go - no spec row until fixed.
 keys-sorted	["b: 2\na: 1\nnested: { z: \"z\", a: \"a\" }\nlist: [ 3, 1, 2 ]\nhtml: \"<a> & </a>\"\n"]	"{\n  \"a\": 1,\n  \"b\": 2,\n  \"html\": \"<a> & </a>\",\n  \"list\": [\n    3,\n    1,\n    2\n  ],\n  \"nested\": {\n    \"a\": \"a\",\n    \"z\": \"z\"\n  }\n}"
 array-of-objects	["beta: { y: 2, x: 1 }\nalpha: 1\nrows: [ { id: 2, tag: \"b<x\" }, { id: 1, tag: \"a&y\" } ]\nnums: [ 30, 10, 20 ]\n"]	"{\n  \"alpha\": 1,\n  \"beta\": {\n    \"x\": 1,\n    \"y\": 2\n  },\n  \"nums\": [\n    30,\n    10,\n    20\n  ],\n  \"rows\": [\n    {\n      \"id\": 2,\n      \"tag\": \"b<x\"\n    },\n    {\n      \"id\": 1,\n      \"tag\": \"a&y\"\n    }\n  ]\n}"
 scalar-types	["s: \"txt\"\ni: 1\nneg: -2\nf: 1.5\nt: true\nnope: false\nnul: null\n"]	"{\n  \"f\": 1.5,\n  \"i\": 1,\n  \"neg\": -2,\n  \"nope\": false,\n  \"nul\": null,\n  \"s\": \"txt\",\n  \"t\": true\n}"
