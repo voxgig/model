@@ -252,3 +252,29 @@ func TestWatchRunAndLast(t *testing.T) {
 		t.Fatal("Last did not return the latest result")
 	}
 }
+
+// Aontu comments are `#` only: `//` and `/* */` are rejected. The TypeScript
+// engine disables jsonic's defaults for those (ts/src/build.ts) so both
+// implementations reject the same sources; the equivalent TS test is
+// comment-hash-only in ts/test/extra.test.ts.
+func TestCommentHashOnly(t *testing.T) {
+	cases := []struct {
+		name string
+		src  string
+		ok   bool
+	}{
+		{"hash", "# note\na: 1\n", true},
+		{"slash", "a: 1 // nope\n", false},
+		{"multi", "a: /* nope */ 1\n", false},
+	}
+
+	for _, c := range cases {
+		dir := t.TempDir()
+		writeFile(t, dir, "m.aontu", c.src)
+		b := NewBuild(BuildSpec{Path: filepath.Join(dir, "m.aontu"), Base: dir})
+		br := b.Run(false)
+		if br.OK != c.ok {
+			t.Fatalf("%s comment: expected ok=%v, got %v (errs: %v)", c.name, c.ok, br.OK, br.Errs)
+		}
+	}
+}

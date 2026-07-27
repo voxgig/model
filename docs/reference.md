@@ -528,6 +528,9 @@ obj: {
 
 The top level is an implicit object; you do not wrap the file in `{ }`.
 
+> **Comments.** `#` is the only comment syntax. `//` and `/* */` are not part
+> of the language and are rejected by both implementations.
+
 > **Key syntax.** Bareword keys are identifiers — letters, digits, and
 > underscores (`envFile`, `gen_docs`, `srv2`). Quote any key containing a
 > hyphen, dot, space, or other punctuation: `'env-file': …`. An unquoted

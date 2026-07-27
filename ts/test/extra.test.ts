@@ -215,6 +215,32 @@ describe('extra', () => {
 
   // An unresolved import makes aontu throw; the build collects it as an error
   // rather than letting it escape.
+  // Aontu comments are `#` only: makeBuild disables the jsonic defaults for
+  // `//` and `/* */` so the npm engine matches the Go parser. The equivalent
+  // Go test is TestCommentHashOnly in go/extra_test.go.
+  test('comment-hash-only', async () => {
+    const cases: [string, string, boolean][] = [
+      ['hash', '# note\na: 1\n', true],
+      ['slash', 'a: 1 // nope\n', false],
+      ['multi', 'a: /* nope */ 1\n', false],
+    ]
+
+    for (const [name, src, ok] of cases) {
+      const dir = GEN + '/ex-comment-' + name
+      await rm(dir, { recursive: true, force: true })
+      await mkdir(dir, { recursive: true })
+      await writeFile(dir + '/m.aontu', src)
+
+      const b = makeBuild({
+        fs: Fs, base: dir, path: dir + '/m.aontu', res: [],
+      }, silentLog())
+
+      const v = await b.run({ watch: false })
+      assert.strictEqual(v.ok, ok, name + ' comment: expected ok=' + ok)
+    }
+  })
+
+
   test('unresolved-import-fails', async () => {
     const dir = GEN + '/ex-import'
     await rm(dir, { recursive: true, force: true })

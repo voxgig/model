@@ -140,6 +140,11 @@ semantics match TypeScript. Two things differ by necessity:
 
 Other notes:
 
+- **Comments are `#` only.** The Go aontu parser accepts nothing else, and
+  the npm engine's jsonic defaults for `//` and `/* */` are disabled in
+  `ts/src/build.ts` (`makeBuild`) so both implementations reject the same
+  sources. Locked down by `comment-hash-only` (`ts/test/extra.test.ts`) and
+  `TestCommentHashOnly` (`go/extra_test.go`).
 - **Unification** uses the real Go aontu engine
   (`github.com/rjrodger/aontu/go`). Its `Generate(src)` has no base parameter,
   so `AontuResolver` briefly `chdir`s to the model base (guarded by a mutex)
@@ -185,8 +190,10 @@ is `[aontuSrc]` and `expected` is the exact `model.json` bytes the build must
 write. Both parity runners (`ts/test/parity.test.ts`, `go/parity_test.go`)
 auto-discover every `.tsv` in the directory. Generate `expected` from the
 TypeScript implementation (canonical) and confirm the row passes the Go suite
-too — a row only belongs here if both engines support it (e.g. `//` line
-comments parse in the npm aontu engine only, so spec rows use `#` comments).
+too — a row only belongs here if the two implementations agree on it (e.g.
+numeric-string object keys order differently, so no row covers them — see the
+note in `output.tsv`). Rows assert successful builds; error behavior is
+locked by per-language tests instead.
 
 **TypeScript:** `node:test` (`describe`/`test`), import from `../dist/...`.
 Runtime fixtures under `ts/test/_gen/<name>/`, created in the test. Watch tests
