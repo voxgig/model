@@ -4,22 +4,45 @@ import Path from 'path'
 import type { Build, Producer, BuildContext, ProducerResult } from '../types'
 
 
-// Recursively sort object keys alphabetically so the serialized model output
-// is byte-for-byte identical to the Go implementation, whose encoding/json
-// emits object keys in sorted order. Arrays keep their order; only object keys
-// are reordered. Returns a new value and does not mutate the input model.
-function sortKeys(value: any): any {
+// Serialize the model to two-space-indented JSON with object keys in strictly
+// lexical (UTF-8 byte) order, byte-for-byte identical to the Go
+// implementation's encoding/json. JSON.stringify cannot express this: JS
+// objects iterate integer-like keys ("9", "10") in numeric order ahead of the
+// other keys regardless of insertion order, so the order must be imposed
+// during serialization, and the default JS string sort compares UTF-16 code
+// units, which disagrees with Go's byte order for astral-plane keys. Arrays
+// keep their order. Scalars, keys, and toJSON values delegate to
+// JSON.stringify so escaping matches it exactly; undefined mirrors
+// JSON.stringify (dropped from objects, null in arrays).
+function jsonify(value: any, indent: string): string {
   if (Array.isArray(value)) {
-    return value.map(sortKeys)
-  }
-  if (null != value && 'object' === typeof value) {
-    const out: any = {}
-    for (const key of Object.keys(value).sort()) {
-      out[key] = sortKeys(value[key])
+    if (0 === value.length) {
+      return '[]'
     }
-    return out
+    const inner = indent + '  '
+    return '[\n' +
+      value.map((item) => inner + jsonify(item, inner)).join(',\n') +
+      '\n' + indent + ']'
   }
-  return value
+
+  if (null != value && 'object' === typeof value &&
+    'function' !== typeof value.toJSON) {
+    const keys = Object.keys(value)
+      .filter((key) => undefined !== value[key])
+      .sort((a, b) => Buffer.compare(Buffer.from(a), Buffer.from(b)))
+    if (0 === keys.length) {
+      return '{}'
+    }
+    const inner = indent + '  '
+    return '{\n' +
+      keys.map((key) =>
+        inner + JSON.stringify(key) + ': ' + jsonify(value[key], inner))
+        .join(',\n') +
+      '\n' + indent + '}'
+  }
+
+  const scalar = JSON.stringify(value)
+  return undefined === scalar ? 'null' : scalar
 }
 
 
@@ -39,7 +62,7 @@ const model_producer: Producer = async (build: Build, ctx: BuildContext) => {
     return pr
   }
 
-  let json = JSON.stringify(sortKeys(build.model), null, 2)
+  let json = jsonify(build.model, '')
 
   let filename = Path.basename(build.path)
   let filenameparts = filename.match(/^(.*)\.[^.]+$/)

@@ -152,8 +152,12 @@ Other notes:
   watcher tracks `*.aontu` files (plus legacy `*.aon`/`*.jsonic`) under the
   base directory.
 - **Model JSON output is byte-for-byte identical** across the two
-  implementations. Go's `encoding/json` sorts object keys, so the TypeScript
-  model producer sorts them too (`ts/src/producer/model.ts: sortKeys`); both
+  implementations. Go's `encoding/json` sorts object keys lexically (UTF-8
+  byte order), so the TypeScript model producer imposes the same order during
+  serialization (`ts/src/producer/model.ts: jsonify`). `JSON.stringify`
+  cannot: JS objects iterate integer-like keys ("9", "10") numerically ahead
+  of the rest, and the default JS string sort compares UTF-16 code units,
+  which disagrees with byte order for astral-plane keys. Both
   use a two-space indent and emit HTML characters (`<`, `>`, `&`) literally
   (Go disables `encoding/json`'s HTML escaping in `go/producer.go:
   marshalModel`). Arrays keep their order. The byte parity is locked down by
@@ -190,10 +194,10 @@ is `[aontuSrc]` and `expected` is the exact `model.json` bytes the build must
 write. Both parity runners (`ts/test/parity.test.ts`, `go/parity_test.go`)
 auto-discover every `.tsv` in the directory. Generate `expected` from the
 TypeScript implementation (canonical) and confirm the row passes the Go suite
-too — a row only belongs here if the two implementations agree on it (e.g.
-numeric-string object keys order differently, so no row covers them — see the
-note in `output.tsv`). Rows assert successful builds; error behavior is
-locked by per-language tests instead.
+too — a row only belongs here if the two implementations agree on it. Rows
+assert successful builds; error behavior, and values only producer mutation
+can introduce (`undefined`, `toJSON`), are locked by per-language tests
+instead.
 
 **TypeScript:** `node:test` (`describe`/`test`), import from `../dist/...`.
 Runtime fixtures under `ts/test/_gen/<name>/`, created in the test. Watch tests

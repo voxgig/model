@@ -9,6 +9,7 @@ import { prettyPino } from '@voxgig/util'
 
 import { makeBuild } from '../dist/build'
 import { Model } from '../dist/model'
+import { model_producer } from '../dist/producer/model'
 import type { Build, BuildContext } from '../dist/types'
 
 
@@ -238,6 +239,54 @@ describe('extra', () => {
       const v = await b.run({ watch: false })
       assert.strictEqual(v.ok, ok, name + ' comment: expected ok=' + ok)
     }
+  })
+
+
+  // The model serializer mirrors JSON.stringify for values only a mutating
+  // producer can introduce (aontu sources cannot express them): undefined
+  // props are dropped, undefined array elements become null, and toJSON
+  // values (e.g. Date) serialize via their toJSON. Key order stays lexical
+  // byte order — numeric-string keys do not jump ahead. The shared-spec rows
+  // in test/spec/output.tsv lock the aontu-reachable surface; this locks the
+  // rest of the TS serializer.
+  test('model-serializer-mutated-values', async () => {
+    const dir = GEN + '/ex-serializer'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir, { recursive: true })
+    await writeFile(dir + '/m.aontu', 'a: 1\n')
+
+    const b = makeBuild({
+      fs: Fs, base: dir, path: dir + '/m.aontu',
+      res: [
+        {
+          path: '/', build: async function mutate(build: Build, ctx: BuildContext) {
+            if ('post' === ctx.step) {
+              build.model.gone = undefined
+              build.model.list = [1, undefined, 2]
+              build.model.when = new Date('2026-01-02T03:04:05.678Z')
+              build.model['10'] = 'ten'
+              build.model['9'] = 'nine'
+            }
+            return okResult('mutate')
+          },
+        },
+        { path: '/', build: model_producer },
+      ],
+    }, silentLog())
+
+    const v = await b.run({ watch: false })
+    assert.strictEqual(v.ok, true)
+    assert.strictEqual(await readFile(dir + '/m.json', { encoding: 'utf8' }), `{
+  "10": "ten",
+  "9": "nine",
+  "a": 1,
+  "list": [
+    1,
+    null,
+    2
+  ],
+  "when": "2026-01-02T03:04:05.678Z"
+}`)
   })
 
 
