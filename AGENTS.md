@@ -31,6 +31,7 @@ go/                 Go implementation (parity)
   *_test.go         go test suites
   go.mod  go.sum
 docs/               tutorial / how-to / reference / explanation
+test/spec/          shared TSV parity fixtures, run by BOTH test suites
 Makefile            orchestrates both: `make build`, `make test`
 .github/workflows/  CI (a `ts` job and a `go` job)
 ```
@@ -151,8 +152,9 @@ Other notes:
   use a two-space indent and emit HTML characters (`<`, `>`, `&`) literally
   (Go disables `encoding/json`'s HTML escaping in `go/producer.go:
   marshalModel`). Arrays keep their order. The byte parity is locked down by
-  `ts/test/parity.test.ts` and `go/parity_test.go`, which share one expected
-  string — keep them in step.
+  the shared specs in `test/spec/*.tsv`, which `ts/test/parity.test.ts` and
+  `go/parity_test.go` both run — add rows there rather than inline
+  expectations, so both languages are covered by one fixture.
 - **`const Version`** lives in `go/model.go`; `make publish-go V=x.y.z`
   rewrites it and tags `go/vx.y.z`.
 - The Go port depends on **`aontu/go` only**; it does not use `util/go` (the
@@ -164,7 +166,10 @@ Other notes:
 
 TypeScript is canonical. When changing behavior:
 
-1. Change TypeScript first, with a test (`ts/test/*.test.ts`).
+1. Change TypeScript first, with a test (`ts/test/*.test.ts`). If the
+   behavior is expressible as aontu source → `model.json` bytes, add a row to
+   the shared `test/spec/*.tsv` fixtures instead — both suites run every row,
+   so one fixture covers both languages.
 2. Apply the equivalent change to Go, with a test (`go/*_test.go`).
 3. Rebuild TypeScript and commit the regenerated `ts/dist/`.
 4. Run both suites (`make test`); keep `gofmt`/`go vet` clean.
@@ -172,6 +177,16 @@ TypeScript is canonical. When changing behavior:
 
 
 ## Writing tests
+
+**Shared specs (`test/spec/*.tsv`):** each row is
+`name <TAB> args <TAB> expected`, with `args` and `expected` JSON-encoded;
+line 0 is the header and `#` lines are comments. For the model specs `args`
+is `[aontuSrc]` and `expected` is the exact `model.json` bytes the build must
+write. Both parity runners (`ts/test/parity.test.ts`, `go/parity_test.go`)
+auto-discover every `.tsv` in the directory. Generate `expected` from the
+TypeScript implementation (canonical) and confirm the row passes the Go suite
+too — a row only belongs here if both engines support it (e.g. `//` line
+comments parse in the npm aontu engine only, so spec rows use `#` comments).
 
 **TypeScript:** `node:test` (`describe`/`test`), import from `../dist/...`.
 Runtime fixtures under `ts/test/_gen/<name>/`, created in the test. Watch tests

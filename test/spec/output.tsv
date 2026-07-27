@@ -1,0 +1,11 @@
+name	args	expected
+# Model producer serialization parity: args is [aontu-src], expected is the
+# exact bytes of the model.json both implementations must write.
+keys-sorted	["b: 2\na: 1\nnested: { z: \"z\", a: \"a\" }\nlist: [ 3, 1, 2 ]\nhtml: \"<a> & </a>\"\n"]	"{\n  \"a\": 1,\n  \"b\": 2,\n  \"html\": \"<a> & </a>\",\n  \"list\": [\n    3,\n    1,\n    2\n  ],\n  \"nested\": {\n    \"a\": \"a\",\n    \"z\": \"z\"\n  }\n}"
+array-of-objects	["beta: { y: 2, x: 1 }\nalpha: 1\nrows: [ { id: 2, tag: \"b<x\" }, { id: 1, tag: \"a&y\" } ]\nnums: [ 30, 10, 20 ]\n"]	"{\n  \"alpha\": 1,\n  \"beta\": {\n    \"x\": 1,\n    \"y\": 2\n  },\n  \"nums\": [\n    30,\n    10,\n    20\n  ],\n  \"rows\": [\n    {\n      \"id\": 2,\n      \"tag\": \"b<x\"\n    },\n    {\n      \"id\": 1,\n      \"tag\": \"a&y\"\n    }\n  ]\n}"
+scalar-types	["s: \"txt\"\ni: 1\nneg: -2\nf: 1.5\nt: true\nnope: false\nnul: null\n"]	"{\n  \"f\": 1.5,\n  \"i\": 1,\n  \"neg\": -2,\n  \"nope\": false,\n  \"nul\": null,\n  \"s\": \"txt\",\n  \"t\": true\n}"
+unicode-literal	["u: \"héllo ✓ 日本\"\n"]	"{\n  \"u\": \"héllo ✓ 日本\"\n}"
+string-escapes	["q: \"line1\\nline2\\ttabbed \\\"quoted\\\"\"\n"]	"{\n  \"q\": \"line1\\nline2\\ttabbed \\\"quoted\\\"\"\n}"
+empty-containers	["eo: {}\nea: []\nfull: { a: 1 }\n"]	"{\n  \"ea\": [],\n  \"eo\": {},\n  \"full\": {\n    \"a\": 1\n  }\n}"
+deep-nesting-sorted	["z: { y: { x: 2, a: 1 }, b: 3 }\nm: { k: [ { q: 2, p: 1 } ] }\n"]	"{\n  \"m\": {\n    \"k\": [\n      {\n        \"p\": 1,\n        \"q\": 2\n      }\n    ]\n  },\n  \"z\": {\n    \"b\": 3,\n    \"y\": {\n      \"a\": 1,\n      \"x\": 2\n    }\n  }\n}"
+array-order-kept	["seq: [ \"c\", \"a\", \"b\", 3, 1, 2, true, false, null ]\n"]	"{\n  \"seq\": [\n    \"c\",\n    \"a\",\n    \"b\",\n    3,\n    1,\n    2,\n    true,\n    false,\n    null\n  ]\n}"

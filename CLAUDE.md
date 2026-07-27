@@ -27,6 +27,8 @@ it before making changes. The essentials:
 ## Parity
 TypeScript is canonical. Change TS (with a test) first, then mirror in Go (with
 a test), rebuild `ts/dist/`, and run `make test`. Keep the two in step.
+Behavior expressible as aontu source → `model.json` bytes belongs in the
+shared `test/spec/*.tsv` fixtures — both suites run every row.
 
 ## Style
 - TS: 2-space indent, no semicolons, single quotes, CommonJS. Match the file.

@@ -4,6 +4,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// Shared cross-language parity specs (top-level test/spec/*.tsv).
+//
+// Each row is (name, args, expected): args is [aontuSrc] and expected is the
+// exact bytes of the model.json the build must write — object keys sorted,
+// two-space indent, HTML characters literal, no trailing newline. The same
+// fixtures drive the Go suite (go/parity_test.go), so a behavioural drift
+// between the two implementations fails one of them. Spec files are
+// auto-discovered: add a .tsv under test/spec/ and both suites pick it up.
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const node_fs_1 = require("node:fs");
@@ -12,66 +20,29 @@ const node_assert_1 = __importDefault(require("node:assert"));
 const util_1 = require("@voxgig/util");
 const build_1 = require("../dist/build");
 const model_1 = require("../dist/producer/model");
-// The exact bytes both implementations must emit for SRC below. Object keys
-// are sorted alphabetically (a, b, html, list, nested; and a before z inside
-// nested), arrays keep their order ([3,1,2]), the indent is two spaces, and
-// HTML characters are written literally. The identical Go expectation lives in
-// go/parity_test.go — keep the two in step.
-const EXPECTED = `{
-  "a": 1,
-  "b": 2,
-  "html": "<a> & </a>",
-  "list": [
-    3,
-    1,
-    2
-  ],
-  "nested": {
-    "a": "a",
-    "z": "z"
-  }
-}`;
-// Source keys are deliberately out of alphabetical (insertion) order so the
-// test fails if the producer ever stops sorting them.
-const SRC = `b: 2
-a: 1
-nested: { z: "z", a: "a" }
-list: [ 3, 1, 2 ]
-html: "<a> & </a>"
-`;
-// A second fixture exercising arrays of objects: each element keeps its
-// position in the array, but the keys *within* each object are sorted, as are
-// the keys of nested objects. HTML characters stay literal. The identical Go
-// expectation lives in go/parity_test.go — keep the two in step.
-const EXPECTED2 = `{
-  "alpha": 1,
-  "beta": {
-    "x": 1,
-    "y": 2
-  },
-  "nums": [
-    30,
-    10,
-    20
-  ],
-  "rows": [
-    {
-      "id": 2,
-      "tag": "b<x"
-    },
-    {
-      "id": 1,
-      "tag": "a&y"
+const SPEC_DIR = path_1.default.join(__dirname, '..', '..', 'test', 'spec');
+function loadSpec(file) {
+    const text = fs_1.default.readFileSync(path_1.default.join(SPEC_DIR, file), 'utf8');
+    const rows = [];
+    const lines = text.split('\n');
+    // Line 0 is the header (name/args/expected).
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if ('' === line.trim() || line.startsWith('#')) {
+            continue;
+        }
+        const t1 = line.indexOf('\t');
+        const t2 = line.indexOf('\t', t1 + 1);
+        rows.push({
+            name: line.slice(0, t1),
+            args: JSON.parse(line.slice(t1 + 1, t2)),
+            expected: JSON.parse(line.slice(t2 + 1)),
+        });
     }
-  ]
-}`;
-const SRC2 = `beta: { y: 2, x: 1 }
-alpha: 1
-rows: [ { id: 2, tag: "b<x" }, { id: 1, tag: "a&y" } ]
-nums: [ 30, 10, 20 ]
-`;
+    return rows;
+}
 async function buildModelJson(name, src) {
-    const base = path_1.default.join(__dirname, '..', 'test', '_gen', name);
+    const base = path_1.default.join(__dirname, '..', 'test', '_gen', 'spec', name);
     (0, node_fs_1.mkdirSync)(base, { recursive: true });
     (0, node_fs_1.writeFileSync)(path_1.default.join(base, 'model.aontu'), src);
     const log = (0, util_1.prettyPino)('test', {});
@@ -86,11 +57,17 @@ async function buildModelJson(name, src) {
     return (0, node_fs_1.readFileSync)(path_1.default.join(base, 'model.json'), 'utf8');
 }
 (0, node_test_1.describe)('parity', () => {
-    (0, node_test_1.test)('model-output-keys-sorted', async () => {
-        node_assert_1.default.strictEqual(await buildModelJson('parity', SRC), EXPECTED);
-    });
-    (0, node_test_1.test)('model-output-array-of-objects', async () => {
-        node_assert_1.default.strictEqual(await buildModelJson('parity2', SRC2), EXPECTED2);
-    });
+    const files = fs_1.default.readdirSync(SPEC_DIR).filter(f => f.endsWith('.tsv')).sort();
+    node_assert_1.default.ok(0 < files.length, 'no shared spec files in ' + SPEC_DIR);
+    for (const file of files) {
+        const group = file.slice(0, -'.tsv'.length);
+        (0, node_test_1.describe)(group, () => {
+            for (const row of loadSpec(file)) {
+                (0, node_test_1.test)(row.name, async () => {
+                    node_assert_1.default.strictEqual(await buildModelJson(group + '-' + row.name, String(row.args[0])), row.expected);
+                });
+            }
+        });
+    }
 });
 //# sourceMappingURL=parity.test.js.map
