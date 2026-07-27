@@ -80,19 +80,28 @@ Go **1.24+** is required (the `aontu/go` dependency declares `go 1.24.7`).
    directory it fails with `TS5083` and silently leaves `dist/` stale — so
    tests then run against old code.
 
-2. **`ts/dist/` and `ts/dist-test/` are committed.** After any source change,
+2. **`src` is a composite project and `test` references it.** The test suites
+   import from `../dist/*`, so `ts/test/tsconfig.json` declares a project
+   reference to `../src` (and `ts/src/tsconfig.json` sets `composite`).
+   Without the reference, a clean build — `npm run reset`, or any
+   `tsc --build src test` with `dist/` absent — fails with `TS2307` on
+   `../dist/*`, because module resolution doesn't see files `src` emits later
+   in the same invocation. The `.tsbuildinfo` files are written into `dist/`
+   and `dist-test/` (gitignored; `npm run clean` removes them with the rest).
+
+3. **`ts/dist/` and `ts/dist-test/` are committed.** After any source change,
    rebuild and commit the regenerated output alongside the `.ts`.
 
-3. **The CLI (`ts/bin/voxgig-model`) is plain JavaScript**, not compiled. It
+4. **The CLI (`ts/bin/voxgig-model`) is plain JavaScript**, not compiled. It
    `require`s `dist/model.js`, so the library must be built.
 
-4. **`aontu` (npm) reads `opts.err`, not `opts.errs`** — collect mode. See
+5. **`aontu` (npm) reads `opts.err`, not `opts.errs`** — collect mode. See
    `ts/src/build.ts: resolveModel`.
 
-5. **Generated test fixtures go in `ts/test/_gen/`** (gitignored). Tests write
+6. **Generated test fixtures go in `ts/test/_gen/`** (gitignored). Tests write
    their own fixtures there at runtime; do not commit them.
 
-6. **`aontu` tracks GitHub `main` via a vendored tarball.** The npm package
+7. **`aontu` tracks GitHub `main` via a vendored tarball.** The npm package
    lives in a monorepo subdir (`rjrodger/aontu` → `ts/`), which npm cannot
    install from git, and `main` is ahead of the npm release. So
    `ts/vendor/aontu-<version>.tgz` is committed (whitelisted in `.gitignore`
