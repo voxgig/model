@@ -243,12 +243,13 @@ describe('extra', () => {
 
 
   // The model serializer mirrors JSON.stringify for values only a mutating
-  // producer can introduce (aontu sources cannot express them): undefined
-  // props are dropped, undefined array elements become null, and toJSON
-  // values (e.g. Date) serialize via their toJSON. Key order stays lexical
-  // byte order — numeric-string keys do not jump ahead. The shared-spec rows
-  // in test/spec/output.tsv lock the aontu-reachable surface; this locks the
-  // rest of the TS serializer.
+  // producer can introduce (aontu sources cannot express them): undefined,
+  // function, and symbol props are dropped; undefined array elements and
+  // sparse holes become null; toJSON results (e.g. Date) are re-serialized
+  // canonically — sorted keys and indentation apply to structured toJSON
+  // output too. Key order stays lexical byte order — numeric-string keys do
+  // not jump ahead. The shared-spec rows in test/spec/output.tsv lock the
+  // aontu-reachable surface; this locks the rest of the TS serializer.
   test('model-serializer-mutated-values', async () => {
     const dir = GEN + '/ex-serializer'
     await rm(dir, { recursive: true, force: true })
@@ -262,8 +263,12 @@ describe('extra', () => {
           path: '/', build: async function mutate(build: Build, ctx: BuildContext) {
             if ('post' === ctx.step) {
               build.model.gone = undefined
+              build.model.helper = () => 1
+              build.model.sym = Symbol('x')
               build.model.list = [1, undefined, 2]
+              build.model.sparse = new Array(2)
               build.model.when = new Date('2026-01-02T03:04:05.678Z')
+              build.model.wrap = { toJSON: () => ({ '10': 'ten', '9': 'nine' }) }
               build.model['10'] = 'ten'
               build.model['9'] = 'nine'
             }
@@ -285,7 +290,15 @@ describe('extra', () => {
     null,
     2
   ],
-  "when": "2026-01-02T03:04:05.678Z"
+  "sparse": [
+    null,
+    null
+  ],
+  "when": "2026-01-02T03:04:05.678Z",
+  "wrap": {
+    "10": "ten",
+    "9": "nine"
+  }
 }`)
   })
 

@@ -160,7 +160,9 @@ Other notes:
   which disagrees with byte order for astral-plane keys. Both
   use a two-space indent and emit HTML characters (`<`, `>`, `&`) literally
   (Go disables `encoding/json`'s HTML escaping in `go/producer.go:
-  marshalModel`). Arrays keep their order. The byte parity is locked down by
+  marshalModel`), and both escape U+2028/U+2029 in strings (Go's
+  `encoding/json` always does; the TS serializer matches it). Arrays keep
+  their order. The byte parity is locked down by
   the shared specs in `test/spec/*.tsv`, which `ts/test/parity.test.ts` and
   `go/parity_test.go` both run — add rows there rather than inline
   expectations, so both languages are covered by one fixture.

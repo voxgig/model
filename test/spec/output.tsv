@@ -15,3 +15,4 @@ array-order-kept	["seq: [ \"c\", \"a\", \"b\", 3, 1, 2, true, false, null ]\n"]	
 numeric-string-keys	["m: { \"10\": \"ten\", \"9\": \"nine\", \"2\": \"two\" }\ntop: 1\n"]	"{\n  \"m\": {\n    \"10\": \"ten\",\n    \"2\": \"two\",\n    \"9\": \"nine\"\n  },\n  \"top\": 1\n}"
 top-level-numeric-keys	["\"10\": \"ten\"\n\"9\": \"nine\"\na: 1\n"]	"{\n  \"10\": \"ten\",\n  \"9\": \"nine\",\n  \"a\": 1\n}"
 astral-key-byte-order	["\"😀\": 1\n\"ﬃ\": 2\nz: 3\n"]	"{\n  \"z\": 3,\n  \"ﬃ\": 2,\n  \"😀\": 1\n}"
+line-para-sep-escaped	["sep: \"a b c\"\n"]	"{\n  \"sep\": \"a\\u2028b\\u2029c\"\n}"

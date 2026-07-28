@@ -11,24 +11,32 @@ import type { Build, Producer, BuildContext, ProducerResult } from '../types'
 // other keys regardless of insertion order, so the order must be imposed
 // during serialization, and the default JS string sort compares UTF-16 code
 // units, which disagrees with Go's byte order for astral-plane keys. Arrays
-// keep their order. Scalars, keys, and toJSON values delegate to
-// JSON.stringify so escaping matches it exactly; undefined mirrors
-// JSON.stringify (dropped from objects, null in arrays).
+// keep their order. Values only producer mutation can introduce mirror
+// JSON.stringify: undefined, functions, and symbols are dropped from objects
+// and become null in arrays (sparse holes too), and toJSON results are fed
+// back through the canonical serializer.
 function jsonify(value: any, indent: string): string {
   if (Array.isArray(value)) {
     if (0 === value.length) {
       return '[]'
     }
     const inner = indent + '  '
+    // Array.from visits holes (as undefined); map/join would skip them.
     return '[\n' +
-      value.map((item) => inner + jsonify(item, inner)).join(',\n') +
+      Array.from(value, (item) => inner + jsonify(item, inner)).join(',\n') +
       '\n' + indent + ']'
   }
 
-  if (null != value && 'object' === typeof value &&
-    'function' !== typeof value.toJSON) {
+  if (null != value && 'object' === typeof value) {
+    if ('function' === typeof value.toJSON) {
+      return jsonify(value.toJSON(), indent)
+    }
     const keys = Object.keys(value)
-      .filter((key) => undefined !== value[key])
+      .filter((key) => {
+        const item = value[key]
+        return undefined !== item &&
+          'function' !== typeof item && 'symbol' !== typeof item
+      })
       .sort((a, b) => Buffer.compare(Buffer.from(a), Buffer.from(b)))
     if (0 === keys.length) {
       return '{}'
@@ -36,13 +44,23 @@ function jsonify(value: any, indent: string): string {
     const inner = indent + '  '
     return '{\n' +
       keys.map((key) =>
-        inner + JSON.stringify(key) + ': ' + jsonify(value[key], inner))
+        inner + jstr(key) + ': ' + jsonify(value[key], inner))
         .join(',\n') +
       '\n' + indent + '}'
   }
 
-  const scalar = JSON.stringify(value)
+  const scalar = jstr(value)
   return undefined === scalar ? 'null' : scalar
+}
+
+
+// JSON.stringify, plus the U+2028/U+2029 escapes Go's encoding/json always
+// applies even with HTML escaping off. JSON.stringify emits the separators
+// literally (both forms are valid JSON), so escape them here for byte parity.
+function jstr(value: any): string | undefined {
+  const out = JSON.stringify(value)
+  return undefined === out ? undefined :
+    out.replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029')
 }
 
 
