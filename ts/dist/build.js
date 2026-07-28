@@ -31,6 +31,12 @@ class BuildImpl {
         Object.assign(this.use, spec.use || {});
         this.deps = {};
         this.aontu = new aontu_1.Aontu();
+        // Aontu comments are `#` only. The npm engine's jsonic parser also
+        // enables `//` and `/* */` by default, which the Go engine does not
+        // support — disable them so both implementations reject the same sources.
+        this.aontu.lang.jsonic.options({
+            comment: { def: { slash: null, multi: null } }
+        });
     }
     async run(rspec) {
         let hasErr = false;

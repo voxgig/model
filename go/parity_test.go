@@ -2,74 +2,55 @@
 
 package model
 
+// Shared cross-language parity specs (top-level test/spec/*.tsv).
+//
+// Each row is (name, args, expected): args is [aontuSrc] and expected is the
+// exact bytes of the model.json the build must write — object keys sorted,
+// two-space indent, HTML characters literal, no trailing newline. The same
+// fixtures drive the TypeScript suite (ts/test/parity.test.ts), so a
+// behavioural drift between the two implementations fails one of them. Spec
+// files are auto-discovered: add a .tsv under test/spec/ and both suites pick
+// it up.
+
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"testing"
 )
 
-// parityExpected is the exact bytes both implementations must emit for
-// parityModelSrc. Object keys are sorted alphabetically (a, b, html, list,
-// nested; and a before z inside nested), arrays keep their order ([3,1,2]),
-// the indent is two spaces, and HTML characters are written literally. The
-// identical TypeScript expectation lives in ts/test/parity.test.ts — keep the
-// two in step.
-const parityExpected = `{
-  "a": 1,
-  "b": 2,
-  "html": "<a> & </a>",
-  "list": [
-    3,
-    1,
-    2
-  ],
-  "nested": {
-    "a": "a",
-    "z": "z"
-  }
-}`
+type specRow struct {
+	name     string
+	args     []any
+	expected any
+}
 
-// Keys are deliberately out of alphabetical (insertion) order so the test fails
-// if the producer ever stops sorting them.
-const parityModelSrc = `b: 2
-a: 1
-nested: { z: "z", a: "a" }
-list: [ 3, 1, 2 ]
-html: "<a> & </a>"
-`
-
-// parityExpected2 is a second shared fixture exercising arrays of objects:
-// each element keeps its array position, but the keys within each object are
-// sorted, as are nested-object keys. HTML characters stay literal. The
-// identical TypeScript expectation lives in ts/test/parity.test.ts.
-const parityExpected2 = `{
-  "alpha": 1,
-  "beta": {
-    "x": 1,
-    "y": 2
-  },
-  "nums": [
-    30,
-    10,
-    20
-  ],
-  "rows": [
-    {
-      "id": 2,
-      "tag": "b<x"
-    },
-    {
-      "id": 1,
-      "tag": "a&y"
-    }
-  ]
-}`
-
-const parityModelSrc2 = `beta: { y: 2, x: 1 }
-alpha: 1
-rows: [ { id: 2, tag: "b<x" }, { id: 1, tag: "a&y" } ]
-nums: [ 30, 10, 20 ]
-`
+func loadSpec(t *testing.T, path string) []specRow {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read spec %s: %v", path, err)
+	}
+	var rows []specRow
+	for i, line := range strings.Split(string(data), "\n") {
+		if i == 0 || strings.TrimSpace(line) == "" || strings.HasPrefix(line, "#") {
+			continue // line 0 is the header (name/args/expected)
+		}
+		cols := strings.SplitN(line, "\t", 3)
+		var args []any
+		var exp any
+		if err := json.Unmarshal([]byte(cols[1]), &args); err != nil {
+			t.Fatalf("%s/%s args: %v", path, cols[0], err)
+		}
+		if err := json.Unmarshal([]byte(cols[2]), &exp); err != nil {
+			t.Fatalf("%s/%s expected: %v", path, cols[0], err)
+		}
+		rows = append(rows, specRow{cols[0], args, exp})
+	}
+	return rows
+}
 
 // buildModelJSON runs ModelProducer over src and returns the written JSON.
 func buildModelJSON(t *testing.T, src string) string {
@@ -90,18 +71,31 @@ func buildModelJSON(t *testing.T, src string) string {
 	return string(data)
 }
 
-// ModelProducer output is byte-for-byte identical to the TypeScript producer:
-// sorted keys, two-space indent, no HTML escaping, no trailing newline.
-func TestModelProducerByteParity(t *testing.T) {
-	if got := buildModelJSON(t, parityModelSrc); got != parityExpected {
-		t.Fatalf("model.json parity mismatch:\n--- got ---\n%s\n--- want ---\n%s", got, parityExpected)
+// TestSharedSpecs runs every test/spec/*.tsv row: model.json output must be
+// byte-for-byte identical to the TypeScript implementation, which generated
+// the expected values. No t.Parallel: AontuResolver chdirs to the model base.
+func TestSharedSpecs(t *testing.T) {
+	files, err := filepath.Glob(filepath.Join("..", "test", "spec", "*.tsv"))
+	if err != nil {
+		t.Fatal(err)
 	}
-}
+	if len(files) == 0 {
+		t.Fatal("no shared spec files in ../test/spec")
+	}
+	sort.Strings(files)
 
-// Arrays of objects preserve element order while sorting keys within each
-// object, matching the TypeScript producer byte-for-byte.
-func TestModelProducerByteParityArrayOfObjects(t *testing.T) {
-	if got := buildModelJSON(t, parityModelSrc2); got != parityExpected2 {
-		t.Fatalf("model.json parity mismatch:\n--- got ---\n%s\n--- want ---\n%s", got, parityExpected2)
+	for _, file := range files {
+		group := strings.TrimSuffix(filepath.Base(file), ".tsv")
+		t.Run(group, func(t *testing.T) {
+			for _, row := range loadSpec(t, file) {
+				t.Run(row.name, func(t *testing.T) {
+					src, _ := row.args[0].(string)
+					exp, _ := row.expected.(string)
+					if got := buildModelJSON(t, src); got != exp {
+						t.Fatalf("model.json parity mismatch:\n--- got ---\n%s\n--- want ---\n%s", got, exp)
+					}
+				})
+			}
+		})
 	}
 }

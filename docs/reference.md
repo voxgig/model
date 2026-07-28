@@ -451,7 +451,10 @@ The default `Model` pipeline is, in order:
 - **Runs:** `post` phase only.
 - **Effect:** writes `build.model` as pretty JSON to
   `<opts.base>/<root-file-name>.json` (the root file's basename with its
-  extension replaced by `.json`).
+  extension replaced by `.json`). Object keys are emitted in lexical UTF-8
+  byte order (arrays keep their order), two-space indent, no trailing
+  newline — byte-for-byte identical across the TypeScript and Go
+  implementations.
 - **Idempotent:** if the target file already contains identical JSON, the write
   is skipped to avoid mtime churn that would invalidate caches and re-trigger
   watchers.
@@ -527,6 +530,9 @@ obj: {
 ```
 
 The top level is an implicit object; you do not wrap the file in `{ }`.
+
+> **Comments.** `#` is the only comment syntax. `//` and `/* */` are not part
+> of the language and are rejected by both implementations.
 
 > **Key syntax.** Bareword keys are identifiers — letters, digits, and
 > underscores (`envFile`, `gen_docs`, `srv2`). Quote any key containing a

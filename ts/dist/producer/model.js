@@ -5,22 +5,58 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.model_producer = void 0;
 const path_1 = __importDefault(require("path"));
-// Recursively sort object keys alphabetically so the serialized model output
-// is byte-for-byte identical to the Go implementation, whose encoding/json
-// emits object keys in sorted order. Arrays keep their order; only object keys
-// are reordered. Returns a new value and does not mutate the input model.
-function sortKeys(value) {
+// Serialize the model to two-space-indented JSON with object keys in strictly
+// lexical (UTF-8 byte) order, byte-for-byte identical to the Go
+// implementation's encoding/json. JSON.stringify cannot express this: JS
+// objects iterate integer-like keys ("9", "10") in numeric order ahead of the
+// other keys regardless of insertion order, so the order must be imposed
+// during serialization, and the default JS string sort compares UTF-16 code
+// units, which disagrees with Go's byte order for astral-plane keys. Arrays
+// keep their order. Values only producer mutation can introduce mirror
+// JSON.stringify: undefined, functions, and symbols are dropped from objects
+// and become null in arrays (sparse holes too), and toJSON results are fed
+// back through the canonical serializer.
+function jsonify(value, indent) {
     if (Array.isArray(value)) {
-        return value.map(sortKeys);
+        if (0 === value.length) {
+            return '[]';
+        }
+        const inner = indent + '  ';
+        // Array.from visits holes (as undefined); map/join would skip them.
+        return '[\n' +
+            Array.from(value, (item) => inner + jsonify(item, inner)).join(',\n') +
+            '\n' + indent + ']';
     }
     if (null != value && 'object' === typeof value) {
-        const out = {};
-        for (const key of Object.keys(value).sort()) {
-            out[key] = sortKeys(value[key]);
+        if ('function' === typeof value.toJSON) {
+            return jsonify(value.toJSON(), indent);
         }
-        return out;
+        const keys = Object.keys(value)
+            .filter((key) => {
+            const item = value[key];
+            return undefined !== item &&
+                'function' !== typeof item && 'symbol' !== typeof item;
+        })
+            .sort((a, b) => Buffer.compare(Buffer.from(a), Buffer.from(b)));
+        if (0 === keys.length) {
+            return '{}';
+        }
+        const inner = indent + '  ';
+        return '{\n' +
+            keys.map((key) => inner + jstr(key) + ': ' + jsonify(value[key], inner))
+                .join(',\n') +
+            '\n' + indent + '}';
     }
-    return value;
+    const scalar = jstr(value);
+    return undefined === scalar ? 'null' : scalar;
+}
+// JSON.stringify, plus the U+2028/U+2029 escapes Go's encoding/json always
+// applies even with HTML escaping off. JSON.stringify emits the separators
+// literally (both forms are valid JSON), so escape them here for byte parity.
+function jstr(value) {
+    const out = JSON.stringify(value);
+    return undefined === out ? undefined :
+        out.replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 }
 // Builds the main model file, after unification.
 const model_producer = async (build, ctx) => {
@@ -36,7 +72,7 @@ const model_producer = async (build, ctx) => {
     if ('post' !== ctx.step) {
         return pr;
     }
-    let json = JSON.stringify(sortKeys(build.model), null, 2);
+    let json = jsonify(build.model, '');
     let filename = path_1.default.basename(build.path);
     let filenameparts = filename.match(/^(.*)\.[^.]+$/);
     if (filenameparts) {

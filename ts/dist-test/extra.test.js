@@ -11,6 +11,7 @@ const node_assert_1 = __importDefault(require("node:assert"));
 const util_1 = require("@voxgig/util");
 const build_1 = require("../dist/build");
 const model_1 = require("../dist/model");
+const model_2 = require("../dist/producer/model");
 const GEN = __dirname + '/../test/_gen';
 function silentLog() {
     return (0, util_1.prettyPino)('test', { debug: 'silent' });
@@ -174,6 +175,84 @@ function okResult(name) {
     });
     // An unresolved import makes aontu throw; the build collects it as an error
     // rather than letting it escape.
+    // Aontu comments are `#` only: makeBuild disables the jsonic defaults for
+    // `//` and `/* */` so the npm engine matches the Go parser. The equivalent
+    // Go test is TestCommentHashOnly in go/extra_test.go.
+    (0, node_test_1.test)('comment-hash-only', async () => {
+        const cases = [
+            ['hash', '# note\na: 1\n', true],
+            ['slash', 'a: 1 // nope\n', false],
+            ['multi', 'a: /* nope */ 1\n', false],
+        ];
+        for (const [name, src, ok] of cases) {
+            const dir = GEN + '/ex-comment-' + name;
+            await (0, promises_1.rm)(dir, { recursive: true, force: true });
+            await (0, promises_1.mkdir)(dir, { recursive: true });
+            await (0, promises_1.writeFile)(dir + '/m.aontu', src);
+            const b = (0, build_1.makeBuild)({
+                fs: node_fs_1.default, base: dir, path: dir + '/m.aontu', res: [],
+            }, silentLog());
+            const v = await b.run({ watch: false });
+            node_assert_1.default.strictEqual(v.ok, ok, name + ' comment: expected ok=' + ok);
+        }
+    });
+    // The model serializer mirrors JSON.stringify for values only a mutating
+    // producer can introduce (aontu sources cannot express them): undefined,
+    // function, and symbol props are dropped; undefined array elements and
+    // sparse holes become null; toJSON results (e.g. Date) are re-serialized
+    // canonically — sorted keys and indentation apply to structured toJSON
+    // output too. Key order stays lexical byte order — numeric-string keys do
+    // not jump ahead. The shared-spec rows in test/spec/output.tsv lock the
+    // aontu-reachable surface; this locks the rest of the TS serializer.
+    (0, node_test_1.test)('model-serializer-mutated-values', async () => {
+        const dir = GEN + '/ex-serializer';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(dir, { recursive: true });
+        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
+        const b = (0, build_1.makeBuild)({
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu',
+            res: [
+                {
+                    path: '/', build: async function mutate(build, ctx) {
+                        if ('post' === ctx.step) {
+                            build.model.gone = undefined;
+                            build.model.helper = () => 1;
+                            build.model.sym = Symbol('x');
+                            build.model.list = [1, undefined, 2];
+                            build.model.sparse = new Array(2);
+                            build.model.when = new Date('2026-01-02T03:04:05.678Z');
+                            build.model.wrap = { toJSON: () => ({ '10': 'ten', '9': 'nine' }) };
+                            build.model['10'] = 'ten';
+                            build.model['9'] = 'nine';
+                        }
+                        return okResult('mutate');
+                    },
+                },
+                { path: '/', build: model_2.model_producer },
+            ],
+        }, silentLog());
+        const v = await b.run({ watch: false });
+        node_assert_1.default.strictEqual(v.ok, true);
+        node_assert_1.default.strictEqual(await (0, promises_1.readFile)(dir + '/m.json', { encoding: 'utf8' }), `{
+  "10": "ten",
+  "9": "nine",
+  "a": 1,
+  "list": [
+    1,
+    null,
+    2
+  ],
+  "sparse": [
+    null,
+    null
+  ],
+  "when": "2026-01-02T03:04:05.678Z",
+  "wrap": {
+    "10": "ten",
+    "9": "nine"
+  }
+}`);
+    });
     (0, node_test_1.test)('unresolved-import-fails', async () => {
         const dir = GEN + '/ex-import';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });

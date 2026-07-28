@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "../dist/tsconfig.tsbuildinfo",
     "esModuleInterop": true,
     "module": "nodenext",
     "noEmitOnError": true,

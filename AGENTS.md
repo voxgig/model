@@ -31,6 +31,7 @@ go/                 Go implementation (parity)
   *_test.go         go test suites
   go.mod  go.sum
 docs/               tutorial / how-to / reference / explanation
+test/spec/          shared TSV parity fixtures, run by BOTH test suites
 Makefile            orchestrates both: `make build`, `make test`
 .github/workflows/  CI (a `ts` job and a `go` job)
 ```
@@ -80,29 +81,39 @@ Go **1.24+** is required (the `aontu/go` dependency declares `go 1.24.7`).
    directory it fails with `TS5083` and silently leaves `dist/` stale — so
    tests then run against old code.
 
-2. **`ts/dist/` and `ts/dist-test/` are committed.** After any source change,
+2. **`src` is a composite project and `test` references it.** The test suites
+   import from `../dist/*`, so `ts/test/tsconfig.json` declares a project
+   reference to `../src` (and `ts/src/tsconfig.json` sets `composite`).
+   Without the reference, a clean build — `npm run reset`, or any
+   `tsc --build src test` with `dist/` absent — fails with `TS2307` on
+   `../dist/*`, because module resolution doesn't see files `src` emits later
+   in the same invocation. The `.tsbuildinfo` files are written into `dist/`
+   and `dist-test/` (gitignored; `npm run clean` removes them with the rest).
+
+3. **`ts/dist/` and `ts/dist-test/` are committed.** After any source change,
    rebuild and commit the regenerated output alongside the `.ts`.
 
-3. **The CLI (`ts/bin/voxgig-model`) is plain JavaScript**, not compiled. It
+4. **The CLI (`ts/bin/voxgig-model`) is plain JavaScript**, not compiled. It
    `require`s `dist/model.js`, so the library must be built.
 
-4. **`aontu` (npm) reads `opts.err`, not `opts.errs`** — collect mode. See
+5. **`aontu` (npm) reads `opts.err`, not `opts.errs`** — collect mode. See
    `ts/src/build.ts: resolveModel`.
 
-5. **Generated test fixtures go in `ts/test/_gen/`** (gitignored). Tests write
+6. **Generated test fixtures go in `ts/test/_gen/`** (gitignored). Tests write
    their own fixtures there at runtime; do not commit them.
 
-6. **`aontu` tracks GitHub `main` via a vendored tarball.** The npm package
-   lives in a monorepo subdir (`rjrodger/aontu` → `ts/`), which npm cannot
-   install from git, and `main` is ahead of the npm release. So
-   `ts/vendor/aontu-<version>.tgz` is committed (whitelisted in `.gitignore`
-   against the global `*.tgz` rule) and referenced as
-   `"aontu": "file:vendor/aontu-<version>.tgz"`. To bump: `git clone` aontu at
-   the target commit, `npm pack` its `ts/`, drop the new `.tgz` in
-   `ts/vendor/` (remove the old one), update the `file:` ref, then
-   `npm install && npm run build && npm test`. aontu's parser is
+7. **`aontu` is a plain npm dependency, pinned exact** (see `ts/package.json`).
+   It was once vendored as a committed `ts/vendor/aontu-<version>.tgz`
+   tarball, because the npm package lives in a monorepo subdir
+   (`rjrodger/aontu` → `ts/`) that npm cannot install from git, and GitHub
+   `main` was ahead of the npm release. The npm release caught up and the
+   vendor mechanism was retired. If npm ever lags `main` again, the fallback
+   is to vendor a tarball: `git clone` aontu at the target commit, `npm pack`
+   its `ts/`, commit the `.tgz` under `ts/vendor/` (whitelist it in
+   `.gitignore` against the global `*.tgz` rule), and reference it as
+   `"aontu": "file:vendor/aontu-<version>.tgz"`. aontu's parser is
    `@tabnas/jsonic`; the CLI bin requires it directly (an explicit dep, since
-   it is no longer hoisted transitively).
+   it is not hoisted transitively).
 
 
 ## The Go port
@@ -129,6 +140,11 @@ semantics match TypeScript. Two things differ by necessity:
 
 Other notes:
 
+- **Comments are `#` only.** The Go aontu parser accepts nothing else, and
+  the npm engine's jsonic defaults for `//` and `/* */` are disabled in
+  `ts/src/build.ts` (`makeBuild`) so both implementations reject the same
+  sources. Locked down by `comment-hash-only` (`ts/test/extra.test.ts`) and
+  `TestCommentHashOnly` (`go/extra_test.go`).
 - **Unification** uses the real Go aontu engine
   (`github.com/rjrodger/aontu/go`). Its `Generate(src)` has no base parameter,
   so `AontuResolver` briefly `chdir`s to the model base (guarded by a mutex)
@@ -136,13 +152,20 @@ Other notes:
   watcher tracks `*.aontu` files (plus legacy `*.aon`/`*.jsonic`) under the
   base directory.
 - **Model JSON output is byte-for-byte identical** across the two
-  implementations. Go's `encoding/json` sorts object keys, so the TypeScript
-  model producer sorts them too (`ts/src/producer/model.ts: sortKeys`); both
+  implementations. Go's `encoding/json` sorts object keys lexically (UTF-8
+  byte order), so the TypeScript model producer imposes the same order during
+  serialization (`ts/src/producer/model.ts: jsonify`). `JSON.stringify`
+  cannot: JS objects iterate integer-like keys ("9", "10") numerically ahead
+  of the rest, and the default JS string sort compares UTF-16 code units,
+  which disagrees with byte order for astral-plane keys. Both
   use a two-space indent and emit HTML characters (`<`, `>`, `&`) literally
   (Go disables `encoding/json`'s HTML escaping in `go/producer.go:
-  marshalModel`). Arrays keep their order. The byte parity is locked down by
-  `ts/test/parity.test.ts` and `go/parity_test.go`, which share one expected
-  string — keep them in step.
+  marshalModel`), and both escape U+2028/U+2029 in strings (Go's
+  `encoding/json` always does; the TS serializer matches it). Arrays keep
+  their order. The byte parity is locked down by
+  the shared specs in `test/spec/*.tsv`, which `ts/test/parity.test.ts` and
+  `go/parity_test.go` both run — add rows there rather than inline
+  expectations, so both languages are covered by one fixture.
 - **`const Version`** lives in `go/model.go`; `make publish-go V=x.y.z`
   rewrites it and tags `go/vx.y.z`.
 - The Go port depends on **`aontu/go` only**; it does not use `util/go` (the
@@ -154,7 +177,10 @@ Other notes:
 
 TypeScript is canonical. When changing behavior:
 
-1. Change TypeScript first, with a test (`ts/test/*.test.ts`).
+1. Change TypeScript first, with a test (`ts/test/*.test.ts`). If the
+   behavior is expressible as aontu source → `model.json` bytes, add a row to
+   the shared `test/spec/*.tsv` fixtures instead — both suites run every row,
+   so one fixture covers both languages.
 2. Apply the equivalent change to Go, with a test (`go/*_test.go`).
 3. Rebuild TypeScript and commit the regenerated `ts/dist/`.
 4. Run both suites (`make test`); keep `gofmt`/`go vet` clean.
@@ -162,6 +188,18 @@ TypeScript is canonical. When changing behavior:
 
 
 ## Writing tests
+
+**Shared specs (`test/spec/*.tsv`):** each row is
+`name <TAB> args <TAB> expected`, with `args` and `expected` JSON-encoded;
+line 0 is the header and `#` lines are comments. For the model specs `args`
+is `[aontuSrc]` and `expected` is the exact `model.json` bytes the build must
+write. Both parity runners (`ts/test/parity.test.ts`, `go/parity_test.go`)
+auto-discover every `.tsv` in the directory. Generate `expected` from the
+TypeScript implementation (canonical) and confirm the row passes the Go suite
+too — a row only belongs here if the two implementations agree on it. Rows
+assert successful builds; error behavior, and values only producer mutation
+can introduce (`undefined`, `toJSON`), are locked by per-language tests
+instead.
 
 **TypeScript:** `node:test` (`describe`/`test`), import from `../dist/...`.
 Runtime fixtures under `ts/test/_gen/<name>/`, created in the test. Watch tests

@@ -1,0 +1,11 @@
+name	args	expected
+# Aontu unification parity: features (merge, conjuncts, defaults, references,
+# spreads) must resolve identically in the npm and Go aontu engines.
+# Aontu comments are `#` only: both engines reject `//` and `/* */` (the npm
+# engine's jsonic defaults for those are disabled in ts/src/build.ts).
+dup-key-map-merge	["a: { x: 1 }\na: { y: 2 }\n"]	"{\n  \"a\": {\n    \"x\": 1,\n    \"y\": 2\n  }\n}"
+comments-ignored	["# hash comment\na: 1\n# another comment\nb: 2\n"]	"{\n  \"a\": 1,\n  \"b\": 2\n}"
+conjunct-same-scalar	["a: 1 & 1\n"]	"{\n  \"a\": 1\n}"
+default-value	["a: number | *3\n"]	"{\n  \"a\": 3\n}"
+reference-path	["a: 1\nb: $.a\n"]	"{\n  \"a\": 1,\n  \"b\": 1\n}"
+spread-merge	["c: { &: { common: true } }\nc: { one: { x: 1 }, two: { y: 2 } }\n"]	"{\n  \"c\": {\n    \"one\": {\n      \"common\": true,\n      \"x\": 1\n    },\n    \"two\": {\n      \"common\": true,\n      \"y\": 2\n    }\n  }\n}"

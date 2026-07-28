@@ -1,5 +1,14 @@
 /* Copyright © 2021-2026 Voxgig Ltd, MIT License. */
 
+// Shared cross-language parity specs (top-level test/spec/*.tsv).
+//
+// Each row is (name, args, expected): args is [aontuSrc] and expected is the
+// exact bytes of the model.json the build must write — object keys sorted,
+// two-space indent, HTML characters literal, no trailing newline. The same
+// fixtures drive the Go suite (go/parity_test.go), so a behavioural drift
+// between the two implementations fails one of them. Spec files are
+// auto-discovered: add a .tsv under test/spec/ and both suites pick it up.
+
 import Fs from 'fs'
 import Path from 'path'
 
@@ -9,78 +18,38 @@ import assert from 'node:assert'
 
 import { prettyPino } from '@voxgig/util'
 
-import type { Build, BuildContext } from '../dist/types'
-
 import { makeBuild } from '../dist/build'
 import { model_producer } from '../dist/producer/model'
 
 
-// The exact bytes both implementations must emit for SRC below. Object keys
-// are sorted alphabetically (a, b, html, list, nested; and a before z inside
-// nested), arrays keep their order ([3,1,2]), the indent is two spaces, and
-// HTML characters are written literally. The identical Go expectation lives in
-// go/parity_test.go — keep the two in step.
-const EXPECTED = `{
-  "a": 1,
-  "b": 2,
-  "html": "<a> & </a>",
-  "list": [
-    3,
-    1,
-    2
-  ],
-  "nested": {
-    "a": "a",
-    "z": "z"
-  }
-}`
+const SPEC_DIR = Path.join(__dirname, '..', '..', 'test', 'spec')
 
-// Source keys are deliberately out of alphabetical (insertion) order so the
-// test fails if the producer ever stops sorting them.
-const SRC = `b: 2
-a: 1
-nested: { z: "z", a: "a" }
-list: [ 3, 1, 2 ]
-html: "<a> & </a>"
-`
+type SpecRow = { name: string, args: any[], expected: any }
 
-
-// A second fixture exercising arrays of objects: each element keeps its
-// position in the array, but the keys *within* each object are sorted, as are
-// the keys of nested objects. HTML characters stay literal. The identical Go
-// expectation lives in go/parity_test.go — keep the two in step.
-const EXPECTED2 = `{
-  "alpha": 1,
-  "beta": {
-    "x": 1,
-    "y": 2
-  },
-  "nums": [
-    30,
-    10,
-    20
-  ],
-  "rows": [
-    {
-      "id": 2,
-      "tag": "b<x"
-    },
-    {
-      "id": 1,
-      "tag": "a&y"
+function loadSpec(file: string): SpecRow[] {
+  const text = Fs.readFileSync(Path.join(SPEC_DIR, file), 'utf8')
+  const rows: SpecRow[] = []
+  const lines = text.split('\n')
+  // Line 0 is the header (name/args/expected).
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i]
+    if ('' === line.trim() || line.startsWith('#')) {
+      continue
     }
-  ]
-}`
-
-const SRC2 = `beta: { y: 2, x: 1 }
-alpha: 1
-rows: [ { id: 2, tag: "b<x" }, { id: 1, tag: "a&y" } ]
-nums: [ 30, 10, 20 ]
-`
+    const t1 = line.indexOf('\t')
+    const t2 = line.indexOf('\t', t1 + 1)
+    rows.push({
+      name: line.slice(0, t1),
+      args: JSON.parse(line.slice(t1 + 1, t2)),
+      expected: JSON.parse(line.slice(t2 + 1)),
+    })
+  }
+  return rows
+}
 
 
 async function buildModelJson(name: string, src: string): Promise<string> {
-  const base = Path.join(__dirname, '..', 'test', '_gen', name)
+  const base = Path.join(__dirname, '..', 'test', '_gen', 'spec', name)
   mkdirSync(base, { recursive: true })
   writeFileSync(Path.join(base, 'model.aontu'), src)
 
@@ -102,13 +71,21 @@ async function buildModelJson(name: string, src: string): Promise<string> {
 
 describe('parity', () => {
 
-  test('model-output-keys-sorted', async () => {
-    assert.strictEqual(await buildModelJson('parity', SRC), EXPECTED)
-  })
+  const files = Fs.readdirSync(SPEC_DIR).filter(f => f.endsWith('.tsv')).sort()
+  assert.ok(0 < files.length, 'no shared spec files in ' + SPEC_DIR)
 
+  for (const file of files) {
+    const group = file.slice(0, -'.tsv'.length)
 
-  test('model-output-array-of-objects', async () => {
-    assert.strictEqual(await buildModelJson('parity2', SRC2), EXPECTED2)
-  })
+    describe(group, () => {
+      for (const row of loadSpec(file)) {
+        test(row.name, async () => {
+          assert.strictEqual(
+            await buildModelJson(group + '-' + row.name, String(row.args[0])),
+            row.expected)
+        })
+      }
+    })
+  }
 
 })
