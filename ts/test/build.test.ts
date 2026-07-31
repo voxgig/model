@@ -180,7 +180,9 @@ const SYS_MODEL =
               "active": false
             },
             "path": {
-              "prefix": "/api/"
+              "prefix": "/api/",
+              "area": "",
+              "suffix": ""
             }
           }
         },
@@ -210,7 +212,9 @@ const SYS_MODEL =
               "active": false
             },
             "path": {
-              "prefix": "/api/"
+              "prefix": "/api/",
+              "area": "",
+              "suffix": ""
             }
           }
         },
@@ -251,7 +255,9 @@ const SYS_MODEL =
                   "active": false
                 },
                 "path": {
-                  "prefix": "/api/"
+                  "prefix": "/api/",
+                  "area": "",
+                  "suffix": ""
                 }
               }
             },
@@ -293,7 +299,9 @@ const SYS_MODEL =
                   "active": false
                 },
                 "path": {
-                  "prefix": "/api/"
+                  "prefix": "/api/",
+                  "area": "",
+                  "suffix": ""
                 }
               }
             },
@@ -323,7 +331,9 @@ const SYS_MODEL =
                   "active": false
                 },
                 "path": {
-                  "prefix": "/api/"
+                  "prefix": "/api/",
+                  "area": "",
+                  "suffix": ""
                 }
               }
             },

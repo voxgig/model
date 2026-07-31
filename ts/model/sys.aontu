@@ -44,7 +44,11 @@ sys: shape: srv: std: $.sys.shape.srv.base & {
     active: *true | boolean
     method: *'POST' | string
     cors: active: *false | boolean
-    path: prefix: '/api/'
+    path: {
+      prefix: '/api/'
+      area: *'' | string
+      suffix: *'' | string
+    }
   }
   env: lambda: {
     active: *false | boolean
