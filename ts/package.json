@@ -19,7 +19,7 @@
     "url": "git://github.com/voxgig/model.git"
   },
   "scripts": {
-    "test": "node --enable-source-maps --test dist-test/**/*.test.js",
+    "test": "node --test --experimental-test-coverage --test-coverage-include='dist/**' --test-coverage-lines=95 --test-coverage-functions=95 --test-coverage-branches=90 \"dist-test/**/*.test.js\"",
     "test-some": "node --enable-source-maps --test-name-pattern=\"$TEST_PATTERN\" --test dist-test/**/*.test.js",
     "test-cov": "rm -rf ./coverage && mkdir -p ./coverage && node --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info --enable-source-maps --test \"dist-test/*.test.js\"",
     "watch": "tsc --build src test -w",
@@ -41,7 +41,8 @@
     "repo-stage-publish": "aql vault exec --for=npm vxg:pub01 -- npm stage publish --registry https://registry.npmjs.org --access=public",
     "repo-stage-list": "aql vault exec --for=npm vxg:pub01 -- npm stage list",
     "repo-stage-approve": "aql vault exec --for=npm vxg:pub01 -- npm stage approve",
-    "repo-stage-reject": "aql vault exec --for=npm vxg:pub01 -- npm stage reject"
+    "repo-stage-reject": "aql vault exec --for=npm vxg:pub01 -- npm stage reject",
+    "test-debug": "node --enable-source-maps --test \"dist-test/**/*.test.js\""
   },
   "license": "MIT",
   "files": [
