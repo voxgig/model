@@ -53,10 +53,21 @@ make           # all: build then test
 cd ts
 npm install
 npm run build              # tsc --build src test  -> dist/ and dist-test/
-npm test                   # node --test dist-test/**/*.test.js
+npm test                   # node --test + coverage gate (see below)
+npm run test-debug         # same tests with --enable-source-maps
 TEST_PATTERN=watch npm run test-some
-npm run test-cov
+npm run test-cov           # lcov report
 ```
+
+`npm test` enforces a **coverage gate** on the package's own emitted code:
+`--test-coverage-include='dist/**'` with minimums of 95% lines, 95%
+functions and 90% branches.
+
+**Gotcha:** `--test-coverage-include`/`--exclude` match the *reported*
+paths, which `--enable-source-maps` rewrites to `src/*.ts`. Source maps
+must therefore stay OFF in the coverage run — with them on, `dist/**`
+matches nothing and coverage silently reports a meaningless **100%**.
+Use `npm run test-debug` when you want mapped stack traces.
 
 **You must `npm run build` before `npm test`** — tests run against compiled
 output in `dist-test/` and import the library from `dist/`.
