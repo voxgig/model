@@ -1,0 +1,54 @@
+# Publishes @voxgig/model to npm on a `v*` tag push, via GitHub OIDC
+# Trusted Publishing — no NPM_TOKEN secret. The `id-token: write`
+# permission lets npm exchange a GitHub OIDC token for a short-lived
+# publish credential, and provenance is attached automatically.
+#
+# The trusted publisher must be registered on npmjs.com for
+# voxgig/model against THIS filename (publish.yml); renaming this file
+# breaks publishing until the npm-side config is updated to match.
+#
+# The npm package lives in ts/ (ts/ and go/ are self-contained
+# per-language projects), so all steps run there.
+#
+# Release flow: bump ts/package.json, merge to main, then push a v* tag.
+# Do NOT run `npm run repo-publish` locally — it publishes over a token
+# and bypasses OIDC entirely.
+
+name: publish
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: npm publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: ts
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing requires npm >= 11.5.1.
+      - name: Use a trusted-publishing capable npm
+        run: npm install -g npm@latest
+
+      # npm i, not npm ci: package-lock.json is gitignored in this repo.
+      - run: npm i
+      - run: npm run build
+      - run: npm test
+
+      - name: Publish to npm
+        run: npm publish --access public
