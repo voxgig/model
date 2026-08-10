@@ -39,8 +39,10 @@ publish-go: vet-go test-go
 	@test -n "$(V)" || (echo "Usage: make publish-go V=x.y.z" && exit 1)
 	# Portable in-place edit: GNU sed wants `-i`, BSD/macOS sed `-i ''`.
 	# A temp file plus mv sidesteps the difference.
-	sed 's/^const Version = ".*"/const Version = "$(V)"/' go/model.go > go/model.go.tmp \
+	sed 's/^const VERSION = ".*"/const VERSION = "$(V)"/' go/model.go > go/model.go.tmp \
 		&& mv go/model.go.tmp go/model.go
+	@grep -q '^const VERSION = "$(V)"' go/model.go || \
+	  (echo "publish-go: failed to set VERSION in go/model.go" && exit 1)
 	git add go/model.go
 	git commit -m "go: v$(V)"
 	git tag go/v$(V)
