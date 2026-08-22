@@ -31,9 +31,9 @@ async function fresh(name) {
     // rather than escaping the build.
     (0, node_test_1.test)('generate-throw-becomes-build-error', async () => {
         const dir = await fresh('cv-gen-throw');
-        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu', res: [],
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aon', res: [],
         }, silentLog());
         b.aontu = {
             generate() {
@@ -50,15 +50,15 @@ async function fresh(name) {
         const dir = await fresh('cv-canon');
         const sub = node_path_1.default.join(dir, 'sub');
         await (0, promises_1.mkdir)(sub, { recursive: true });
-        await (0, promises_1.writeFile)(node_path_1.default.join(sub, 'a.aontu'), 'a: 1\n');
+        await (0, promises_1.writeFile)(node_path_1.default.join(sub, 'a.aon'), 'a: 1\n');
         const w = new watch_1.Watch({ fs: node_fs_1.default, require: dir }, silentLog());
         w.build = { run: async () => ({ ok: true, errs: [], runlog: [] }) };
         try {
             await w.add(sub);
             // A file inside the watched folder canonicalises to the folder.
-            node_assert_1.default.strictEqual(w.canon(node_path_1.default.join(sub, 'a.aontu')), sub);
+            node_assert_1.default.strictEqual(w.canon(node_path_1.default.join(sub, 'a.aon')), sub);
             // An unrelated path is returned unchanged.
-            const other = node_path_1.default.join(dir, 'other.aontu');
+            const other = node_path_1.default.join(dir, 'other.aon');
             node_assert_1.default.strictEqual(w.canon(other), other);
         }
         finally {
@@ -70,7 +70,7 @@ async function fresh(name) {
         const w = new watch_1.Watch({ fs: node_fs_1.default, require: dir }, silentLog());
         w.build = { run: async () => ({ ok: true, errs: [], runlog: [] }) };
         try {
-            const p = node_path_1.default.join(dir, 'x.aontu');
+            const p = node_path_1.default.join(dir, 'x.aon');
             w.handleChange(p);
             node_assert_1.default.strictEqual(w.lastChange.path, p);
             node_assert_1.default.ok(0 < w.lastChange.when);
@@ -81,16 +81,16 @@ async function fresh(name) {
     });
     (0, node_test_1.test)('add resolves a relative path and ignores duplicates', async () => {
         const dir = await fresh('cv-add');
-        await (0, promises_1.writeFile)(node_path_1.default.join(dir, 'r.aontu'), 'a: 1\n');
+        await (0, promises_1.writeFile)(node_path_1.default.join(dir, 'r.aon'), 'a: 1\n');
         const w = new watch_1.Watch({ fs: node_fs_1.default, require: dir }, silentLog());
         w.build = { run: async () => ({ ok: true, errs: [], runlog: [] }) };
         try {
-            await w.add('r.aontu');
+            await w.add('r.aon');
             const first = w.canonPaths.size;
             // The same path again is a no-op.
-            await w.add('r.aontu');
+            await w.add('r.aon');
             node_assert_1.default.strictEqual(w.canonPaths.size, first);
-            node_assert_1.default.ok(w.canonPaths.has(node_path_1.default.join(dir, 'r.aontu')));
+            node_assert_1.default.ok(w.canonPaths.has(node_path_1.default.join(dir, 'r.aon')));
         }
         finally {
             await w.stop();
@@ -119,11 +119,11 @@ async function fresh(name) {
     // straight to the watcher, no .model-config build.
     (0, node_test_1.test)('start without config uses the watcher directly', async () => {
         const dir = await fresh('cv-model-noconfig');
-        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
         const model = new model_1.Model({
             fs: node_fs_1.default,
             base: dir,
-            path: dir + '/m.aontu',
+            path: dir + '/m.aon',
             config: false,
             debug: 'silent',
             watch: false,
@@ -148,11 +148,11 @@ async function fresh(name) {
     // The debug branch in the constructor logs the resolved spec.
     (0, node_test_1.test)('debug logging of the model spec', async () => {
         const dir = await fresh('cv-model-debug');
-        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
         const model = new model_1.Model({
             fs: node_fs_1.default,
             base: dir,
-            path: dir + '/m.aontu',
+            path: dir + '/m.aon',
             config: false,
             debug: 'debug',
             watch: false,
@@ -168,11 +168,11 @@ async function fresh(name) {
     // and never reaches the watcher.
     (0, node_test_1.test)('start returns a failed config build', async () => {
         const dir = await fresh('cv-model-badconfig');
-        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
         const model = new model_1.Model({
             fs: node_fs_1.default,
             base: dir,
-            path: dir + '/m.aontu',
+            path: dir + '/m.aon',
             debug: 'silent',
             watch: false,
         });
@@ -193,22 +193,22 @@ async function fresh(name) {
     // added to the watcher.
     (0, node_test_1.test)('sys.model.watch files are added to the watcher', async () => {
         const dir = await fresh('cv-model-watchmap');
-        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
-        await (0, promises_1.writeFile)(dir + '/extra.aontu', 'b: 2\n');
+        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/extra.aon', 'b: 2\n');
         // The watchmap is read from the CONFIG model, so declare it there.
         await (0, promises_1.mkdir)(dir + '/.model-config', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/.model-config/model-config.aontu', `
-@"@voxgig/model/model/.model-config/model-config.aontu"
+        await (0, promises_1.writeFile)(dir + '/.model-config/model-config.aon', `
+@"@voxgig/model/model/.model-config/model-config.aon"
 
 sys: model: action: {}
-sys: model: watch: { "${dir}/extra.aontu": true }
+sys: model: watch: { "${dir}/extra.aon": true }
 `);
         // The watchmap is applied by the CONFIG build's producer, so config
         // stays enabled here.
         const model = new model_1.Model({
             fs: node_fs_1.default,
             base: dir,
-            path: dir + '/m.aontu',
+            path: dir + '/m.aon',
             debug: 'silent',
             watch: true,
         });
@@ -224,7 +224,7 @@ sys: model: watch: { "${dir}/extra.aontu": true }
             model.watch.start = async () => ({ ok: true, errs: [], runlog: [] });
             model.config.start = () => undefined;
             await model.start();
-            node_assert_1.default.ok(added.some((p) => p.includes('extra.aontu')));
+            node_assert_1.default.ok(added.some((p) => p.includes('extra.aon')));
         }
         finally {
             await model.stop();

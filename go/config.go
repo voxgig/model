@@ -2,7 +2,10 @@
 
 package model
 
-import "path/filepath"
+import (
+	"os"
+	"path/filepath"
+)
 
 // configStub is written when a model has no config file yet. It is
 // self-contained (no package import) so it resolves with the Go aontu engine,
@@ -17,7 +20,7 @@ const configStub = "# Model configuration. Declare build actions and their order
 	"sys: model: action: {}\n" +
 	"sys: model: order: action: *''\n"
 
-// Config is the build for a model's .model-config/model-config.aontu. It
+// Config is the build for a model's .model-config/model-config.aon. It
 // mirrors the TypeScript Config: it resolves the config model, writes
 // model-config.json, and is the source of the action order. The file is
 // auto-created from configStub when missing.
@@ -29,7 +32,21 @@ type Config struct {
 // newConfig sets up (and bootstraps) the config build for a model base.
 func newConfig(base string, spec ModelSpec, log Log) *Config {
 	cbase := filepath.Join(base, ".model-config")
-	cpath := filepath.Join(cbase, "model-config.aontu")
+	cpath := filepath.Join(cbase, "model-config.aon")
+
+	// MIGRATE A LEGACY .aontu CONFIG. ensureConfigFile below WRITES a default
+	// stub when it finds no config, so looking only for `.aon` in a project
+	// that has a `model-config.aontu` would not read the old file — it would
+	// decide there is none and write a fresh default beside it, silently
+	// discarding whatever the project declared. Rename it instead, once.
+	legacy := filepath.Join(cbase, "model-config.aontu")
+	if _, err := os.Stat(cpath); os.IsNotExist(err) {
+		if src, rerr := os.ReadFile(legacy); rerr == nil {
+			if werr := os.WriteFile(cpath, src, 0o644); werr == nil {
+				_ = os.Remove(legacy)
+			}
+		}
+	}
 
 	cb := NewBuild(BuildSpec{
 		Name:     "config",

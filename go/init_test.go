@@ -20,8 +20,8 @@ func TestInitScaffolds(t *testing.T) {
 		t.Fatalf("created=%v skipped=%v", created, skipped)
 	}
 	for _, p := range []string{
-		filepath.Join(dir, "model", "model.aontu"),
-		filepath.Join(dir, "model", ".model-config", "model-config.aontu"),
+		filepath.Join(dir, "model", "model.aon"),
+		filepath.Join(dir, "model", ".model-config", "model-config.aon"),
 	} {
 		if _, err := os.Stat(p); err != nil {
 			t.Fatalf("expected %s to exist: %v", p, err)
@@ -44,7 +44,7 @@ func TestInitThenBuild(t *testing.T) {
 		t.Fatal(err)
 	}
 	m := New(ModelSpec{
-		Path: filepath.Join(dir, "model", "model.aontu"),
+		Path: filepath.Join(dir, "model", "model.aon"),
 		Base: filepath.Join(dir, "model"),
 	})
 	if br := m.Run(); !br.OK {

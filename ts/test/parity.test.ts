@@ -51,14 +51,14 @@ function loadSpec(file: string): SpecRow[] {
 async function buildModelJson(name: string, src: string): Promise<string> {
   const base = Path.join(__dirname, '..', 'test', '_gen', 'spec', name)
   mkdirSync(base, { recursive: true })
-  writeFileSync(Path.join(base, 'model.aontu'), src)
+  writeFileSync(Path.join(base, 'model.aon'), src)
 
   const log = prettyPino('test', {})
 
   const b = makeBuild({
     fs: Fs,
     base,
-    path: Path.join(base, 'model.aontu'),
+    path: Path.join(base, 'model.aon'),
     res: [{ path: '/', build: model_producer }],
   }, log)
 

@@ -37,10 +37,10 @@ describe('cover-build', () => {
   // rather than escaping the build.
   test('generate-throw-becomes-build-error', async () => {
     const dir = await fresh('cv-gen-throw')
-    await writeFile(dir + '/m.aontu', 'a: 1\n')
+    await writeFile(dir + '/m.aon', 'a: 1\n')
 
     const b: any = makeBuild({
-      fs: Fs, base: dir, path: dir + '/m.aontu', res: [],
+      fs: Fs, base: dir, path: dir + '/m.aon', res: [],
     }, silentLog())
 
     b.aontu = {
@@ -62,7 +62,7 @@ describe('cover-watch', () => {
     const dir = await fresh('cv-canon')
     const sub = Path.join(dir, 'sub')
     await mkdir(sub, { recursive: true })
-    await writeFile(Path.join(sub, 'a.aontu'), 'a: 1\n')
+    await writeFile(Path.join(sub, 'a.aon'), 'a: 1\n')
 
     const w: any = new Watch({ fs: Fs, require: dir } as any, silentLog())
     w.build = { run: async () => ({ ok: true, errs: [], runlog: [] }) }
@@ -71,9 +71,9 @@ describe('cover-watch', () => {
       await w.add(sub)
 
       // A file inside the watched folder canonicalises to the folder.
-      assert.strictEqual(w.canon(Path.join(sub, 'a.aontu')), sub)
+      assert.strictEqual(w.canon(Path.join(sub, 'a.aon')), sub)
       // An unrelated path is returned unchanged.
-      const other = Path.join(dir, 'other.aontu')
+      const other = Path.join(dir, 'other.aon')
       assert.strictEqual(w.canon(other), other)
     }
     finally {
@@ -87,7 +87,7 @@ describe('cover-watch', () => {
     w.build = { run: async () => ({ ok: true, errs: [], runlog: [] }) }
 
     try {
-      const p = Path.join(dir, 'x.aontu')
+      const p = Path.join(dir, 'x.aon')
       w.handleChange(p)
       assert.strictEqual(w.lastChange.path, p)
       assert.ok(0 < w.lastChange.when)
@@ -99,18 +99,18 @@ describe('cover-watch', () => {
 
   test('add resolves a relative path and ignores duplicates', async () => {
     const dir = await fresh('cv-add')
-    await writeFile(Path.join(dir, 'r.aontu'), 'a: 1\n')
+    await writeFile(Path.join(dir, 'r.aon'), 'a: 1\n')
 
     const w: any = new Watch({ fs: Fs, require: dir } as any, silentLog())
     w.build = { run: async () => ({ ok: true, errs: [], runlog: [] }) }
 
     try {
-      await w.add('r.aontu')
+      await w.add('r.aon')
       const first = w.canonPaths.size
       // The same path again is a no-op.
-      await w.add('r.aontu')
+      await w.add('r.aon')
       assert.strictEqual(w.canonPaths.size, first)
-      assert.ok(w.canonPaths.has(Path.join(dir, 'r.aontu')))
+      assert.ok(w.canonPaths.has(Path.join(dir, 'r.aon')))
     }
     finally {
       await w.stop()
@@ -144,12 +144,12 @@ describe('cover-model', () => {
   // straight to the watcher, no .model-config build.
   test('start without config uses the watcher directly', async () => {
     const dir = await fresh('cv-model-noconfig')
-    await writeFile(dir + '/m.aontu', 'a: 1\n')
+    await writeFile(dir + '/m.aon', 'a: 1\n')
 
     const model: any = new Model({
       fs: Fs,
       base: dir,
-      path: dir + '/m.aontu',
+      path: dir + '/m.aon',
       config: false,
       debug: 'silent',
       watch: false,
@@ -180,12 +180,12 @@ describe('cover-model-more', () => {
   // The debug branch in the constructor logs the resolved spec.
   test('debug logging of the model spec', async () => {
     const dir = await fresh('cv-model-debug')
-    await writeFile(dir + '/m.aontu', 'a: 1\n')
+    await writeFile(dir + '/m.aon', 'a: 1\n')
 
     const model: any = new Model({
       fs: Fs,
       base: dir,
-      path: dir + '/m.aontu',
+      path: dir + '/m.aon',
       config: false,
       debug: 'debug',
       watch: false,
@@ -203,12 +203,12 @@ describe('cover-model-more', () => {
   // and never reaches the watcher.
   test('start returns a failed config build', async () => {
     const dir = await fresh('cv-model-badconfig')
-    await writeFile(dir + '/m.aontu', 'a: 1\n')
+    await writeFile(dir + '/m.aon', 'a: 1\n')
 
     const model: any = new Model({
       fs: Fs,
       base: dir,
-      path: dir + '/m.aontu',
+      path: dir + '/m.aon',
       debug: 'silent',
       watch: false,
     } as any)
@@ -232,16 +232,16 @@ describe('cover-model-more', () => {
   // added to the watcher.
   test('sys.model.watch files are added to the watcher', async () => {
     const dir = await fresh('cv-model-watchmap')
-    await writeFile(dir + '/m.aontu', 'a: 1\n')
-    await writeFile(dir + '/extra.aontu', 'b: 2\n')
+    await writeFile(dir + '/m.aon', 'a: 1\n')
+    await writeFile(dir + '/extra.aon', 'b: 2\n')
 
     // The watchmap is read from the CONFIG model, so declare it there.
     await mkdir(dir + '/.model-config', { recursive: true })
-    await writeFile(dir + '/.model-config/model-config.aontu', `
-@"@voxgig/model/model/.model-config/model-config.aontu"
+    await writeFile(dir + '/.model-config/model-config.aon', `
+@"@voxgig/model/model/.model-config/model-config.aon"
 
 sys: model: action: {}
-sys: model: watch: { "${dir}/extra.aontu": true }
+sys: model: watch: { "${dir}/extra.aon": true }
 `)
 
     // The watchmap is applied by the CONFIG build's producer, so config
@@ -249,7 +249,7 @@ sys: model: watch: { "${dir}/extra.aontu": true }
     const model: any = new Model({
       fs: Fs,
       base: dir,
-      path: dir + '/m.aontu',
+      path: dir + '/m.aon',
       debug: 'silent',
       watch: true,
     } as any)
@@ -268,7 +268,7 @@ sys: model: watch: { "${dir}/extra.aontu": true }
       model.config.start = () => undefined
 
       await model.start()
-      assert.ok(added.some((p) => p.includes('extra.aontu')))
+      assert.ok(added.some((p) => p.includes('extra.aon')))
     }
     finally {
       await model.stop()

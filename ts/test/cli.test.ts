@@ -20,8 +20,8 @@ describe('cli', () => {
     await mkdir(dir + '/model/.model-config', { recursive: true })
     await mkdir(dir + '/build', { recursive: true })
 
-    await writeFile(dir + '/model/model.aontu', 'top: 1\n')
-    await writeFile(dir + '/model/.model-config/model-config.aontu',
+    await writeFile(dir + '/model/model.aon', 'top: 1\n')
+    await writeFile(dir + '/model/.model-config/model-config.aon',
       "sys: model: action: { recordargs: load: 'build/recordargs' }\n")
     await writeFile(dir + '/build/recordargs.js',
       "const Path = require('node:path')\n" +
@@ -38,7 +38,7 @@ describe('cli', () => {
     // No shell: args array avoids cross-platform quoting issues. Barewords
     // keep the jsonic free of embedded quotes.
     const res = spawnSync(process.execPath,
-      [BIN, dir + '/model/model.aontu', '-b', '{outer:{inner:VAL}}'],
+      [BIN, dir + '/model/model.aon', '-b', '{outer:{inner:VAL}}'],
       { encoding: 'utf8' })
 
     assert.strictEqual(res.status, 0,
@@ -56,10 +56,10 @@ describe('cli', () => {
     const dir = GEN + '/cli-noconfig'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir + '/model', { recursive: true })
-    await writeFile(dir + '/model/model.aontu', 'top: 1\n')
+    await writeFile(dir + '/model/model.aon', 'top: 1\n')
 
     const res = spawnSync(process.execPath,
-      [BIN, dir + '/model/model.aontu', '--no-config', '-g', 'silent'],
+      [BIN, dir + '/model/model.aon', '--no-config', '-g', 'silent'],
       { encoding: 'utf8' })
 
     assert.strictEqual(res.status, 0,
@@ -75,7 +75,7 @@ describe('cli', () => {
   // stack trace.
   test('missing-file-exits-nonzero', async () => {
     const res = spawnSync(process.execPath,
-      [BIN, GEN + '/cli-nope/does-not-exist.aontu', '-g', 'silent'],
+      [BIN, GEN + '/cli-nope/does-not-exist.aon', '-g', 'silent'],
       { encoding: 'utf8' })
 
     assert.notStrictEqual(res.status, 0, 'missing file should exit non-zero')
@@ -98,10 +98,10 @@ describe('cli', () => {
     const dir = GEN + '/cli-bad'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir + '/model', { recursive: true })
-    await writeFile(dir + '/model/model.aontu', 'x: 1\nx: 2\n')
+    await writeFile(dir + '/model/model.aon', 'x: 1\nx: 2\n')
 
     const res = spawnSync(process.execPath,
-      [BIN, dir + '/model/model.aontu', '--no-config', '-g', 'silent'],
+      [BIN, dir + '/model/model.aon', '--no-config', '-g', 'silent'],
       { encoding: 'utf8' })
 
     assert.notStrictEqual(res.status, 0, 'invalid model should exit non-zero')

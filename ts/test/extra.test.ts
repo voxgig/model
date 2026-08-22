@@ -32,10 +32,10 @@ describe('extra', () => {
     const dir = GEN + '/ex-pre'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
-    await writeFile(dir + '/m.aontu', 'a: 1\n')
+    await writeFile(dir + '/m.aon', 'a: 1\n')
 
     const b = makeBuild({
-      fs: Fs, base: dir, path: dir + '/m.aontu',
+      fs: Fs, base: dir, path: dir + '/m.aon',
       res: [{
         path: '/', build: async function boom(_build: Build, ctx: BuildContext) {
           if ('pre' === ctx.step) { throw new Error('pre-boom') }
@@ -55,10 +55,10 @@ describe('extra', () => {
     const dir = GEN + '/ex-post'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
-    await writeFile(dir + '/m.aontu', 'a: 1\n')
+    await writeFile(dir + '/m.aon', 'a: 1\n')
 
     const b = makeBuild({
-      fs: Fs, base: dir, path: dir + '/m.aontu',
+      fs: Fs, base: dir, path: dir + '/m.aon',
       res: [{
         path: '/', build: async function boom(_build: Build, ctx: BuildContext) {
           if ('post' === ctx.step) { throw new Error('post-boom') }
@@ -76,7 +76,7 @@ describe('extra', () => {
   // A missing root file fails the build with the read error.
   test('missing-root-file', async () => {
     const b = makeBuild({
-      fs: Fs, base: GEN, path: GEN + '/does-not-exist.aontu', res: [],
+      fs: Fs, base: GEN, path: GEN + '/does-not-exist.aon', res: [],
     }, silentLog())
 
     const v = await b.run({ watch: false })
@@ -93,8 +93,8 @@ describe('extra', () => {
     await mkdir(dir + '/model/.model-config', { recursive: true })
     await mkdir(dir + '/build', { recursive: true })
 
-    await writeFile(dir + '/model/m.aontu', 'a: 1\n')
-    await writeFile(dir + '/model/.model-config/model-config.aontu',
+    await writeFile(dir + '/model/m.aon', 'a: 1\n')
+    await writeFile(dir + '/model/.model-config/model-config.aon',
       "sys: model: action: { p: load: 'build/p' }\n")
     await writeFile(dir + '/build/p.js',
       "const Path = require('node:path')\n" +
@@ -105,7 +105,7 @@ describe('extra', () => {
       '})\n')
 
     const model = new Model({
-      path: dir + '/model/m.aontu', base: dir + '/model', debug: 'silent',
+      path: dir + '/model/m.aon', base: dir + '/model', debug: 'silent',
     })
     const br = await model.run()
 
@@ -119,10 +119,10 @@ describe('extra', () => {
     const dir = GEN + '/ex-nokpre'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
-    await writeFile(dir + '/m.aontu', 'a: 1\n')
+    await writeFile(dir + '/m.aon', 'a: 1\n')
 
     const b = makeBuild({
-      fs: Fs, base: dir, path: dir + '/m.aontu',
+      fs: Fs, base: dir, path: dir + '/m.aon',
       res: [{
         path: '/', build: async function bad(_build: Build, ctx: BuildContext) {
           return {
@@ -143,10 +143,10 @@ describe('extra', () => {
     const dir = GEN + '/ex-nokpost'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
-    await writeFile(dir + '/m.aontu', 'a: 1\n')
+    await writeFile(dir + '/m.aon', 'a: 1\n')
 
     const b = makeBuild({
-      fs: Fs, base: dir, path: dir + '/m.aontu',
+      fs: Fs, base: dir, path: dir + '/m.aon',
       res: [{
         path: '/', build: async function bad(_build: Build, ctx: BuildContext) {
           return {
@@ -168,10 +168,10 @@ describe('extra', () => {
     const dir = GEN + '/ex-noconfig'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir + '/model', { recursive: true })
-    await writeFile(dir + '/model/m.aontu', 'a: 1\n')
+    await writeFile(dir + '/model/m.aon', 'a: 1\n')
 
     const model = new Model({
-      path: dir + '/model/m.aontu', base: dir + '/model', debug: 'silent',
+      path: dir + '/model/m.aon', base: dir + '/model', debug: 'silent',
       config: false,
     })
     const br = await model.run()
@@ -191,8 +191,8 @@ describe('extra', () => {
     await mkdir(dir + '/model/.model-config', { recursive: true })
     await mkdir(dir + '/build', { recursive: true })
 
-    await writeFile(dir + '/model/m.aontu', 'a: 1\n')
-    await writeFile(dir + '/model/.model-config/model-config.aontu',
+    await writeFile(dir + '/model/m.aon', 'a: 1\n')
+    await writeFile(dir + '/model/.model-config/model-config.aon',
       "sys: model: action: { p: load: 'build/p' }\n")
     await writeFile(dir + '/build/p.js',
       "const Path = require('node:path')\n" +
@@ -203,7 +203,7 @@ describe('extra', () => {
       '}\n')
 
     const model = new Model({
-      path: dir + '/model/m.aontu', base: dir + '/model', debug: 'silent',
+      path: dir + '/model/m.aon', base: dir + '/model', debug: 'silent',
       config: false,
     })
     const br = await model.run()
@@ -230,10 +230,10 @@ describe('extra', () => {
       const dir = GEN + '/ex-comment-' + name
       await rm(dir, { recursive: true, force: true })
       await mkdir(dir, { recursive: true })
-      await writeFile(dir + '/m.aontu', src)
+      await writeFile(dir + '/m.aon', src)
 
       const b = makeBuild({
-        fs: Fs, base: dir, path: dir + '/m.aontu', res: [],
+        fs: Fs, base: dir, path: dir + '/m.aon', res: [],
       }, silentLog())
 
       const v = await b.run({ watch: false })
@@ -254,10 +254,10 @@ describe('extra', () => {
     const dir = GEN + '/ex-serializer'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
-    await writeFile(dir + '/m.aontu', 'a: 1\n')
+    await writeFile(dir + '/m.aon', 'a: 1\n')
 
     const b = makeBuild({
-      fs: Fs, base: dir, path: dir + '/m.aontu',
+      fs: Fs, base: dir, path: dir + '/m.aon',
       res: [
         {
           path: '/', build: async function mutate(build: Build, ctx: BuildContext) {
@@ -307,10 +307,10 @@ describe('extra', () => {
     const dir = GEN + '/ex-import'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
-    await writeFile(dir + '/m.aontu', 'top: @"./missing.aontu"\n')
+    await writeFile(dir + '/m.aon', 'top: @"./missing.aon"\n')
 
     const b = makeBuild({
-      fs: Fs, base: dir, path: dir + '/m.aontu', res: [],
+      fs: Fs, base: dir, path: dir + '/m.aon', res: [],
     }, silentLog())
 
     const v = await b.run({ watch: false })

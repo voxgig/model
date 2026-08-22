@@ -168,11 +168,24 @@ class Model {
 exports.Model = Model;
 function makeConfig(mspec, log, fs, trigger_model_build) {
     let cbase = mspec.base + '/.model-config';
-    let cpath = cbase + '/model-config.aontu';
+    let cpath = cbase + '/model-config.aon';
+    // MIGRATE A LEGACY .aontu CONFIG RATHER THAN WRITING OVER IT. This block
+    // CREATES the config when it finds none, so looking only for `.aon` in a
+    // project that has a `model-config.aontu` would not read the old file — it
+    // would decide there is no config and write a fresh default beside it,
+    // silently discarding whatever the project had declared there.
+    const legacycpath = cbase + '/model-config.aontu';
+    if (!fs.existsSync(cpath) && fs.existsSync(legacycpath)) {
+        fs.writeFileSync(cpath, fs.readFileSync(legacycpath));
+        try {
+            fs.unlinkSync(legacycpath);
+        }
+        catch (_err) { }
+    }
     if (!fs.existsSync(cpath)) {
         fs.mkdirSync(cbase, { recursive: true });
         fs.writeFileSync(cpath, `
-@"@voxgig/model/model/.model-config/model-config.aontu"
+@"@voxgig/model/model/.model-config/model-config.aon"
 
 sys: model: action: {}
 `);

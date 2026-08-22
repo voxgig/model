@@ -4,9 +4,9 @@ import Path from 'node:path'
 
 
 const STARTER_MODEL = `# Voxgig model. Edit this file, then build it:
-#   voxgig-model model/model.aontu
+#   voxgig-model model/model.aon
 #
-# Models are unified .aontu - add types, defaults, references, imports.
+# Models are unified .aon - add types, defaults, references, imports.
 # Tutorial: https://github.com/voxgig/model/blob/main/docs/tutorial.md
 
 name: 'my-model'
@@ -35,8 +35,8 @@ type InitResult = {
 function initModel(dir: string, fs: any): InitResult {
   const d = dir || '.'
   const files: [string, string][] = [
-    [Path.join(d, 'model', 'model.aontu'), STARTER_MODEL],
-    [Path.join(d, 'model', '.model-config', 'model-config.aontu'), STARTER_CONFIG],
+    [Path.join(d, 'model', 'model.aon'), STARTER_MODEL],
+    [Path.join(d, 'model', '.model-config', 'model-config.aon'), STARTER_CONFIG],
   ]
 
   const created: string[] = []

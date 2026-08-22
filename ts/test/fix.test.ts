@@ -24,7 +24,7 @@ describe('fix', () => {
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
 
-    const path = dir + '/model.aontu'
+    const path = dir + '/model.aon'
     const log = prettyPino('test', {})
 
     // Conflicting scalar values do not unify -> a collected model error.
@@ -54,15 +54,15 @@ describe('fix', () => {
     await mkdir(dir + '/model/.model-config', { recursive: true })
     await mkdir(dir + '/build', { recursive: true })
 
-    await writeFile(dir + '/model/model.aontu', 'top: 1\n')
-    await writeFile(dir + '/model/.model-config/model-config.aontu',
+    await writeFile(dir + '/model/model.aon', 'top: 1\n')
+    await writeFile(dir + '/model/.model-config/model-config.aon',
       "sys: model: action: { real: load: 'build/real' }\n" +
       "sys: model: order: action: 'real,ghost'\n")
     await writeFile(dir + '/build/real.js',
       'module.exports = async () => ({ ok: true })\n')
 
     const model = new Model({
-      path: dir + '/model/model.aontu',
+      path: dir + '/model/model.aon',
       base: dir + '/model',
       // The build deliberately errors; silence the expected log noise.
       debug: 'silent',
@@ -81,13 +81,13 @@ describe('fix', () => {
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir + '/model/.model-config', { recursive: true })
 
-    await writeFile(dir + '/model/model.aontu', 'top: 1\n')
-    await writeFile(dir + '/model/.model-config/model-config.aontu',
+    await writeFile(dir + '/model/model.aon', 'top: 1\n')
+    await writeFile(dir + '/model/.model-config/model-config.aon',
       'sys: model: action: { noload: {} }\n' +
       "sys: model: order: action: 'noload'\n")
 
     const model = new Model({
-      path: dir + '/model/model.aontu',
+      path: dir + '/model/model.aon',
       base: dir + '/model',
       debug: 'silent',
     })
@@ -107,14 +107,14 @@ describe('fix', () => {
     await mkdir(dir + '/model/.model-config', { recursive: true })
     await mkdir(dir + '/build', { recursive: true })
 
-    await writeFile(dir + '/model/model.aontu', 'top: 1\n')
-    await writeFile(dir + '/model/.model-config/model-config.aontu',
+    await writeFile(dir + '/model/model.aon', 'top: 1\n')
+    await writeFile(dir + '/model/.model-config/model-config.aon',
       "sys: model: action: { boom: load: 'build/boom' }\n")
     await writeFile(dir + '/build/boom.js',
       "module.exports = async () => { throw new Error('boom-action') }\n")
 
     const model = new Model({
-      path: dir + '/model/model.aontu',
+      path: dir + '/model/model.aon',
       base: dir + '/model',
       debug: 'silent',
     })
@@ -134,7 +134,7 @@ describe('fix', () => {
     await mkdir(dir, { recursive: true })
 
     const model: any = new Model({
-      path: dir + '/model.aontu',
+      path: dir + '/model.aon',
       base: dir,
       dryrun: true,
     })

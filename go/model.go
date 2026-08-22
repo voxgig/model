@@ -1,6 +1,6 @@
 /* Copyright © 2021-2026 Voxgig Ltd, MIT License. */
 
-// Package model is a Go port of @voxgig/model. It unifies .aontu source
+// Package model is a Go port of @voxgig/model. It unifies .aon source
 // into a single model (via the aontu engine) and runs generator "actions"
 // over it, once or in a rebuild-on-change watch loop.
 //
@@ -25,9 +25,9 @@ const VERSION = "0.1.7"
 // DefaultIdle is the default watch debounce period.
 const DefaultIdle = 111 * time.Millisecond
 
-// Model unifies a .aontu model and runs producers (the model writer and any
+// Model unifies a .aon model and runs producers (the model writer and any
 // registered actions) over it. It can build once or watch and rebuild, and
-// optionally resolves a .model-config/model-config.aontu config (auto-created
+// optionally resolves a .model-config/model-config.aon config (auto-created
 // when missing) that declares the action order. The config is enabled by
 // default; ModelSpec.Config can disable it (see New).
 type Model struct {

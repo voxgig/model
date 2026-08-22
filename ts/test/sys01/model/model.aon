@@ -1,6 +1,6 @@
 
 # TODO: special search path for system models
-@"../../../model/sys.aontu"
+@"../../../model/sys.aon"
 
 
 main: srv: &: $.sys.shape.srv.std_js
@@ -26,8 +26,8 @@ color: green: {
   value: '0f0'
 }
 
-color: @"color.aontu"
+color: @"color.aon"
 
 
-pre: @"pre.aontu"
+pre: @"pre.aon"
 

@@ -26,9 +26,9 @@ function okResult(name) {
         const dir = GEN + '/ex-pre';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu',
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aon',
             res: [{
                     path: '/', build: async function boom(_build, ctx) {
                         if ('pre' === ctx.step) {
@@ -47,9 +47,9 @@ function okResult(name) {
         const dir = GEN + '/ex-post';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu',
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aon',
             res: [{
                     path: '/', build: async function boom(_build, ctx) {
                         if ('post' === ctx.step) {
@@ -66,7 +66,7 @@ function okResult(name) {
     // A missing root file fails the build with the read error.
     (0, node_test_1.test)('missing-root-file', async () => {
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: GEN, path: GEN + '/does-not-exist.aontu', res: [],
+            fs: node_fs_1.default, base: GEN, path: GEN + '/does-not-exist.aon', res: [],
         }, silentLog());
         const v = await b.run({ watch: false });
         node_assert_1.default.strictEqual(v.ok, false);
@@ -79,8 +79,8 @@ function okResult(name) {
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
         await (0, promises_1.mkdir)(dir + '/build', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/m.aontu', 'a: 1\n');
-        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', "sys: model: action: { p: load: 'build/p' }\n");
+        await (0, promises_1.writeFile)(dir + '/model/m.aon', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aon', "sys: model: action: { p: load: 'build/p' }\n");
         await (0, promises_1.writeFile)(dir + '/build/p.js', "const Path = require('node:path')\n" +
             'module.exports = Promise.resolve(async function p(model, build) {\n' +
             "  const root = Path.resolve(build.path, '..', '..')\n" +
@@ -88,7 +88,7 @@ function okResult(name) {
             '  return { ok: true }\n' +
             '})\n');
         const model = new model_1.Model({
-            path: dir + '/model/m.aontu', base: dir + '/model', debug: 'silent',
+            path: dir + '/model/m.aon', base: dir + '/model', debug: 'silent',
         });
         const br = await model.run();
         node_assert_1.default.ok(br.ok, 'build failed: ' + JSON.stringify(br.errs));
@@ -99,9 +99,9 @@ function okResult(name) {
         const dir = GEN + '/ex-nokpre';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu',
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aon',
             res: [{
                     path: '/', build: async function bad(_build, ctx) {
                         return {
@@ -119,9 +119,9 @@ function okResult(name) {
         const dir = GEN + '/ex-nokpost';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu',
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aon',
             res: [{
                     path: '/', build: async function bad(_build, ctx) {
                         return {
@@ -140,9 +140,9 @@ function okResult(name) {
         const dir = GEN + '/ex-noconfig';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir + '/model', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/m.aontu', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/m.aon', 'a: 1\n');
         const model = new model_1.Model({
-            path: dir + '/model/m.aontu', base: dir + '/model', debug: 'silent',
+            path: dir + '/model/m.aon', base: dir + '/model', debug: 'silent',
             config: false,
         });
         const br = await model.run();
@@ -157,8 +157,8 @@ function okResult(name) {
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
         await (0, promises_1.mkdir)(dir + '/build', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/m.aontu', 'a: 1\n');
-        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', "sys: model: action: { p: load: 'build/p' }\n");
+        await (0, promises_1.writeFile)(dir + '/model/m.aon', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aon', "sys: model: action: { p: load: 'build/p' }\n");
         await (0, promises_1.writeFile)(dir + '/build/p.js', "const Path = require('node:path')\n" +
             'module.exports = async function p(model, build) {\n' +
             "  const root = Path.resolve(build.path, '..', '..')\n" +
@@ -166,7 +166,7 @@ function okResult(name) {
             '  return { ok: true }\n' +
             '}\n');
         const model = new model_1.Model({
-            path: dir + '/model/m.aontu', base: dir + '/model', debug: 'silent',
+            path: dir + '/model/m.aon', base: dir + '/model', debug: 'silent',
             config: false,
         });
         const br = await model.run();
@@ -188,9 +188,9 @@ function okResult(name) {
             const dir = GEN + '/ex-comment-' + name;
             await (0, promises_1.rm)(dir, { recursive: true, force: true });
             await (0, promises_1.mkdir)(dir, { recursive: true });
-            await (0, promises_1.writeFile)(dir + '/m.aontu', src);
+            await (0, promises_1.writeFile)(dir + '/m.aon', src);
             const b = (0, build_1.makeBuild)({
-                fs: node_fs_1.default, base: dir, path: dir + '/m.aontu', res: [],
+                fs: node_fs_1.default, base: dir, path: dir + '/m.aon', res: [],
             }, silentLog());
             const v = await b.run({ watch: false });
             node_assert_1.default.strictEqual(v.ok, ok, name + ' comment: expected ok=' + ok);
@@ -208,9 +208,9 @@ function okResult(name) {
         const dir = GEN + '/ex-serializer';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu',
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aon',
             res: [
                 {
                     path: '/', build: async function mutate(build, ctx) {
@@ -257,9 +257,9 @@ function okResult(name) {
         const dir = GEN + '/ex-import';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aontu', 'top: @"./missing.aontu"\n');
+        await (0, promises_1.writeFile)(dir + '/m.aon', 'top: @"./missing.aon"\n');
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu', res: [],
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aon', res: [],
         }, silentLog());
         const v = await b.run({ watch: false });
         node_assert_1.default.strictEqual(v.ok, false);
