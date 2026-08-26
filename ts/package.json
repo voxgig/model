@@ -47,6 +47,7 @@
   "license": "MIT",
   "files": [
     "model.ts",
+    "src",
     "lib",
     "dist",
     "bin",
