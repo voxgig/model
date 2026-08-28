@@ -5,6 +5,7 @@ package model
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 // configStub is written when a model has no config file yet. It is
@@ -29,6 +30,19 @@ type Config struct {
 	log   Log
 }
 
+// legacyPkgImport matches THIS package's own config import in a legacy config.
+// The package config moved to .aon in v10, so a legacy config's import of it
+// names a file that no longer ships, and a verbatim migration leaves the
+// migrated config unresolvable on the first build after upgrading.
+//
+// Only this package's import is rewritten, and only where it is an IMPORT:
+// the match is anchored to aontu's `@"..."` syntax, closing quote included,
+// rather than to the bare pathname. A project's own `.aontu` imports still
+// name real files on its disk, and this same pathname may be held as ordinary
+// string DATA; both are declarations the migration exists to preserve.
+// Mirrors the same replace in the TypeScript makeConfig.
+var legacyPkgImport = regexp.MustCompile(`@(\s*)"(@voxgig/model/[^"]*model-config)\.aontu"`)
+
 // newConfig sets up (and bootstraps) the config build for a model base.
 func newConfig(base string, spec ModelSpec, log Log) *Config {
 	cbase := filepath.Join(base, ".model-config")
@@ -42,6 +56,8 @@ func newConfig(base string, spec ModelSpec, log Log) *Config {
 	legacy := filepath.Join(cbase, "model-config.aontu")
 	if _, err := os.Stat(cpath); os.IsNotExist(err) {
 		if src, rerr := os.ReadFile(legacy); rerr == nil {
+			// NOT a verbatim copy: see legacyPkgImport.
+			src = legacyPkgImport.ReplaceAll(src, []byte(`@${1}"${2}.aon"`))
 			if werr := os.WriteFile(cpath, src, 0o644); werr == nil {
 				_ = os.Remove(legacy)
 			}

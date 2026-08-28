@@ -19,6 +19,11 @@ function silentLog() {
 function okResult(name) {
     return { ok: true, name, step: '', active: true, reload: false, errs: [], runlog: [] };
 }
+// aontu errors carry circular Val graphs, so JSON.stringify(errs) throws
+// ERR_TEST_FAILURE on the message rather than reporting the real failure.
+function errtext(errs) {
+    return (errs || []).map((e) => e && (e.msg || e.message) || String(e)).join(' | ');
+}
 (0, node_test_1.describe)('extra', () => {
     // A producer that throws in the pre phase fails the build, and the error is
     // collected rather than escaping.
@@ -91,7 +96,7 @@ function okResult(name) {
             path: dir + '/model/m.aon', base: dir + '/model', debug: 'silent',
         });
         const br = await model.run();
-        node_assert_1.default.ok(br.ok, 'build failed: ' + JSON.stringify(br.errs));
+        node_assert_1.default.ok(br.ok, 'build failed: ' + errtext(br.errs));
         node_assert_1.default.strictEqual(await (0, promises_1.readFile)(dir + '/p.txt', 'utf8'), 'OK');
     });
     // A producer that returns ok:false in the pre phase fails the build.
@@ -146,7 +151,7 @@ function okResult(name) {
             config: false,
         });
         const br = await model.run();
-        node_assert_1.default.ok(br.ok, 'build failed: ' + JSON.stringify(br.errs));
+        node_assert_1.default.ok(br.ok, 'build failed: ' + errtext(br.errs));
         node_assert_1.default.deepStrictEqual(JSON.parse(await (0, promises_1.readFile)(dir + '/model/m.json', 'utf8')), { a: 1 });
         node_assert_1.default.strictEqual(node_fs_1.default.existsSync(dir + '/model/.model-config'), false, '.model-config should not be created when config is disabled');
     });
@@ -170,7 +175,7 @@ function okResult(name) {
             config: false,
         });
         const br = await model.run();
-        node_assert_1.default.ok(br.ok, 'build failed: ' + JSON.stringify(br.errs));
+        node_assert_1.default.ok(br.ok, 'build failed: ' + errtext(br.errs));
         node_assert_1.default.strictEqual(node_fs_1.default.existsSync(dir + '/p.txt'), false, 'config action should not run when config is disabled');
     });
     // An unresolved import makes aontu throw; the build collects it as an error
@@ -264,6 +269,88 @@ function okResult(name) {
         const v = await b.run({ watch: false });
         node_assert_1.default.strictEqual(v.ok, false);
         node_assert_1.default.ok(0 < v.errs.length);
+    });
+    // A legacy .model-config/model-config.aontu is migrated to .aon. The copy
+    // is NOT verbatim: this package's own config moved to .aon in v10, so a
+    // legacy config's import of it names a file that no longer ships, and a
+    // straight copy leaves the migrated config unresolvable
+    // (aontu/multisource_not_found) on the very first build after upgrading.
+    (0, node_test_1.test)('legacy-config-migrates-with-package-import-retargeted', async () => {
+        const dir = GEN + '/ex-migrate-pkg';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
+        await (0, promises_1.writeFile)(dir + '/model/model.aon', 'x: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', `
+@"@voxgig/model/model/.model-config/model-config.aontu"
+
+sys: model: action: {}
+`);
+        const model = new model_1.Model({
+            fs: node_fs_1.default,
+            path: dir + '/model/model.aon',
+            base: dir + '/model',
+            debug: 'silent',
+        });
+        const br = await model.run();
+        node_assert_1.default.ok(br.ok, 'migrated config did not build: ' + errtext(br.errs));
+        node_assert_1.default.strictEqual(node_fs_1.default.existsSync(dir + '/model/.model-config/model-config.aontu'), false, 'the legacy config should be gone once migrated');
+        const migrated = await (0, promises_1.readFile)(dir + '/model/.model-config/model-config.aon', 'utf8');
+        node_assert_1.default.ok(migrated.includes('@voxgig/model/model/.model-config/model-config.aon"'), 'the package import should name .aon: ' + migrated);
+    });
+    // Only the @voxgig/model import is retargeted. A project's OWN .aontu
+    // imports still name real files on disk, so rewriting them would break
+    // exactly the declarations the migration exists to preserve.
+    (0, node_test_1.test)('legacy-config-keeps-its-own-aontu-imports', async () => {
+        const dir = GEN + '/ex-migrate-own';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
+        await (0, promises_1.writeFile)(dir + '/model/model.aon', 'x: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/local.aontu', 'sys: model: action: {}\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', `
+@"@voxgig/model/model/.model-config/model-config.aontu"
+@"local.aontu"
+`);
+        const model = new model_1.Model({
+            fs: node_fs_1.default,
+            path: dir + '/model/model.aon',
+            base: dir + '/model',
+            debug: 'silent',
+        });
+        const br = await model.run();
+        node_assert_1.default.ok(br.ok, 'migrated config did not build: ' + errtext(br.errs));
+        const migrated = await (0, promises_1.readFile)(dir + '/model/.model-config/model-config.aon', 'utf8');
+        node_assert_1.default.ok(migrated.includes('@"local.aontu"'), "a project's own .aontu import must be left alone: " + migrated);
+    });
+    // The rewrite is anchored to aontu's import syntax, not to the bare
+    // pathname. A legacy config may carry this package's path as ordinary
+    // string DATA — a note, a compatibility path in action metadata — and an
+    // unanchored match would silently edit that value during a one-time
+    // migration. Same principle as the test above: migrate imports, never
+    // declarations. (Reported by Codex review on voxgig/model#16.)
+    (0, node_test_1.test)('legacy-config-rewrite-does-not-touch-string-data', async () => {
+        const dir = GEN + '/ex-migrate-data';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
+        await (0, promises_1.writeFile)(dir + '/model/model.aon', 'x: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', `
+@"@voxgig/model/model/.model-config/model-config.aontu"
+
+sys: model: action: {}
+sys: model: was: '@voxgig/model/model/.model-config/model-config.aontu'
+`);
+        const model = new model_1.Model({
+            fs: node_fs_1.default,
+            path: dir + '/model/model.aon',
+            base: dir + '/model',
+            debug: 'silent',
+        });
+        const br = await model.run();
+        node_assert_1.default.ok(br.ok, 'migrated config did not build: ' + errtext(br.errs));
+        const migrated = await (0, promises_1.readFile)(dir + '/model/.model-config/model-config.aon', 'utf8');
+        // The import moved...
+        node_assert_1.default.ok(migrated.includes('@"@voxgig/model/model/.model-config/model-config.aon"'), 'the import should name .aon: ' + migrated);
+        // ...and the string value did not.
+        node_assert_1.default.ok(migrated.includes("was: '@voxgig/model/model/.model-config/model-config.aontu'"), 'a path held as string data must be left alone: ' + migrated);
     });
 });
 //# sourceMappingURL=extra.test.js.map
