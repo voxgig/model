@@ -175,6 +175,21 @@ describe('msg', () => {
   })
 
 
+  // Pattern identity is structural, not a rendering of it: a value carrying
+  // the delimiters used to display a pattern must not collide with a
+  // genuinely different pattern.
+  test('delimiters-in-values-do-not-collide', () => {
+    assert.deepStrictEqual(checkMsg({
+      main: {
+        msg: {
+          'a_b,c:d': { pat: [{ a: 'b,c:d' }] },
+          c_d: { pat: [{ a: 'b' }, { c: 'd' }] },
+        }
+      }
+    }), [])
+  })
+
+
   // Same pairs in a different order are different patterns.
   test('reordered-pat-is-distinct', async () => {
     const { br } = await runMsg('reorder',
@@ -284,7 +299,10 @@ describe('msg', () => {
 
   // === producer mechanics ===
 
-  test('producer-is-a-noop-in-post', async () => {
+  // The check runs in both phases. It has to: a pre action can request a
+  // reload, and the build re-resolves the model after the pre phase, so a
+  // pre-only check would let the regenerated model through unchecked.
+  test('producer-checks-in-post-too', async () => {
     const build: any = {
       model: { main: { msg: { wrong: { pat: [{ save: 'item' }] } } } },
       errs: [],
@@ -294,9 +312,59 @@ describe('msg', () => {
 
     const pr = await msg_producer(build, ctx)
 
-    assert.strictEqual(pr.ok, true)
-    assert.deepStrictEqual(pr.errs, [])
-    assert.deepStrictEqual(build.errs, [])
+    assert.strictEqual(pr.ok, false)
+    assert.match(errtext(pr.errs), /expected "save_item"/)
+  })
+
+
+  // The real reload path: a pre producer rewrites the model source and asks
+  // for a reload, turning a valid model into an invalid one. The reloaded
+  // model must still be caught, with nothing written - this producer runs
+  // ahead of the model producer in the post phase too.
+  test('reloaded-model-is-rechecked', async () => {
+    const dir = GEN + '/msg-reload'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir, { recursive: true })
+
+    const path = dir + '/m.aon'
+    await writeFile(path,
+      'main: msg: save_item: { pat: [ {aim: web}, {save: item} ] }\n')
+
+    let rewritten = false
+
+    const b = makeBuild({
+      fs: Fs, base: dir, path,
+      res: [
+        { path: '/', build: msg_producer },
+        { path: '/', build: model_producer },
+        {
+          path: '/', build: async function rewrite(_build: any, ctx: BuildContext) {
+            const pr = {
+              ok: true, name: 'rewrite', step: ctx.step, active: true,
+              reload: false, errs: [], runlog: [],
+            }
+            if ('pre' === ctx.step && !rewritten) {
+              rewritten = true
+              Fs.writeFileSync(path,
+                'main: msg: save_todo: { pat: [ {aim: web}, {save: item} ] }\n')
+              // Force a distinct mtime: resolveModel caches on it, and the
+              // rewrite can land inside the same millisecond as the original.
+              const future = new Date(Date.now() + 2000)
+              Fs.utimesSync(path, future, future)
+              pr.reload = true
+            }
+            return pr
+          }
+        },
+      ],
+    }, silentLog())
+
+    const br = await b.run({ watch: false })
+
+    assert.ok(rewritten, 'the rewrite producer did not run')
+    assert.strictEqual(br.ok, false)
+    assert.match(errtext(br.errs), /model msg "save_todo": key does not match/)
+    assert.strictEqual(existsSync(dir + '/m.json'), false)
   })
 
 

@@ -37,15 +37,17 @@ import (
 // last pattern pair (the key names the action file), and that no two messages
 // declare the same pattern (previously impossible to state twice, because the
 // pattern WAS the path).
+//
+// This runs in BOTH phases, and must: a pre action can rewrite model source
+// and request a reload, and the build re-resolves the model AFTER the pre
+// phase has finished (see Build.Run). A pre-only check would then have
+// validated a model that no longer exists, and ModelProducer would write the
+// regenerated one unchecked. Checking again in post closes that window - this
+// producer is first in the pipeline, so it still runs ahead of ModelProducer,
+// and a build whose model went bad during a reload fails with nothing
+// written.
 func MsgProducer(b *Build, ctx *BuildContext) ProducerResult {
 	pr := ProducerResult{OK: true, Name: "msg", Step: ctx.Step, Active: true}
-
-	// Check in the pre phase: the model is already resolved by then, so a bad
-	// declaration fails the build before ModelProducer writes model.json in
-	// post, rather than after.
-	if ctx.Step != StepPre {
-		return pr
-	}
 
 	problems := checkMsg(b.Model)
 	if len(problems) == 0 {
@@ -108,7 +110,17 @@ func checkMsg(model map[string]any) []string {
 		// Reduce the pattern to its pairs, stopping at the first malformed
 		// one - the rest of the checks read the pairs, so there is nothing
 		// further to say about this message until its pattern is well-formed.
+		//
+		// Two renderings: pairs reads well in a message, and canon identifies
+		// the pattern. They cannot be the same string, because key:value
+		// joined by commas is ambiguous once a key or value contains a
+		// delimiter - [{a: "b,c:d"}] and [{a: b}, {c: d}] would both render
+		// a:b,c:d and the second would be rejected as a duplicate of the
+		// first. Quoting each part removes the ambiguity: a delimiter inside
+		// a part is escaped, so only genuinely equal patterns produce equal
+		// keys.
 		pairs := make([]string, 0, len(pat))
+		canon := make([]string, 0, len(pat))
 		var lastKey, lastVal string
 		wellFormed := true
 
@@ -135,6 +147,7 @@ func checkMsg(model map[string]any) []string {
 			}
 
 			pairs = append(pairs, key+":"+val)
+			canon = append(canon, strconv.Quote(key)+":"+strconv.Quote(val))
 			lastKey, lastVal = key, val
 		}
 
@@ -151,12 +164,12 @@ func checkMsg(model map[string]any) []string {
 					` (expected "`+expected+`")`))
 		}
 
-		canon := strings.Join(pairs, ",")
-		if first, dup := seen[canon]; dup {
+		canonKey := strings.Join(canon, ",")
+		if first, dup := seen[canonKey]; dup {
 			problems = append(problems, msgerr(name,
-				"pat ["+canon+`] is already declared by "`+first+`"`))
+				"pat ["+strings.Join(pairs, ",")+`] is already declared by "`+first+`"`))
 		} else {
-			seen[canon] = name
+			seen[canonKey] = name
 		}
 	}
 

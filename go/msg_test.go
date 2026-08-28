@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 // Mirrors ts/test/msg.test.ts. Sources use plain aontu (no aliases or
@@ -171,6 +172,20 @@ func TestMsgDuplicatePatFails(t *testing.T) {
 	}
 }
 
+// Pattern identity is structural, not a rendering of it: a value carrying the
+// delimiters used to display a pattern must not collide with a genuinely
+// different pattern.
+func TestCheckMsgDelimitersInValuesDoNotCollide(t *testing.T) {
+	problems := checkMsg(map[string]any{"main": map[string]any{"msg": map[string]any{
+		"a_b,c:d": map[string]any{"pat": []any{map[string]any{"a": "b,c:d"}}},
+		"c_d":     map[string]any{"pat": []any{map[string]any{"a": "b"}, map[string]any{"c": "d"}}},
+	}}})
+
+	if len(problems) != 0 {
+		t.Fatalf("problems = %v", problems)
+	}
+}
+
 // Same pairs in a different order are different patterns.
 func TestMsgReorderedPatIsDistinct(t *testing.T) {
 	br, _ := msgBuild(t, "main: msg: {\n"+
@@ -296,7 +311,10 @@ func TestCheckMsgOrdersProblemsByName(t *testing.T) {
 
 // === producer mechanics ===
 
-func TestMsgProducerNoopInPost(t *testing.T) {
+// The check runs in both phases. It has to: a pre action can request a
+// reload, and the build re-resolves the model after the pre phase, so a
+// pre-only check would let the regenerated model through unchecked.
+func TestMsgProducerChecksInPostToo(t *testing.T) {
 	b := &Build{
 		Model: map[string]any{"main": map[string]any{"msg": map[string]any{
 			"wrong": map[string]any{"pat": []any{map[string]any{"save": "item"}}},
@@ -307,11 +325,67 @@ func TestMsgProducerNoopInPost(t *testing.T) {
 
 	pr := MsgProducer(b, ctx)
 
-	if !pr.OK || len(pr.Errs) != 0 {
-		t.Fatalf("post-phase result = %+v", pr)
+	if pr.OK {
+		t.Fatal("expected the post-phase check to fail")
 	}
-	if len(b.Errs) != 0 {
-		t.Fatalf("build errors = %v", b.Errs)
+	if !containsErr(pr.Errs, `expected "save_item"`) {
+		t.Fatalf("errors = %v", pr.Errs)
+	}
+}
+
+// The real reload path: a pre producer rewrites the model source and asks for
+// a reload, turning a valid model into an invalid one. The reloaded model must
+// still be caught, with nothing written - this producer runs ahead of
+// ModelProducer in the post phase too.
+func TestMsgReloadedModelIsRechecked(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "m.aon")
+	writeFile(t, dir, "m.aon",
+		"main: msg: save_item: { pat: [ {aim: web}, {save: item} ] }\n")
+
+	rewritten := false
+	rewrite := func(b *Build, ctx *BuildContext) ProducerResult {
+		pr := ProducerResult{OK: true, Name: "rewrite", Step: ctx.Step, Active: true}
+		if ctx.Step == StepPre && !rewritten {
+			rewritten = true
+			if err := os.WriteFile(path,
+				[]byte("main: msg: save_todo: { pat: [ {aim: web}, {save: item} ] }\n"),
+				0o644); err != nil {
+				t.Fatal(err)
+			}
+			// Force a distinct mtime: resolveModel caches on it, and the
+			// rewrite can land inside the same filesystem timestamp tick.
+			future := time.Now().Add(2 * time.Second)
+			if err := os.Chtimes(path, future, future); err != nil {
+				t.Fatal(err)
+			}
+			pr.Reload = true
+		}
+		return pr
+	}
+
+	b := NewBuild(BuildSpec{
+		Path: path, Base: dir,
+		Res: []ProducerDef{
+			{Path: "/", Build: MsgProducer},
+			{Path: "/", Build: ModelProducer},
+			{Path: "/", Build: rewrite},
+		},
+	})
+
+	br := b.Run(false)
+
+	if !rewritten {
+		t.Fatal("the rewrite producer did not run")
+	}
+	if br.OK {
+		t.Fatal("expected the reloaded model to fail the check")
+	}
+	if !containsErr(br.Errs, `model msg "save_todo": key does not match`) {
+		t.Fatalf("errors = %v", br.Errs)
+	}
+	if exists(filepath.Join(dir, "m.json")) {
+		t.Fatal("model.json written despite a failed check")
 	}
 }
 

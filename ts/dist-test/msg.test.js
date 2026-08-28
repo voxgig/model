@@ -121,6 +121,19 @@ async function runMsg(name, src) {
         const text = errtext(br.errs);
         node_assert_1.default.match(text, /model msg "x_save_item": pat \[aim:web,save:item\] is already declared by "save_item"/);
     });
+    // Pattern identity is structural, not a rendering of it: a value carrying
+    // the delimiters used to display a pattern must not collide with a
+    // genuinely different pattern.
+    (0, node_test_1.test)('delimiters-in-values-do-not-collide', () => {
+        node_assert_1.default.deepStrictEqual((0, msg_1.checkMsg)({
+            main: {
+                msg: {
+                    'a_b,c:d': { pat: [{ a: 'b,c:d' }] },
+                    c_d: { pat: [{ a: 'b' }, { c: 'd' }] },
+                }
+            }
+        }), []);
+    });
     // Same pairs in a different order are different patterns.
     (0, node_test_1.test)('reordered-pat-is-distinct', async () => {
         const { br } = await runMsg('reorder', 'main: msg: {\n' +
@@ -189,7 +202,10 @@ async function runMsg(name, src) {
         ]);
     });
     // === producer mechanics ===
-    (0, node_test_1.test)('producer-is-a-noop-in-post', async () => {
+    // The check runs in both phases. It has to: a pre action can request a
+    // reload, and the build re-resolves the model after the pre phase, so a
+    // pre-only check would let the regenerated model through unchecked.
+    (0, node_test_1.test)('producer-checks-in-post-too', async () => {
         const build = {
             model: { main: { msg: { wrong: { pat: [{ save: 'item' }] } } } },
             errs: [],
@@ -197,9 +213,50 @@ async function runMsg(name, src) {
         };
         const ctx = { step: 'post', watch: false, state: {} };
         const pr = await (0, msg_1.msg_producer)(build, ctx);
-        node_assert_1.default.strictEqual(pr.ok, true);
-        node_assert_1.default.deepStrictEqual(pr.errs, []);
-        node_assert_1.default.deepStrictEqual(build.errs, []);
+        node_assert_1.default.strictEqual(pr.ok, false);
+        node_assert_1.default.match(errtext(pr.errs), /expected "save_item"/);
+    });
+    // The real reload path: a pre producer rewrites the model source and asks
+    // for a reload, turning a valid model into an invalid one. The reloaded
+    // model must still be caught, with nothing written - this producer runs
+    // ahead of the model producer in the post phase too.
+    (0, node_test_1.test)('reloaded-model-is-rechecked', async () => {
+        const dir = GEN + '/msg-reload';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(dir, { recursive: true });
+        const path = dir + '/m.aon';
+        await (0, promises_1.writeFile)(path, 'main: msg: save_item: { pat: [ {aim: web}, {save: item} ] }\n');
+        let rewritten = false;
+        const b = (0, build_1.makeBuild)({
+            fs: node_fs_1.default, base: dir, path,
+            res: [
+                { path: '/', build: msg_1.msg_producer },
+                { path: '/', build: model_2.model_producer },
+                {
+                    path: '/', build: async function rewrite(_build, ctx) {
+                        const pr = {
+                            ok: true, name: 'rewrite', step: ctx.step, active: true,
+                            reload: false, errs: [], runlog: [],
+                        };
+                        if ('pre' === ctx.step && !rewritten) {
+                            rewritten = true;
+                            node_fs_1.default.writeFileSync(path, 'main: msg: save_todo: { pat: [ {aim: web}, {save: item} ] }\n');
+                            // Force a distinct mtime: resolveModel caches on it, and the
+                            // rewrite can land inside the same millisecond as the original.
+                            const future = new Date(Date.now() + 2000);
+                            node_fs_1.default.utimesSync(path, future, future);
+                            pr.reload = true;
+                        }
+                        return pr;
+                    }
+                },
+            ],
+        }, silentLog());
+        const br = await b.run({ watch: false });
+        node_assert_1.default.ok(rewritten, 'the rewrite producer did not run');
+        node_assert_1.default.strictEqual(br.ok, false);
+        node_assert_1.default.match(errtext(br.errs), /model msg "save_todo": key does not match/);
+        node_assert_1.default.strictEqual((0, node_fs_2.existsSync)(dir + '/m.json'), false);
     });
     // A failing check reports its errors both ways: on the result and on the
     // build (BuildImpl.run only collects thrown errors).

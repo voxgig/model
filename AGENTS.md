@@ -181,9 +181,16 @@ Other notes:
   two shapes: the legacy chain (pattern pairs nested down to the definition)
   and the declared shape (a flat entry per message, holding a `pat` list of
   single-pair maps). `msg_producer` (`ts/src/producer/msg.ts`, `go/msg.go`)
-  validates the declared shape in the **pre** phase — so a failure lands
-  before `model_producer` writes anything — and leaves everything without a
-  `pat` list alone, which is what lets both shapes coexist. It never rewrites
+  validates the declared shape in **both** phases, first in the pipeline — so
+  a failure lands before `model_producer` writes anything — and leaves
+  everything without a `pat` list alone, which is what lets both shapes
+  coexist. The post-phase check is load-bearing, not belt-and-braces: a `pre`
+  action returning `reload: true` makes the build re-resolve the model *after*
+  the pre phase, so a pre-only check would validate a model that no longer
+  exists and let the regenerated one be written unchecked. Pattern identity is
+  keyed on a quoted encoding of the pairs, not on the `key:value,...`
+  rendering the error shows, so a value containing a delimiter cannot collide
+  with a genuinely different pattern. It never rewrites
   the model, so the two shapes serialize exactly as written. Problems are
   sorted by message name in both implementations (Go map iteration is
   otherwise random), and the message strings are identical; keep them so, and
@@ -226,8 +233,8 @@ assert successful builds; error behavior, and values only producer mutation
 can introduce (`undefined`, `toJSON`), are locked by per-language tests
 instead.
 
-Both runners wire the pipeline as the `Model` does — `msg_producer` (pre) then
-`model_producer` (post) — so a row asserts that its source passes the built-in
+Both runners wire the pipeline as the `Model` does — `msg_producer` then
+`model_producer` — so a row asserts that its source passes the built-in
 checks as well as serializing to the expected bytes. A row that is meant to
 *fail* a check therefore does not belong here; put it in the per-language
 suites (`ts/test/msg.test.ts`, `go/msg_test.go`), which mirror each other

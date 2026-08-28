@@ -92,7 +92,16 @@ function checkMsg(model: any): string[] {
     // Reduce the pattern to its pairs, stopping at the first malformed one -
     // the rest of the checks read the pairs, so there is nothing further to
     // say about this message until its pattern is well-formed.
+    //
+    // Two renderings: `pairs` reads well in a message, and `canon` identifies
+    // the pattern. They cannot be the same string, because `key:value` joined
+    // by commas is ambiguous once a key or value contains a delimiter -
+    // [{a: "b,c:d"}] and [{a: b}, {c: d}] would both render `a:b,c:d` and the
+    // second would be rejected as a duplicate of the first. Quoting each part
+    // removes the ambiguity: a delimiter inside a part is escaped, so only
+    // genuinely equal patterns produce equal keys.
     const pairs: string[] = []
+    const canon: string[] = []
     let last: string[] | undefined
 
     for (let pI = 0; pI < pat.length; pI++) {
@@ -117,6 +126,7 @@ function checkMsg(model: any): string[] {
       }
 
       pairs.push(key + ':' + val)
+      canon.push(JSON.stringify(key) + ':' + JSON.stringify(val))
       last = [key, val]
     }
 
@@ -132,13 +142,13 @@ function checkMsg(model: any): string[] {
         last[0] + ':' + last[1] + ' (expected "' + expected + '")'))
     }
 
-    const canon = pairs.join(',')
-    if (null == seen[canon]) {
-      seen[canon] = name
+    const canonKey = canon.join(',')
+    if (null == seen[canonKey]) {
+      seen[canonKey] = name
     }
     else {
-      problems.push(msgerr(name, 'pat [' + canon +
-        '] is already declared by "' + seen[canon] + '"'))
+      problems.push(msgerr(name, 'pat [' + pairs.join(',') +
+        '] is already declared by "' + seen[canonKey] + '"'))
     }
   }
 
@@ -147,6 +157,15 @@ function checkMsg(model: any): string[] {
 
 
 // Checks the message declarations before anything is written.
+//
+// This runs in BOTH phases, and must: a `pre` action can rewrite model source
+// and request a reload, and the build re-resolves the model AFTER the pre
+// phase has finished (see BuildImpl.run). A pre-only check would then have
+// validated a model that no longer exists, and the model producer would write
+// the regenerated one unchecked. Checking again in post closes that window -
+// this producer is first in the pipeline, so it still runs ahead of the model
+// producer, and a build whose model went bad during a reload fails with
+// nothing written.
 const msg_producer: Producer = async (build: Build, ctx: BuildContext) => {
   const pr: ProducerResult = {
     ok: true,
@@ -156,13 +175,6 @@ const msg_producer: Producer = async (build: Build, ctx: BuildContext) => {
     active: true,
     errs: [],
     runlog: []
-  }
-
-  // Validate in the pre phase: the model is already resolved by then, so a
-  // bad declaration fails the build before the model producer writes
-  // model.json in post, rather than after.
-  if ('pre' !== ctx.step) {
-    return pr
   }
 
   const problems = checkMsg(build.model)

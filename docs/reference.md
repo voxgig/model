@@ -449,8 +449,10 @@ The default `Model` pipeline is, in order:
 
 ### msg_producer
 
-- **Runs:** `pre` phase only — so a bad declaration fails the build before
-  `model_producer` writes anything.
+- **Runs:** both phases, and first in the pipeline — so a bad declaration fails
+  the build before `model_producer` writes anything. The `post` check is not
+  redundant: a `pre` action that requests a `reload` replaces the model *after*
+  the pre phase, and only the second check sees the regenerated model.
 - **Effect:** validates the message declarations in `main.msg`. See
   [Message declarations](#message-declarations) for the shapes and the checks.
   A model with no messages, or with only legacy chains, always passes.
@@ -563,7 +565,7 @@ spelled `pat:`. Anything without a `pat` list is left alone entirely.
 
 ### Checks
 
-`msg_producer` checks each declared-shape entry in the `pre` phase, and fails
+`msg_producer` checks each declared-shape entry in both build phases, and fails
 the build (before anything is written) on:
 
 | problem | message |
