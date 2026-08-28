@@ -278,77 +278,59 @@ TypeScript: `ts/src/types.ts`. Go: `go/types.go`. Keep the two aligned.
 
 ## Release and publish
 
-Two artifacts ship from this repository, and they release by **different
-mechanisms**:
+**Every release is tagged, and both artifacts release together.** The full
+write-up, including the guards and the recovery table, is
+[docs/how-to/release-and-tag.md](./docs/how-to/release-and-tag.md). The
+essentials:
 
 | artifact | version lives in | released by | tag |
 | --- | --- | --- | --- |
 | npm `@voxgig/model` | `ts/package.json` `"version"` | publishing to the registry | `v<version>` |
-| Go `github.com/voxgig/model/go` | `go/model.go` `const VERSION` | **the tag itself** | `go/v<version>` |
+| Go `github.com/voxgig/model/go` | `go/model.go` `const VERSION` | **the tag itself** | `go/v<VERSION>` |
 
-The second row surprises people. A Go module has no upload step:
-`proxy.golang.org` serves whatever a tag points at, so **pushing the tag is
-the release**, and there is nothing to undo it — the proxy and sum database
-cache a version permanently, and moving or deleting a tag reaches users as a
-security error rather than a missing version. Withdraw only via `retract` in
-a new version.
+A Go module has no upload step: `proxy.golang.org` serves whatever a tag
+points at, so **pushing the tag is the release**, and the proxy caches it
+permanently — a wrong `go/vX.Y.Z` is fixed by bumping the patch, never by
+moving the tag.
 
-### Publishing the npm package
+The two version series are **deliberately different numbers** (npm 10.x, Go
+0.x). Parity means released together and kept in architectural step; matching
+the numbers would put the module at v10, which a Go module must then carry in
+its path (`github.com/voxgig/model/go/v10`), rewriting every consumer's
+imports.
 
-**Actions → publish → Run workflow**, on `main`. Or:
+### Releasing
+
+Bump in a normal reviewed PR, merge to `main`, then dispatch:
 
 ```sh
-gh workflow run publish.yml --ref main
+make publish              # both halves, at the versions on main
+make publish GO=false     # npm only
+make publish NPM=false    # Go module only
 ```
 
-There is no version input: the run publishes whatever `ts/package.json`
-already says, so **bump the version first, in a normal reviewed PR**, and
-dispatch afterwards. Pushing a `v*` tag also triggers it.
+`make bump-go V=x.y.z` edits `go/model.go` and stops — commit it in the PR.
+Nothing local commits or tags any more.
 
-Dispatch is what this repo actually uses — 10.0.0 through 10.0.2 all went out
-that way, and the last `v*` tag is `v9.4.1`.
-
-### `publish.yml` is the only file that can publish
-
-npm registers a trusted publisher against one owner, one repo, and a single
-workflow **filename**. Only that file can publish; renaming it breaks
-publishing until the npm-side entry is updated. An OIDC token from an
-unregistered workflow is refused as **404, not 403**, so as not to leak
-whether the package exists — a message that reads as "the package does not
-exist", which is nonsense and costs an hour if you have not seen it before.
-
-### This workflow does NOT write a tag
-
-`publish.yml` here holds `id-token: write` and `contents: read` in a single
-job. It publishes and stops. That is why the 10.x releases have no tags.
-
-`voxgig/apidef`, `voxgig/struct`, `voxgig/sekreto` and `voxgig/omni` have all
-since moved to a shape with a separate `tag` job holding `contents: write`,
-so publish and tag happen together. Adopting it here is worthwhile and is not
-just tidiness:
-
-- OIDC **cannot** create a tag — its audience is the registry, not GitHub.
-  Tags need `GITHUB_TOKEN` with `contents: write`, which is a different
-  credential.
-- The two belong in **separate jobs**. `checkout` persists its token into the
-  git config for the whole job, so combining them would run every dependency
-  `postinstall` from `npm i` alongside a repository-write credential.
-- They cannot be split across two **files**: a ref pushed with `GITHUB_TOKEN`
-  starts no further workflow run, so "tag in A, publish on the tag" publishes
-  nothing, silently.
-
-Until that lands, a `v<version>` tag has to be pushed by hand if you want one.
+`publish.yml` runs two jobs: **publish** (`id-token: write`, `contents: read`
+— runs `npm i`, build, tests) and **tag** (`contents: write` — runs git and
+nothing else). They cannot be merged, because `checkout` persists its token
+for the whole job and would hand repository write to every dependency
+`postinstall`; and they cannot be split across files, because npm allows
+exactly one publishing workflow filename and a ref pushed with `GITHUB_TOKEN`
+starts no further run. Publish happens before tagging, so a tag only ever
+exists for a release that reached the registry.
 
 ### Irreversible, so check before you fire
 
 - **npm never allows republishing a version.** If a publish half-fails, bump
-  and release again; you cannot overwrite.
-- **A Go tag is permanent** (see above).
+  and release again.
+- **A Go tag is permanent.**
 - Never run `npm run repo-publish` locally: it publishes over a token and
   bypasses OIDC entirely.
-
-The fullest write-up of this design, including the guards worth adding, is
-`voxgig/apidef`'s `docs/how-to/release-and-tag.md`.
+- `v10.1.0` and 10.0.0–10.0.2 went out untagged, before the tag job existed;
+  the last `v*` tag is `v9.4.1`. See the doc's "Known gaps" for why tagging
+  those retroactively is awkward.
 
 
 ## More documentation

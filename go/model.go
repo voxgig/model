@@ -20,7 +20,7 @@ import (
 // `make publish-go V=x.y.z` to match the git tag (go/vx.y.z). Spelled in
 // caps to match the TypeScript side's exported VERSION, so the two ports
 // name the same thing the same way.
-const VERSION = "0.2.0"
+const VERSION = "0.3.0"
 
 // DefaultIdle is the default watch debounce period.
 const DefaultIdle = 111 * time.Millisecond
