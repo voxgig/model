@@ -26,7 +26,7 @@ start with the [tutorial](./tutorial.md); for goal-oriented recipes see the
 voxgig-model <root-file> [options]
 ```
 
-`<root-file>` is the root `.aontu` file of the model. It is also accepted as
+`<root-file>` is the root `.aon` file of the model. It is also accepted as
 `--model <file>`. The directory containing the root file is the model **base**;
 generated model JSON is written next to the root file.
 
@@ -50,19 +50,19 @@ error, a missing model file, or an uncaught build error.
 
 ```bash
 # Build once, writing model/model.json
-voxgig-model model/model.aontu
+voxgig-model model/model.aon
 
 # Watch and rebuild, with debug logging
-voxgig-model -w -g debug model/model.aontu
+voxgig-model -w -g debug model/model.aon
 
 # Dry run (no files written)
-voxgig-model --dryrun model/model.aontu
+voxgig-model --dryrun model/model.aon
 
 # Pass build arguments to actions
-voxgig-model -b '{env:prod, region:eu-west-1}' model/model.aontu
+voxgig-model -b '{env:prod, region:eu-west-1}' model/model.aon
 
 # Build the model alone, without the .model-config machinery
-voxgig-model --no-config model/model.aontu
+voxgig-model --no-config model/model.aon
 ```
 
 ### `init` — scaffold a new model
@@ -72,13 +72,13 @@ voxgig-model init [dir]
 ```
 
 Creates a starter project under `<dir>/model` (default `dir`: the current
-directory): `model/model.aontu` and `model/.model-config/model-config.aontu`.
+directory): `model/model.aon` and `model/.model-config/model-config.aon`.
 Existing files are left untouched. Both the TypeScript and Go CLIs support
 this and produce identical files.
 
 ```bash
 voxgig-model init            # scaffold ./model
-voxgig-model model/model.aontu   # build it
+voxgig-model model/model.aon   # build it
 ```
 
 
@@ -89,18 +89,18 @@ A model is a directory tree. The conventional shape:
 ```
 my-project/
 ├─ model/
-│  ├─ model.aontu                  # root model file (your entry point)
-│  ├─ ...more .aontu files         # imported by the root
+│  ├─ model.aon                  # root model file (your entry point)
+│  ├─ ...more .aon files         # imported by the root
 │  ├─ model.json                    # GENERATED: the unified model
 │  └─ .model-config/
-│     ├─ model-config.aontu        # config: declares actions
+│     ├─ model-config.aon        # config: declares actions
 │     └─ model-config.json          # GENERATED: the unified config
 └─ build/
    ├─ foo.js                        # an action module
    └─ bar.js
 ```
 
-Two paths are derived from the root file `model/model.aontu`:
+Two paths are derived from the root file `model/model.aon`:
 
 - **base** = `model/` — the directory of the root file. Generated model JSON
   (`model.json`) and the `.model-config/` directory live here.
@@ -110,12 +110,12 @@ Two paths are derived from the root file `model/model.aontu`:
   `my-project/build/foo.js`.
 
 This two-levels-up rule means the root model file is expected to sit one
-directory below the project root (e.g. `model/model.aontu`).
+directory below the project root (e.g. `model/model.aon`).
 
 
 ## The config file
 
-`<base>/.model-config/model-config.aontu` declares the **actions** that run
+`<base>/.model-config/model-config.aon` declares the **actions** that run
 during a build. If it does not exist, the `Model` constructor creates a minimal
 one that imports the package's base config.
 
@@ -154,7 +154,7 @@ fails the build with `Unknown model action "<name>"`. An action whose
 definition has no `load` fails with `Model action "<name>" is missing a "load"
 path`.
 
-The generated `model-config.json` is written next to `model-config.aontu`.
+The generated `model-config.json` is written next to `model-config.aon`.
 
 
 ## Actions
@@ -208,7 +208,7 @@ A thrown error fails the build; the error is logged once and surfaced in
 
 | Step | Runs | Use for |
 |------|------|---------|
-| `pre` | before the model is finalized | Generating or rewriting `.aontu` source that the model itself depends on; pair with `reload: true`. |
+| `pre` | before the model is finalized | Generating or rewriting `.aon` source that the model itself depends on; pair with `reload: true`. |
 | `post` (default) | after the model is finalized | Emitting artifacts from the finished model. |
 | `all` | both phases | Actions that must observe both phases. |
 
@@ -222,7 +222,7 @@ const Fs = require('node:fs')
 module.exports = async function pre(model, build) {
   const root = Path.resolve(build.path, '..', '..')
   if (!build.dryrun) {
-    Fs.writeFileSync(Path.resolve(root, 'model', 'pre.aontu'), 'OK')
+    Fs.writeFileSync(Path.resolve(root, 'model', 'pre.aon'), 'OK')
   }
   return { ok: true, reload: true }
 }
@@ -365,7 +365,7 @@ const { prettyPino } = require('@voxgig/util')
 const build = makeBuild({
   fs: Fs,
   base: __dirname + '/model',
-  path: __dirname + '/model/model.aontu',
+  path: __dirname + '/model/model.aon',
   res: [
     { path: '/', build: model_producer },
     { path: '/', build: async (build, ctx) => {
@@ -492,7 +492,7 @@ A single build (`Build.run`) proceeds as:
 
 A `Model` orchestrates up to **two** builds:
 
-- The **config build** resolves `.model-config/model-config.aontu` (writing
+- The **config build** resolves `.model-config/model-config.aon` (writing
   `model-config.json`) and, via an internal trigger producer, drives the main
   model build.
 - The **model build** resolves your root model (writing `model.json`) and runs
@@ -594,10 +594,10 @@ Pull in another file with `@"..."`:
 
 ```jsonic
 # relative to the importing file
-color: @"./color.aontu"
+color: @"./color.aon"
 
 # a path inside an installed package
-@"@voxgig/model/model/.model-config/model-config.aontu"
+@"@voxgig/model/model/.model-config/model-config.aon"
 ```
 
 Imported files are tracked as dependencies, so changing one triggers a rebuild
@@ -632,8 +632,8 @@ the Go module and the root `Makefile` that builds and tests both):
 | `npm run test-some` | Run tests matching `TEST_PATTERN` (env var). |
 | `npm run test-cov` | Run tests with coverage, writing `coverage/lcov.info`. |
 | `npm run watch` | Recompile on change (`tsc --build -w`). |
-| `npm run model` | Run the CLI in watch mode on the package's own `model/sys.aontu`. |
-| `npm run test-model` | Run the CLI once on `test/sys01/model/model.aontu`. |
+| `npm run model` | Run the CLI in watch mode on the package's own `model/sys.aon`. |
+| `npm run test-model` | Run the CLI once on `test/sys01/model/model.aon`. |
 | `npm run clean` | Remove `node_modules`, `dist`, `dist-test`, lockfiles. |
 | `npm run reset` | `clean` + install + build + test. |
 
@@ -651,7 +651,7 @@ the Go module and the root `Makefile` that builds and tests both):
 | `Unknown model action "X"` | `sys.model.order.action` names an action that has no `sys.model.action.X` definition. Add the action or fix the order list. |
 | `Model action "X" is missing a "load" path` | An action definition has no `load`. Add `load: 'build/X'`. |
 | A required action does not run | Check its `step` (`pre`/`post`/`all`) and that it appears in `order.action` (or that `order.action` is absent so all run). |
-| In-memory (`fs`) build fails to resolve `@voxgig/model/...` | The auto-created config imports a package path that is not in your volume. Seed a self-contained `.model-config/model-config.aontu` (e.g. `sys: model: action: {}`). |
+| In-memory (`fs`) build fails to resolve `@voxgig/model/...` | The auto-created config imports a package path that is not in your volume. Seed a self-contained `.model-config/model-config.aon` (e.g. `sys: model: action: {}`). |
 | Watch process never exits | This is expected for `--watch` (runs until interrupted). For the API, call `model.stop()`. |
 | A change does not trigger a rebuild | Only tracked files rebuild: the root model, its imports, and the config files. Editing an unrelated file does nothing. Also note `add`/`rem` events are off by default in the API (`watch: { add, rem }`). |
 | Edits seem ignored after a failed build | Errors reset each build; fix the source and the next rebuild should succeed. If running the repo's own tooling, ensure you rebuilt (`dist/` can go stale — see [AGENTS.md](../AGENTS.md)). |
