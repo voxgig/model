@@ -20,6 +20,7 @@ import { prettyPino } from '@voxgig/util'
 
 import { makeBuild } from '../dist/build'
 import { model_producer } from '../dist/producer/model'
+import { msg_producer } from '../dist/producer/msg'
 
 
 const SPEC_DIR = Path.join(__dirname, '..', '..', 'test', 'spec')
@@ -59,7 +60,13 @@ async function buildModelJson(name: string, src: string): Promise<string> {
     fs: Fs,
     base,
     path: Path.join(base, 'model.aon'),
-    res: [{ path: '/', build: model_producer }],
+    // As the Model wires them: the msg check first (pre), then the model
+    // producer (post). A row therefore asserts both that the source passes
+    // the built-in checks and that it serializes to the expected bytes.
+    res: [
+      { path: '/', build: msg_producer },
+      { path: '/', build: model_producer },
+    ],
   }, log)
 
   const r = await b.run({ watch: false })

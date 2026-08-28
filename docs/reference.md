@@ -443,8 +443,17 @@ built on top of the `local_producer`.
 
 The default `Model` pipeline is, in order:
 
-1. `model_producer` — serializes and writes the unified model.
-2. `local_producer` — loads and runs project actions.
+1. `msg_producer` — checks the message declarations.
+2. `model_producer` — serializes and writes the unified model.
+3. `local_producer` — loads and runs project actions.
+
+### msg_producer
+
+- **Runs:** `pre` phase only — so a bad declaration fails the build before
+  `model_producer` writes anything.
+- **Effect:** validates the message declarations in `main.msg`. See
+  [Message declarations](#message-declarations) for the shapes and the checks.
+  A model with no messages, or with only legacy chains, always passes.
 
 ### model_producer
 
@@ -506,6 +515,74 @@ omitted: the model build runs directly and no config files are watched.
 
 See [explanation](./explanation.md) for the reasoning and the caching and watch
 designs in depth.
+
+
+## Message declarations
+
+Messages are declared under `main.msg`, in either of two shapes. Both build,
+and both may appear in the same model, so a project migrates one message at a
+time.
+
+### The declared shape
+
+A flat entry per message, keyed by the message name, with the pattern as data —
+an ordered list of single-pair maps — and the metadata as ordinary fields:
+
+```
+main: msg: save_item: {
+  pat: [ {aim: web}, {save: item} ]
+  doc: "Save a todo item"
+  params: { id: "string" }
+  web: { allow: true }     # consumed downstream, e.g. proxy generation
+  api: { active: true }    # consumed downstream, e.g. REST exposure
+}
+```
+
+Because the definition now sits at a known depth, its shape can be constrained
+in the model itself (an aontu alias unified across `main.msg` entries), which
+the nested shape could not express.
+
+### The legacy shape
+
+The pattern as a descending chain of pairs, with the definition at whatever
+depth the chain reaches and `'$'` escaping the leaf:
+
+```
+main: msg: aim: web: {
+  get: info: {}
+  on: todo: { save: item: { '$': { file: './web_save_item' } } }
+}
+```
+
+### How the shapes are told apart
+
+A declaration is a map holding a **`pat` list**. A chain node never holds one,
+because every value in a chain node is a map — the next pattern level, or the
+`'$'` leaf. The discriminator therefore holds even for a legacy pattern pair
+spelled `pat:`. Anything without a `pat` list is left alone entirely.
+
+### Checks
+
+`msg_producer` checks each declared-shape entry in the `pre` phase, and fails
+the build (before anything is written) on:
+
+| problem | message |
+| --- | --- |
+| the key disagrees with the last `pat` pair | `key does not match last pat pair <verb>:<noun> (expected "<verb>_<noun>")` |
+| two messages declare the same pattern | `pat [<pairs>] is already declared by "<name>"` |
+| `pat` is empty | `pat declares no pattern pairs` |
+| an element is not a single pair | `pat pair <i> is not a single key:value pair` |
+| a pair value is not a string | `pat pair <i> (<key>) value is not a string` |
+
+The key check exists because the key names the message's action file — a
+convention the legacy shape got implicitly from the chain's leaf, and which
+becomes a real consistency check once the key is written out by hand. The
+duplicate check has no legacy counterpart: a nested pattern could not be stated
+twice, because the pattern *was* the path.
+
+All problems are reported together, ordered by message name, except that a
+malformed pattern reports one problem and stops that message's remaining
+checks. Legacy chains are never checked.
 
 
 ## Modeling language essentials

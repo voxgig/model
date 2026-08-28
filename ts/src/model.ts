@@ -25,6 +25,7 @@ import { Watch } from './watch'
 
 import { model_producer } from './producer/model'
 import { local_producer } from './producer/local'
+import { msg_producer } from './producer/msg'
 
 import { initModel } from './init'
 
@@ -123,6 +124,12 @@ class Model {
       buildargs: mspec.buildargs,
       use: self.config ? { config: self.config } : {},
       res: [
+        // Validates message declarations (pre phase), so an inconsistent
+        // main.msg fails the build before any output is written.
+        {
+          path: '/',
+          build: msg_producer
+        },
         {
           path: '/',
           build: model_producer
