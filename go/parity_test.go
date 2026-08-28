@@ -52,7 +52,11 @@ func loadSpec(t *testing.T, path string) []specRow {
 	return rows
 }
 
-// buildModelJSON runs ModelProducer over src and returns the written JSON.
+// buildModelJSON runs the producer pipeline over src and returns the written
+// JSON. The producers are wired as New wires them: the msg check first (pre),
+// then the model producer (post). A row therefore asserts both that the
+// source passes the built-in checks and that it serializes to the expected
+// bytes.
 func buildModelJSON(t *testing.T, src string) string {
 	t.Helper()
 	dir := t.TempDir()
@@ -60,7 +64,10 @@ func buildModelJSON(t *testing.T, src string) string {
 	writeFile(t, dir, "model.aon", src)
 
 	b := NewBuild(BuildSpec{Path: path, Base: dir,
-		Res: []ProducerDef{{Path: "/", Build: ModelProducer}}})
+		Res: []ProducerDef{
+			{Path: "/", Build: MsgProducer},
+			{Path: "/", Build: ModelProducer},
+		}})
 	if br := b.Run(false); !br.OK {
 		t.Fatalf("build failed: %v", br.Errs)
 	}

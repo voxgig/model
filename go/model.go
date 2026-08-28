@@ -74,6 +74,9 @@ func New(spec ModelSpec) *Model {
 		Watch:    spec.Watch,
 		Log:      log,
 		Res: []ProducerDef{
+			// Checks message declarations (pre phase), so an inconsistent
+			// main.msg fails the build before any output is written.
+			{Path: "/", Build: MsgProducer},
 			{Path: "/", Build: ModelProducer},
 			{Path: "/", Build: LocalProducer},
 		},

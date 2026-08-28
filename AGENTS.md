@@ -177,6 +177,27 @@ Other notes:
   the shared specs in `test/spec/*.tsv`, which `ts/test/parity.test.ts` and
   `go/parity_test.go` both run — add rows there rather than inline
   expectations, so both languages are covered by one fixture.
+- **Message declarations are checked, not transformed.** `main.msg` accepts
+  two shapes: the legacy chain (pattern pairs nested down to the definition)
+  and the declared shape (a flat entry per message, holding a `pat` list of
+  single-pair maps). `msg_producer` (`ts/src/producer/msg.ts`, `go/msg.go`)
+  validates the declared shape in **both** phases, first in the pipeline — so
+  a failure lands before `model_producer` writes anything — and leaves
+  everything without a `pat` list alone, which is what lets both shapes
+  coexist. The post-phase check is load-bearing, not belt-and-braces: a `pre`
+  action returning `reload: true` makes the build re-resolve the model *after*
+  the pre phase, so a pre-only check would validate a model that no longer
+  exists and let the regenerated one be written unchecked. Pattern identity is
+  keyed on a quoted encoding of the pairs, not on the `key:value,...`
+  rendering the error shows, so a value containing a delimiter cannot collide
+  with a genuinely different pattern. It never rewrites
+  the model, so the two shapes serialize exactly as written. Problems are
+  sorted by message name in both implementations (Go map iteration is
+  otherwise random), and the message strings are identical; keep them so, and
+  see `docs/reference.md` for the checks. One asymmetry is deliberate: the TS
+  producer pushes its errors onto `build.errs` itself, because
+  `BuildImpl.run` collects only the errors a producer *throws*, while Go's
+  `runProducer` already merges a failed producer's `Errs`.
 - **`const Version`** lives in `go/model.go`; `make publish-go V=x.y.z`
   rewrites it and tags `go/vx.y.z`.
 - The Go port depends on **`aontu/go` only**; it does not use `util/go` (the
@@ -211,6 +232,13 @@ too — a row only belongs here if the two implementations agree on it. Rows
 assert successful builds; error behavior, and values only producer mutation
 can introduce (`undefined`, `toJSON`), are locked by per-language tests
 instead.
+
+Both runners wire the pipeline as the `Model` does — `msg_producer` then
+`model_producer` — so a row asserts that its source passes the built-in
+checks as well as serializing to the expected bytes. A row that is meant to
+*fail* a check therefore does not belong here; put it in the per-language
+suites (`ts/test/msg.test.ts`, `go/msg_test.go`), which mirror each other
+case for case.
 
 **TypeScript:** `node:test` (`describe`/`test`), import from `../dist/...`.
 Runtime fixtures under `ts/test/_gen/<name>/`, created in the test. Watch tests

@@ -1,0 +1,11 @@
+name	args	expected
+# Message declaration parity: both shapes of main.msg build in both
+# implementations and serialize to the same bytes. The declared shape is a
+# flat entry keyed by message name, with the pattern as data (an ordered list
+# of single-pair maps) and the metadata as declared fields; the legacy shape
+# nests the pattern pairs, so the pattern is the path to the definition. Rows
+# pass the built-in msg checks too - the parity runners wire the msg producer
+# ahead of the model producer, as the Model does.
+declared-shape	["main: msg: save_item: {\n  pat: [ {aim: web}, {save: item} ]\n  doc: \"Save a todo item\"\n  params: { id: \"string\" }\n  web: { allow: true }\n  api: { active: true }\n}\n"]	"{\n  \"main\": {\n    \"msg\": {\n      \"save_item\": {\n        \"api\": {\n          \"active\": true\n        },\n        \"doc\": \"Save a todo item\",\n        \"params\": {\n          \"id\": \"string\"\n        },\n        \"pat\": [\n          {\n            \"aim\": \"web\"\n          },\n          {\n            \"save\": \"item\"\n          }\n        ],\n        \"web\": {\n          \"allow\": true\n        }\n      }\n    }\n  }\n}"
+legacy-chain	["main: msg: aim: web: {\n  get: info: {}\n  on: todo: { save: item: { '$': { file: './web_save_item' } } }\n}\n"]	"{\n  \"main\": {\n    \"msg\": {\n      \"aim\": {\n        \"web\": {\n          \"get\": {\n            \"info\": {}\n          },\n          \"on\": {\n            \"todo\": {\n              \"save\": {\n                \"item\": {\n                  \"$\": {\n                    \"file\": \"./web_save_item\"\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}"
+mixed-shapes	["main: msg: {\n  aim: web: { save: item: {} }\n  publish_fixture: { pat: [ {aim: cag}, {publish: fixture} ] }\n}\n"]	"{\n  \"main\": {\n    \"msg\": {\n      \"aim\": {\n        \"web\": {\n          \"save\": {\n            \"item\": {}\n          }\n        }\n      },\n      \"publish_fixture\": {\n        \"pat\": [\n          {\n            \"aim\": \"cag\"\n          },\n          {\n            \"publish\": \"fixture\"\n          }\n        ]\n      }\n    }\n  }\n}"

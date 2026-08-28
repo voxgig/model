@@ -42,6 +42,7 @@ const config_1 = require("./config");
 const watch_1 = require("./watch");
 const model_1 = require("./producer/model");
 const local_1 = require("./producer/local");
+const msg_1 = require("./producer/msg");
 const init_1 = require("./init");
 Object.defineProperty(exports, "initModel", { enumerable: true, get: function () { return init_1.initModel; } });
 class Model {
@@ -114,6 +115,12 @@ class Model {
             buildargs: mspec.buildargs,
             use: self.config ? { config: self.config } : {},
             res: [
+                // Validates message declarations (pre phase), so an inconsistent
+                // main.msg fails the build before any output is written.
+                {
+                    path: '/',
+                    build: msg_1.msg_producer
+                },
                 {
                     path: '/',
                     build: model_1.model_producer
