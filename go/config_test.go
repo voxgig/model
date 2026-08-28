@@ -182,7 +182,8 @@ func TestConfigLegacyMigrationRetargetsPackageImport(t *testing.T) {
 	writeFile(t, cdir, "model-config.aontu",
 		"@\"@voxgig/model/model/.model-config/model-config.aontu\"\n"+
 			"@\"local.aontu\"\n"+
-			"sys: model: action: {}\n")
+			"sys: model: action: {}\n"+
+			"sys: model: was: '@voxgig/model/model/.model-config/model-config.aontu'\n")
 
 	New(ModelSpec{Path: filepath.Join(dir, "model.aon"), Base: dir})
 
@@ -198,8 +199,13 @@ func TestConfigLegacyMigrationRetargetsPackageImport(t *testing.T) {
 	if !strings.Contains(migrated, "@voxgig/model/model/.model-config/model-config.aon\"") {
 		t.Fatalf("package import should name .aon, got:\n%s", migrated)
 	}
-	if strings.Contains(migrated, "model-config.aontu") {
-		t.Fatalf("no .aontu package import should survive, got:\n%s", migrated)
+	// The rewrite is anchored to aontu's `@"..."` import syntax, so this same
+	// pathname held as ordinary string DATA is left exactly as it was. A bare
+	// pathname match would silently edit a declaration during a one-time
+	// migration. (Reported by Codex review on voxgig/model#16.)
+	if !strings.Contains(migrated,
+		"was: '@voxgig/model/model/.model-config/model-config.aontu'") {
+		t.Fatalf("a path held as string data must be left alone, got:\n%s", migrated)
 	}
 	// A project's OWN .aontu import still names a real file on disk, so the
 	// migration must leave it exactly as it found it.

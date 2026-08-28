@@ -35,11 +35,13 @@ type Config struct {
 // names a file that no longer ships, and a verbatim migration leaves the
 // migrated config unresolvable on the first build after upgrading.
 //
-// Only this package's import is rewritten. A project's own `.aontu` imports
-// still name real files on its disk, which nothing here renamed; rewriting
-// those would break the very declarations the migration exists to preserve.
+// Only this package's import is rewritten, and only where it is an IMPORT:
+// the match is anchored to aontu's `@"..."` syntax, closing quote included,
+// rather than to the bare pathname. A project's own `.aontu` imports still
+// name real files on its disk, and this same pathname may be held as ordinary
+// string DATA; both are declarations the migration exists to preserve.
 // Mirrors the same replace in the TypeScript makeConfig.
-var legacyPkgImport = regexp.MustCompile(`(@voxgig/model/[^"']*model-config)\.aontu`)
+var legacyPkgImport = regexp.MustCompile(`@(\s*)"(@voxgig/model/[^"]*model-config)\.aontu"`)
 
 // newConfig sets up (and bootstraps) the config build for a model base.
 func newConfig(base string, spec ModelSpec, log Log) *Config {
@@ -55,7 +57,7 @@ func newConfig(base string, spec ModelSpec, log Log) *Config {
 	if _, err := os.Stat(cpath); os.IsNotExist(err) {
 		if src, rerr := os.ReadFile(legacy); rerr == nil {
 			// NOT a verbatim copy: see legacyPkgImport.
-			src = legacyPkgImport.ReplaceAll(src, []byte("$1.aon"))
+			src = legacyPkgImport.ReplaceAll(src, []byte(`@${1}"${2}.aon"`))
 			if werr := os.WriteFile(cpath, src, 0o644); werr == nil {
 				_ = os.Remove(legacy)
 			}

@@ -321,5 +321,36 @@ sys: model: action: {}
         const migrated = await (0, promises_1.readFile)(dir + '/model/.model-config/model-config.aon', 'utf8');
         node_assert_1.default.ok(migrated.includes('@"local.aontu"'), "a project's own .aontu import must be left alone: " + migrated);
     });
+    // The rewrite is anchored to aontu's import syntax, not to the bare
+    // pathname. A legacy config may carry this package's path as ordinary
+    // string DATA — a note, a compatibility path in action metadata — and an
+    // unanchored match would silently edit that value during a one-time
+    // migration. Same principle as the test above: migrate imports, never
+    // declarations. (Reported by Codex review on voxgig/model#16.)
+    (0, node_test_1.test)('legacy-config-rewrite-does-not-touch-string-data', async () => {
+        const dir = GEN + '/ex-migrate-data';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
+        await (0, promises_1.writeFile)(dir + '/model/model.aon', 'x: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', `
+@"@voxgig/model/model/.model-config/model-config.aontu"
+
+sys: model: action: {}
+sys: model: was: '@voxgig/model/model/.model-config/model-config.aontu'
+`);
+        const model = new model_1.Model({
+            fs: node_fs_1.default,
+            path: dir + '/model/model.aon',
+            base: dir + '/model',
+            debug: 'silent',
+        });
+        const br = await model.run();
+        node_assert_1.default.ok(br.ok, 'migrated config did not build: ' + errtext(br.errs));
+        const migrated = await (0, promises_1.readFile)(dir + '/model/.model-config/model-config.aon', 'utf8');
+        // The import moved...
+        node_assert_1.default.ok(migrated.includes('@"@voxgig/model/model/.model-config/model-config.aon"'), 'the import should name .aon: ' + migrated);
+        // ...and the string value did not.
+        node_assert_1.default.ok(migrated.includes("was: '@voxgig/model/model/.model-config/model-config.aontu'"), 'a path held as string data must be left alone: ' + migrated);
+    });
 });
 //# sourceMappingURL=extra.test.js.map

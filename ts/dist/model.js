@@ -183,12 +183,21 @@ function makeConfig(mspec, log, fs, trigger_model_build) {
         // build after upgrading. Renaming the file without retargeting that import
         // just moves the breakage.
         //
-        // Only THIS package's import is retargeted. A project's own `.aontu`
-        // imports still name real files on its disk, which nothing here renamed;
-        // rewriting those would break the very declarations this migration exists
-        // to preserve.
+        // Only THIS package's import is retargeted, and only where it is an
+        // IMPORT. Two things are deliberately left alone:
+        //
+        //   - a project's own `.aontu` imports, which still name real files on
+        //     its disk that nothing here renamed;
+        //   - this same pathname held as ordinary string DATA (a note, a
+        //     compatibility path in action metadata).
+        //
+        // Hence the match is anchored to aontu's `@"..."` import syntax, closing
+        // quote included, rather than to the bare pathname. Both are declarations
+        // the migration exists to preserve, and silently editing one during a
+        // one-time migration is precisely the failure this whole block guards
+        // against.
         const legacy = fs.readFileSync(legacycpath, 'utf8');
-        fs.writeFileSync(cpath, legacy.replace(/(@voxgig\/model\/[^"']*model-config)\.aontu/g, '$1.aon'));
+        fs.writeFileSync(cpath, legacy.replace(/@(\s*)"(@voxgig\/model\/[^"]*model-config)\.aontu"/g, '@$1"$2.aon"'));
         try {
             fs.unlinkSync(legacycpath);
         }

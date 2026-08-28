@@ -394,4 +394,46 @@ sys: model: action: {}
       "a project's own .aontu import must be left alone: " + migrated)
   })
 
+
+  // The rewrite is anchored to aontu's import syntax, not to the bare
+  // pathname. A legacy config may carry this package's path as ordinary
+  // string DATA — a note, a compatibility path in action metadata — and an
+  // unanchored match would silently edit that value during a one-time
+  // migration. Same principle as the test above: migrate imports, never
+  // declarations. (Reported by Codex review on voxgig/model#16.)
+  test('legacy-config-rewrite-does-not-touch-string-data', async () => {
+    const dir = GEN + '/ex-migrate-data'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir + '/model/.model-config', { recursive: true })
+    await writeFile(dir + '/model/model.aon', 'x: 1\n')
+    await writeFile(dir + '/model/.model-config/model-config.aontu', `
+@"@voxgig/model/model/.model-config/model-config.aontu"
+
+sys: model: action: {}
+sys: model: was: '@voxgig/model/model/.model-config/model-config.aontu'
+`)
+
+    const model = new Model({
+      fs: Fs,
+      path: dir + '/model/model.aon',
+      base: dir + '/model',
+      debug: 'silent',
+    } as any)
+    const br = await model.run()
+
+    assert.ok(br.ok, 'migrated config did not build: ' + errtext(br.errs))
+
+    const migrated = await readFile(
+      dir + '/model/.model-config/model-config.aon', 'utf8')
+
+    // The import moved...
+    assert.ok(
+      migrated.includes('@"@voxgig/model/model/.model-config/model-config.aon"'),
+      'the import should name .aon: ' + migrated)
+    // ...and the string value did not.
+    assert.ok(
+      migrated.includes("was: '@voxgig/model/model/.model-config/model-config.aontu'"),
+      'a path held as string data must be left alone: ' + migrated)
+  })
+
 })
