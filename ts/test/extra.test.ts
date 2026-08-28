@@ -24,6 +24,13 @@ function okResult(name: string) {
 }
 
 
+// aontu errors carry circular Val graphs, so JSON.stringify(errs) throws
+// ERR_TEST_FAILURE on the message rather than reporting the real failure.
+function errtext(errs: any[]) {
+  return (errs || []).map((e: any) => e && (e.msg || e.message) || String(e)).join(' | ')
+}
+
+
 describe('extra', () => {
 
   // A producer that throws in the pre phase fails the build, and the error is
@@ -109,7 +116,7 @@ describe('extra', () => {
     })
     const br = await model.run()
 
-    assert.ok(br.ok, 'build failed: ' + JSON.stringify(br.errs))
+    assert.ok(br.ok, 'build failed: ' + errtext(br.errs))
     assert.strictEqual(await readFile(dir + '/p.txt', 'utf8'), 'OK')
   })
 
@@ -176,7 +183,7 @@ describe('extra', () => {
     })
     const br = await model.run()
 
-    assert.ok(br.ok, 'build failed: ' + JSON.stringify(br.errs))
+    assert.ok(br.ok, 'build failed: ' + errtext(br.errs))
     assert.deepStrictEqual(JSON.parse(await readFile(dir + '/model/m.json', 'utf8')), { a: 1 })
     assert.strictEqual(Fs.existsSync(dir + '/model/.model-config'), false,
       '.model-config should not be created when config is disabled')
@@ -208,7 +215,7 @@ describe('extra', () => {
     })
     const br = await model.run()
 
-    assert.ok(br.ok, 'build failed: ' + JSON.stringify(br.errs))
+    assert.ok(br.ok, 'build failed: ' + errtext(br.errs))
     assert.strictEqual(Fs.existsSync(dir + '/p.txt'), false,
       'config action should not run when config is disabled')
   })
@@ -316,6 +323,75 @@ describe('extra', () => {
     const v = await b.run({ watch: false })
     assert.strictEqual(v.ok, false)
     assert.ok(0 < v.errs.length)
+  })
+
+
+  // A legacy .model-config/model-config.aontu is migrated to .aon. The copy
+  // is NOT verbatim: this package's own config moved to .aon in v10, so a
+  // legacy config's import of it names a file that no longer ships, and a
+  // straight copy leaves the migrated config unresolvable
+  // (aontu/multisource_not_found) on the very first build after upgrading.
+  test('legacy-config-migrates-with-package-import-retargeted', async () => {
+    const dir = GEN + '/ex-migrate-pkg'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir + '/model/.model-config', { recursive: true })
+    await writeFile(dir + '/model/model.aon', 'x: 1\n')
+    await writeFile(dir + '/model/.model-config/model-config.aontu', `
+@"@voxgig/model/model/.model-config/model-config.aontu"
+
+sys: model: action: {}
+`)
+
+    const model = new Model({
+      fs: Fs,
+      path: dir + '/model/model.aon',
+      base: dir + '/model',
+      debug: 'silent',
+    } as any)
+    const br = await model.run()
+
+    assert.ok(br.ok, 'migrated config did not build: ' + errtext(br.errs))
+    assert.strictEqual(
+      Fs.existsSync(dir + '/model/.model-config/model-config.aontu'), false,
+      'the legacy config should be gone once migrated')
+
+    const migrated = await readFile(
+      dir + '/model/.model-config/model-config.aon', 'utf8')
+    assert.ok(
+      migrated.includes('@voxgig/model/model/.model-config/model-config.aon"'),
+      'the package import should name .aon: ' + migrated)
+  })
+
+
+  // Only the @voxgig/model import is retargeted. A project's OWN .aontu
+  // imports still name real files on disk, so rewriting them would break
+  // exactly the declarations the migration exists to preserve.
+  test('legacy-config-keeps-its-own-aontu-imports', async () => {
+    const dir = GEN + '/ex-migrate-own'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir + '/model/.model-config', { recursive: true })
+    await writeFile(dir + '/model/model.aon', 'x: 1\n')
+    await writeFile(dir + '/model/.model-config/local.aontu',
+      'sys: model: action: {}\n')
+    await writeFile(dir + '/model/.model-config/model-config.aontu', `
+@"@voxgig/model/model/.model-config/model-config.aontu"
+@"local.aontu"
+`)
+
+    const model = new Model({
+      fs: Fs,
+      path: dir + '/model/model.aon',
+      base: dir + '/model',
+      debug: 'silent',
+    } as any)
+    const br = await model.run()
+
+    assert.ok(br.ok, 'migrated config did not build: ' + errtext(br.errs))
+
+    const migrated = await readFile(
+      dir + '/model/.model-config/model-config.aon', 'utf8')
+    assert.ok(migrated.includes('@"local.aontu"'),
+      "a project's own .aontu import must be left alone: " + migrated)
   })
 
 })

@@ -161,3 +161,53 @@ func TestConfigOrderFallsBackToSortedKeys(t *testing.T) {
 		t.Fatalf("action order = %v, want [a b] (sorted action keys)", order)
 	}
 }
+
+// A legacy .model-config/model-config.aontu is migrated to .aon, and THIS
+// package's own config import is retargeted on the way. The package config
+// moved to .aon in v10, so a verbatim copy would leave the migrated config
+// importing a file that no longer ships. Mirrors the TypeScript
+// legacy-config-migrates-with-package-import-retargeted.
+//
+// The assertion is on the migrated bytes, not on a successful build: the Go
+// aontu engine does not resolve npm package imports at all (which is why
+// configStub is self-contained), so building one would fail for an unrelated
+// reason in either direction.
+func TestConfigLegacyMigrationRetargetsPackageImport(t *testing.T) {
+	dir := t.TempDir()
+	cdir := filepath.Join(dir, ".model-config")
+	if err := os.MkdirAll(cdir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, dir, "model.aon", "x: 1\n")
+	writeFile(t, cdir, "model-config.aontu",
+		"@\"@voxgig/model/model/.model-config/model-config.aontu\"\n"+
+			"@\"local.aontu\"\n"+
+			"sys: model: action: {}\n")
+
+	New(ModelSpec{Path: filepath.Join(dir, "model.aon"), Base: dir})
+
+	if _, err := os.Stat(filepath.Join(cdir, "model-config.aontu")); !os.IsNotExist(err) {
+		t.Fatalf("legacy config should be gone once migrated (err=%v)", err)
+	}
+	got, err := os.ReadFile(filepath.Join(cdir, "model-config.aon"))
+	if err != nil {
+		t.Fatalf("migrated config not written: %v", err)
+	}
+	migrated := string(got)
+
+	if !strings.Contains(migrated, "@voxgig/model/model/.model-config/model-config.aon\"") {
+		t.Fatalf("package import should name .aon, got:\n%s", migrated)
+	}
+	if strings.Contains(migrated, "model-config.aontu") {
+		t.Fatalf("no .aontu package import should survive, got:\n%s", migrated)
+	}
+	// A project's OWN .aontu import still names a real file on disk, so the
+	// migration must leave it exactly as it found it.
+	if !strings.Contains(migrated, "@\"local.aontu\"") {
+		t.Fatalf("a project's own .aontu import must be left alone, got:\n%s", migrated)
+	}
+	// The declarations the migration exists to preserve are still there.
+	if !strings.Contains(migrated, "sys: model: action: {}") {
+		t.Fatalf("declared content lost in migration, got:\n%s", migrated)
+	}
+}
