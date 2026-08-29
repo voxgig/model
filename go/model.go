@@ -16,11 +16,11 @@ import (
 	"time"
 )
 
-// VERSION is the released version of the Go module. It is rewritten by
-// `make publish-go V=x.y.z` to match the git tag (go/vx.y.z). Spelled in
-// caps to match the TypeScript side's exported VERSION, so the two ports
-// name the same thing the same way.
-const VERSION = "0.2.0"
+// VERSION is the released version of the Go module. `make bump-go V=x.y.z`
+// rewrites it; publish.yml then tags go/vx.y.z to match, so the tag and this
+// constant cannot disagree. Spelled in caps to match the TypeScript side's
+// exported VERSION, so the two ports name the same thing the same way.
+const VERSION = "0.3.0"
 
 // DefaultIdle is the default watch debounce period.
 const DefaultIdle = 111 * time.Millisecond
