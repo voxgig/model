@@ -455,7 +455,7 @@ The default `Model` pipeline is, in order:
   the pre phase, and only the second check sees the regenerated model.
 - **Effect:** validates the message declarations in `main.msg`. See
   [Message declarations](#message-declarations) for the shapes and the checks.
-  A model with no messages, or with only legacy chains, always passes.
+  A model with no messages, or with only a legacy chain, always passes.
 
 ### model_producer
 
@@ -521,30 +521,43 @@ designs in depth.
 
 ## Message declarations
 
-Messages are declared under `main.msg`, in either of two shapes. Both build,
-and both may appear in the same model, so a project migrates one message at a
-time.
+Messages are declared under `main.msg`, in either of two shapes. Both build.
 
-### The declared shape
+### The declared shape: a list
 
-A flat entry per message, keyed by the message name, with the pattern as data —
-an ordered list of single-pair maps — and the metadata as ordinary fields:
+`main.msg` is a **list** of definitions, each carrying its pattern as data —
+an ordered list of single-pair maps — and its metadata as ordinary fields:
 
 ```
-main: msg: save_item: {
-  pat: [ {aim: web}, {save: item} ]
-  doc: "Save a todo item"
-  params: { id: "string" }
-  web: { allow: true }     # consumed downstream, e.g. proxy generation
-  api: { active: true }    # consumed downstream, e.g. REST exposure
-}
+main: msg: [
+  {
+    pat: [ {aim: web}, {save: item} ]
+    doc: "Save a todo item"
+    params: { id: "string" }
+    web: { allow: true }     # consumed downstream, e.g. proxy generation
+    api: { active: true }    # consumed downstream, e.g. REST exposure
+  }
+]
 ```
 
-Because the definition now sits at a known depth, its shape can be constrained
-in the model itself (an aontu alias unified across `main.msg` entries), which
-the nested shape could not express.
+Because a definition sits at a known depth, its shape can be constrained in
+the model itself (an aontu alias unified across the list), which the nested
+shape could not express.
 
-### The legacy shape
+**A list, not a map keyed by message name.** A gateway proxy and the message
+it forwards to necessarily share their last pattern pair —
+`aim:web,on:todo,save:item` proxies `aim:todo,save:item` — so any key derived
+from that pair collides, and the two could not both be declared. A list has no
+key, so the question never arises:
+
+```
+main: msg: [
+  { pat: [ {aim: todo}, {save: item} ] }
+  { pat: [ {aim: web}, {on: todo}, {save: item} ], file: "./web_save_item" }
+]
+```
+
+### The legacy shape: a chain
 
 The pattern as a descending chain of pairs, with the definition at whatever
 depth the chain reaches and `'$'` escaping the leaf:
@@ -556,35 +569,41 @@ main: msg: aim: web: {
 }
 ```
 
-### How the shapes are told apart
+### The action file
 
-A declaration is a map holding a **`pat` list**. A chain node never holds one,
-because every value in a chain node is a map — the next pattern level, or the
-`'$'` leaf. The discriminator therefore holds even for a legacy pattern pair
-spelled `pat:`. Anything without a `pat` list is left alone entirely.
+Unchanged by either shape: the last pattern pair joined with `_`
+(`save:item` -> `save_item`), unless `file` names one explicitly - which is
+exactly what a proxy does. That convention lives in the consumers
+(`@voxgig/system`, `@voxgig/build`), not in the model.
 
 ### Checks
 
-`msg_producer` checks each declared-shape entry in both build phases, and fails
-the build (before anything is written) on:
+`msg_producer` checks a declared list in both build phases, and fails the
+build (before anything is written) on:
 
 | problem | message |
 | --- | --- |
-| the key disagrees with the last `pat` pair | `key does not match last pat pair <verb>:<noun> (expected "<verb>_<noun>")` |
-| two messages declare the same pattern | `pat [<pairs>] is already declared by "<name>"` |
-| `pat` is empty | `pat declares no pattern pairs` |
-| an element is not a single pair | `pat pair <i> is not a single key:value pair` |
-| a pair value is not a string | `pat pair <i> (<key>) value is not a string` |
+| an element is not a map | `model msg [i]: is not a message definition` |
+| no `pat` | `model msg [i]: has no pat list` |
+| `pat` is empty | `model msg [i]: pat declares no pattern pairs` |
+| an element is not a single pair | `model msg [i]: pat pair j is not a single key:value pair` |
+| a pair value is not a string | `model msg [i]: pat pair j (KEY) value is not a string` |
+| `file` is not a string | `model msg [i]: file is not a string` |
+| two messages declare the same pattern | `model msg [i]: pat [PAIRS] is already declared by msg [j]` |
 
-The key check exists because the key names the message's action file — a
-convention the legacy shape got implicitly from the chain's leaf, and which
-becomes a real consistency check once the key is written out by hand. The
-duplicate check has no legacy counterpart: a nested pattern could not be stated
-twice, because the pattern *was* the path.
+Problems are reported in list order, and a malformed pattern reports one
+problem and stops that definition's remaining checks.
 
-All problems are reported together, ordered by message name, except that a
-malformed pattern reports one problem and stops that message's remaining
-checks. Legacy chains are never checked.
+A legacy chain is not checked - it has been valid by construction since before
+this producer existed. But a **definition found among chain nodes** is
+reported, because the nested walk consumes two levels at a time and would read
+the definition's metadata keys as pattern pairs, silently producing patterns
+nobody declared:
+
+```
+model msg "save_item": a message definition must be declared in the main.msg
+list, not as a keyed entry (main: msg: [ { pat: [...] } ])
+```
 
 
 ## Modeling language essentials
