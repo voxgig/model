@@ -15,28 +15,29 @@ import (
 // and their order match.
 //
 // Message declarations come in two shapes. The legacy shape nests the pattern
-// pairs, so the pattern is the path down to the definition, and the
-// definition sits at whatever depth that reaches:
+// pairs, so the pattern is the path down to the definition:
 //
 //	aim: web: { on: todo: { save: item: { '$': { file: './web_save_item' } } } }
 //
-// The declared shape is flat - one entry per message, keyed by the message
-// name, with the pattern as data and the definition at a known depth:
+// The declared shape is a LIST of definitions, each carrying its pattern as
+// data - an ordered list of single-pair maps:
 //
-//	save_item: { pat: [ {aim: web}, {save: item} ], doc: "Save a todo item" }
+//	main: msg: [
+//	  { pat: [ {aim: todo}, {save: item} ] }
+//	  { pat: [ {aim: web}, {on: todo}, {save: item} ], file: "./web_save_item" }
+//	]
 //
-// The two are told apart by pat: a definition is a map holding a pat LIST,
-// and a legacy chain node never holds one, because every value in a chain
-// node is a map - either the next pattern level or the '$' leaf. So the
-// discriminator holds even for a legacy pattern pair that happens to be
-// spelled pat:. Anything without a pat list is left alone entirely, which is
-// what lets the two shapes coexist while models migrate message by message.
+// A LIST, NOT A MAP KEYED BY MESSAGE NAME. The obvious flat shape - one entry
+// per message, keyed by name - cannot express a gateway proxy. A proxy and the
+// message it forwards to necessarily share their last pattern pair
+// (aim:web,on:todo,save:item proxies aim:todo,save:item), and a key derived
+// from that pair therefore collides. Keyed by name, the two above would both
+// demand save_item, and aontu would merge them and fail trying to unify todo
+// with web. A list has no key, so the question never arises.
 //
-// Only the declared shape is checked, for the two things the flat shape makes
-// checkable and the nested one did not: that the entry key agrees with the
-// last pattern pair (the key names the action file), and that no two messages
-// declare the same pattern (previously impossible to state twice, because the
-// pattern WAS the path).
+// The action file still comes from the LAST pattern pair (save:item ->
+// save_item), with file overriding it for a custom name - unchanged, and
+// exactly what a proxy uses. That convention lives in the consumers, not here.
 //
 // This runs in BOTH phases, and must: a pre action can rewrite model source
 // and request a reload, and the build re-resolves the model AFTER the pre
@@ -67,43 +68,48 @@ func MsgProducer(b *Build, ctx *BuildContext) ProducerResult {
 	return pr
 }
 
-// checkMsg validates the declared-shape message entries in main.msg,
-// returning one message per problem found (none when the model is valid,
-// which includes a model with no messages at all, or only legacy chains).
+// checkMsg validates the message declarations in main.msg, returning one
+// message per problem found (none when the model is valid, which includes a
+// model with no messages at all, or only a legacy chain).
 func checkMsg(model map[string]any) []string {
+	main := asMap(model["main"])
+	if main == nil {
+		return nil
+	}
+
+	if list, isList := main["msg"].([]any); isList {
+		return checkMsgList(list)
+	}
+
+	if chain := asMap(main["msg"]); chain != nil {
+		return checkMsgChain(chain)
+	}
+
+	return nil
+}
+
+// checkMsgList validates the declared shape: a list of definitions.
+func checkMsgList(msg []any) []string {
 	var problems []string
 
-	msg := nestedMap(model, "main", "msg")
-	if msg == nil {
-		return problems
-	}
+	// Canonical pattern -> the index that declared it first.
+	seen := map[string]int{}
 
-	names := make([]string, 0, len(msg))
-	for name := range msg {
-		names = append(names, name)
-	}
-	// Byte order. Go map iteration is random, so without this the problems
-	// would come out in a different order on every run - and in a different
-	// order from the TypeScript producer, which sorts its keys the same way.
-	sort.Strings(names)
-
-	// Canonical pattern -> the message that claimed it first.
-	seen := map[string]string{}
-
-	for _, name := range names {
-		def := asMap(msg[name])
+	for mI, elem := range msg {
+		def := asMap(elem)
 		if def == nil {
+			problems = append(problems, msgerr(mI, "is not a message definition"))
 			continue
 		}
 
-		// Legacy chain node: not this check's business.
 		pat, isList := def["pat"].([]any)
 		if !isList {
+			problems = append(problems, msgerr(mI, "has no pat list"))
 			continue
 		}
 
 		if len(pat) == 0 {
-			problems = append(problems, msgerr(name, "pat declares no pattern pairs"))
+			problems = append(problems, msgerr(mI, "pat declares no pattern pairs"))
 			continue
 		}
 
@@ -121,13 +127,12 @@ func checkMsg(model map[string]any) []string {
 		// keys.
 		pairs := make([]string, 0, len(pat))
 		canon := make([]string, 0, len(pat))
-		var lastKey, lastVal string
 		wellFormed := true
 
-		for pI, elem := range pat {
-			pair := asMap(elem)
+		for pI, pelem := range pat {
+			pair := asMap(pelem)
 			if len(pair) != 1 {
-				problems = append(problems, msgerr(name,
+				problems = append(problems, msgerr(mI,
 					"pat pair "+strconv.Itoa(pI)+" is not a single key:value pair"))
 				wellFormed = false
 				break
@@ -140,7 +145,7 @@ func checkMsg(model map[string]any) []string {
 
 			val, isStr := pair[key].(string)
 			if !isStr {
-				problems = append(problems, msgerr(name,
+				problems = append(problems, msgerr(mI,
 					"pat pair "+strconv.Itoa(pI)+" ("+key+") value is not a string"))
 				wellFormed = false
 				break
@@ -148,35 +153,74 @@ func checkMsg(model map[string]any) []string {
 
 			pairs = append(pairs, key+":"+val)
 			canon = append(canon, strconv.Quote(key)+":"+strconv.Quote(val))
-			lastKey, lastVal = key, val
 		}
 
 		if !wellFormed {
 			continue
 		}
 
-		// The entry key names the action file, so it must agree with the last
-		// pattern pair.
-		expected := lastKey + "_" + lastVal
-		if name != expected {
-			problems = append(problems, msgerr(name,
-				"key does not match last pat pair "+lastKey+":"+lastVal+
-					` (expected "`+expected+`")`))
+		// file names the action file, overriding the last-pattern-pair
+		// convention. A non-string would reach the consumers as one.
+		if file, has := def["file"]; has {
+			if _, isStr := file.(string); !isStr {
+				problems = append(problems, msgerr(mI, "file is not a string"))
+			}
 		}
 
 		canonKey := strings.Join(canon, ",")
 		if first, dup := seen[canonKey]; dup {
-			problems = append(problems, msgerr(name,
-				"pat ["+strings.Join(pairs, ",")+`] is already declared by "`+first+`"`))
+			problems = append(problems, msgerr(mI,
+				"pat ["+strings.Join(pairs, ",")+"] is already declared by msg ["+
+					strconv.Itoa(first)+"]"))
 		} else {
-			seen[canonKey] = name
+			seen[canonKey] = mI
 		}
 	}
 
 	return problems
 }
 
-// msgerr reports a problem against the message it belongs to.
-func msgerr(name, why string) string {
-	return `model msg "` + name + `": ` + why
+// checkMsgChain handles the legacy chain. Nothing to validate in the chain
+// itself - it has been valid by construction since before this producer
+// existed - but a definition found among its nodes is reported rather than
+// walked: the nested walk reads two levels at a time, so it would take the
+// definition's metadata keys for pattern pairs and emit patterns nobody
+// declared.
+func checkMsgChain(msg map[string]any) []string {
+	var problems []string
+
+	names := make([]string, 0, len(msg))
+	for name := range msg {
+		names = append(names, name)
+	}
+	// Byte order. Go map iteration is random, so without this the problems
+	// would come out in a different order on every run - and in a different
+	// order from the TypeScript producer, which sorts its keys the same way.
+	sort.Strings(names)
+
+	for _, name := range names {
+		if isMsgDef(msg[name]) {
+			problems = append(problems, `model msg "`+name+`": a message `+
+				`definition must be declared in the main.msg list, not as a `+
+				`keyed entry (main: msg: [ { pat: [...] } ])`)
+		}
+	}
+
+	return problems
+}
+
+// isMsgDef reports whether a value is a message definition: a map declaring
+// its pattern as a list.
+func isMsgDef(val any) bool {
+	def := asMap(val)
+	if def == nil {
+		return false
+	}
+	_, isList := def["pat"].([]any)
+	return isList
+}
+
+// msgerr reports a problem against the definition it belongs to.
+func msgerr(index int, why string) string {
+	return "model msg [" + strconv.Itoa(index) + "]: " + why
 }

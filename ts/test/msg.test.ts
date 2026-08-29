@@ -34,7 +34,7 @@ function errtext(errs: any[]) {
 
 
 // Build src through the msg check and the model producer, as the Model wires
-// them: msg first (pre), model second (post).
+// them: msg first, then model.
 async function runMsg(name: string, src: string) {
   const dir = GEN + '/msg-' + name
   await rm(dir, { recursive: true, force: true })
@@ -56,44 +56,60 @@ async function runMsg(name: string, src: string) {
 
 describe('msg', () => {
 
-  // === declared shape, valid ===
+  // === the declared shape: a list ===
 
-  test('valid-declaration-builds', async () => {
+  test('valid-list-builds', async () => {
     const { br, json } = await runMsg('valid',
-      'main: msg: save_item: {\n' +
-      '  pat: [ {aim: web}, {save: item} ]\n' +
-      '  doc: "Save a todo item"\n' +
-      '}\n')
+      'main: msg: [\n' +
+      '  { pat: [ {aim: web}, {save: item} ], doc: "Save an item" }\n' +
+      ']\n')
 
     assert.ok(br.ok, 'build failed: ' + errtext(br.errs))
     assert.ok(existsSync(json))
   })
 
 
-  // Several messages, each with its own pattern, all consistent.
-  test('multiple-declarations-build', async () => {
-    const { br } = await runMsg('multi',
-      'main: msg: {\n' +
-      '  save_item: { pat: [ {aim: web}, {save: item} ] }\n' +
-      '  load_item: { pat: [ {aim: web}, {load: item} ] }\n' +
-      '  publish_fixture: { pat: [ {aim: cag}, {publish: fixture} ] }\n' +
-      '}\n')
+  // THE REASON THE SHAPE IS A LIST. A gateway proxy and the message it
+  // forwards to share their last pattern pair, so any key derived from that
+  // pair collides. A list has no key.
+  test('gateway-proxy-and-its-target', async () => {
+    const { br } = await runMsg('proxy',
+      'main: msg: [\n' +
+      '  { pat: [ {aim: todo}, {save: item} ] }\n' +
+      '  { pat: [ {aim: web}, {on: todo}, {save: item} ], file: "./web_save_item" }\n' +
+      ']\n')
 
     assert.ok(br.ok, 'build failed: ' + errtext(br.errs))
   })
 
 
-  // A single-pair pattern is legal: the key is verb_noun of that one pair.
+  test('multiple-definitions-build', async () => {
+    const { br } = await runMsg('multi',
+      'main: msg: [\n' +
+      '  { pat: [ {aim: web}, {save: item} ] }\n' +
+      '  { pat: [ {aim: web}, {load: item} ] }\n' +
+      '  { pat: [ {aim: cag}, {publish: fixture} ] }\n' +
+      ']\n')
+
+    assert.ok(br.ok, 'build failed: ' + errtext(br.errs))
+  })
+
+
+  // A one-pair pattern is legal.
   test('single-pair-pattern', async () => {
-    const { br } = await runMsg('single',
-      'main: msg: get_info: { pat: [ {get: info} ] }\n')
+    const { br } = await runMsg('single', 'main: msg: [ { pat: [ {get: info} ] } ]\n')
+    assert.ok(br.ok, 'build failed: ' + errtext(br.errs))
+  })
+
+
+  test('empty-list-builds', async () => {
+    const { br } = await runMsg('emptylist', 'main: msg: []\n')
     assert.ok(br.ok, 'build failed: ' + errtext(br.errs))
   })
 
 
   // === backwards compatibility ===
 
-  // The legacy nested chain carries no pat list, so it is left alone.
   test('legacy-chain-untouched', async () => {
     const { br, json } = await runMsg('legacy',
       'main: msg: aim: web: {\n' +
@@ -106,56 +122,30 @@ describe('msg', () => {
   })
 
 
-  // Both shapes in one model: the chain is skipped, the declaration checked.
-  test('mixed-shapes-build', async () => {
-    const { br } = await runMsg('mixed',
-      'main: msg: {\n' +
-      '  aim: web: { save: item: {} }\n' +
-      '  publish_fixture: { pat: [ {aim: cag}, {publish: fixture} ] }\n' +
-      '}\n')
-
-    assert.ok(br.ok, 'build failed: ' + errtext(br.errs))
-  })
-
-
-  // A legacy pattern pair spelled `pat:` is still a chain node - its value is
-  // a map, not a list - so the discriminator does not misread it.
-  test('legacy-pat-key-not-a-definition', async () => {
-    const { br } = await runMsg('legacy-pat',
-      'main: msg: pat: web: { save: item: {} }\n')
-    assert.ok(br.ok, 'build failed: ' + errtext(br.errs))
-  })
-
-
-  // A model with no messages at all builds.
   test('no-messages', async () => {
     const { br } = await runMsg('none', 'main: entity: item: { name: "item" }\n')
     assert.ok(br.ok, 'build failed: ' + errtext(br.errs))
   })
 
 
-  // === key / last-pair consistency ===
-
-  test('key-mismatch-fails', async () => {
-    const { br, json } = await runMsg('mismatch',
-      'main: msg: save_todo: { pat: [ {aim: web}, {save: item} ] }\n')
-
-    assert.strictEqual(br.ok, false)
-    assert.match(errtext(br.errs),
-      /model msg "save_todo": key does not match last pat pair save:item \(expected "save_item"\)/)
-
-    // The check runs in the pre phase, so nothing was written.
-    assert.strictEqual(existsSync(json), false)
+  // A legacy pattern pair spelled `pat:` is a chain node - its value is a map,
+  // not a list - so it is not mistaken for a definition.
+  test('legacy-pat-key-is-not-a-definition', async () => {
+    const { br } = await runMsg('legacy-pat', 'main: msg: pat: web: { save: item: {} }\n')
+    assert.ok(br.ok, 'build failed: ' + errtext(br.errs))
   })
 
 
-  // The LAST pair names the key, not the first.
-  test('key-from-last-pair-only', async () => {
-    const { br } = await runMsg('firstpair',
-      'main: msg: aim_web: { pat: [ {aim: web}, {save: item} ] }\n')
+  // A definition among chain nodes is reported, not walked: the nested walk
+  // would read its metadata keys as pattern pairs.
+  test('definition-in-a-chain-is-rejected', async () => {
+    const { br, json } = await runMsg('keyed',
+      'main: msg: save_item: { pat: [ {aim: web}, {save: item} ] }\n')
 
     assert.strictEqual(br.ok, false)
-    assert.match(errtext(br.errs), /expected "save_item"/)
+    assert.match(errtext(br.errs),
+      /model msg "save_item": a message definition must be declared in the main\.msg list/)
+    assert.strictEqual(existsSync(json), false)
   })
 
 
@@ -163,74 +153,73 @@ describe('msg', () => {
 
   test('duplicate-pat-fails', async () => {
     const { br } = await runMsg('dup',
-      'main: msg: {\n' +
-      '  save_item: { pat: [ {aim: web}, {save: item} ] }\n' +
-      '  x_save_item: { pat: [ {aim: web}, {save: item} ] }\n' +
-      '}\n')
+      'main: msg: [\n' +
+      '  { pat: [ {aim: web}, {save: item} ] }\n' +
+      '  { pat: [ {aim: web}, {save: item} ], doc: "again" }\n' +
+      ']\n')
 
     assert.strictEqual(br.ok, false)
-    const text = errtext(br.errs)
-    assert.match(text,
-      /model msg "x_save_item": pat \[aim:web,save:item\] is already declared by "save_item"/)
-  })
-
-
-  // Pattern identity is structural, not a rendering of it: a value carrying
-  // the delimiters used to display a pattern must not collide with a
-  // genuinely different pattern.
-  test('delimiters-in-values-do-not-collide', () => {
-    assert.deepStrictEqual(checkMsg({
-      main: {
-        msg: {
-          'a_b,c:d': { pat: [{ a: 'b,c:d' }] },
-          c_d: { pat: [{ a: 'b' }, { c: 'd' }] },
-        }
-      }
-    }), [])
+    assert.match(errtext(br.errs),
+      /model msg \[1\]: pat \[aim:web,save:item\] is already declared by msg \[0\]/)
   })
 
 
   // Same pairs in a different order are different patterns.
   test('reordered-pat-is-distinct', async () => {
     const { br } = await runMsg('reorder',
-      'main: msg: {\n' +
-      '  save_item: { pat: [ {aim: web}, {save: item} ] }\n' +
-      '  aim_web: { pat: [ {save: item}, {aim: web} ] }\n' +
-      '}\n')
+      'main: msg: [\n' +
+      '  { pat: [ {aim: web}, {save: item} ] }\n' +
+      '  { pat: [ {save: item}, {aim: web} ] }\n' +
+      ']\n')
 
-    // Distinct patterns, and each key matches its own last pair.
     assert.ok(br.ok, 'build failed: ' + errtext(br.errs))
   })
 
 
-  // === malformed patterns ===
+  // === malformed definitions ===
 
   test('empty-pat-fails', async () => {
-    const { br } = await runMsg('empty', 'main: msg: save_item: { pat: [] }\n')
+    const { br } = await runMsg('emptypat', 'main: msg: [ { pat: [] } ]\n')
 
     assert.strictEqual(br.ok, false)
-    assert.match(errtext(br.errs),
-      /model msg "save_item": pat declares no pattern pairs/)
+    assert.match(errtext(br.errs), /model msg \[0\]: pat declares no pattern pairs/)
+  })
+
+
+  test('missing-pat-fails', async () => {
+    const { br } = await runMsg('nopat', 'main: msg: [ { doc: "no pattern" } ]\n')
+
+    assert.strictEqual(br.ok, false)
+    assert.match(errtext(br.errs), /model msg \[0\]: has no pat list/)
   })
 
 
   test('multi-key-pair-fails', async () => {
     const { br } = await runMsg('multikey',
-      'main: msg: save_item: { pat: [ {aim: web, save: item} ] }\n')
+      'main: msg: [ { pat: [ {aim: web, save: item} ] } ]\n')
 
     assert.strictEqual(br.ok, false)
     assert.match(errtext(br.errs),
-      /model msg "save_item": pat pair 0 is not a single key:value pair/)
+      /model msg \[0\]: pat pair 0 is not a single key:value pair/)
   })
 
 
   test('non-string-pair-value-fails', async () => {
     const { br } = await runMsg('nonstring',
-      'main: msg: save_item: { pat: [ {aim: web}, {save: 1} ] }\n')
+      'main: msg: [ { pat: [ {aim: web}, {save: 1} ] } ]\n')
 
     assert.strictEqual(br.ok, false)
     assert.match(errtext(br.errs),
-      /model msg "save_item": pat pair 1 \(save\) value is not a string/)
+      /model msg \[0\]: pat pair 1 \(save\) value is not a string/)
+  })
+
+
+  test('non-string-file-fails', async () => {
+    const { br } = await runMsg('badfile',
+      'main: msg: [ { pat: [ {aim: web}, {save: item} ], file: 1 } ]\n')
+
+    assert.strictEqual(br.ok, false)
+    assert.match(errtext(br.errs), /model msg \[0\]: file is not a string/)
   })
 
 
@@ -245,54 +234,90 @@ describe('msg', () => {
     assert.deepStrictEqual(checkMsg({ main: { msg: 'nope' } }), [])
     assert.deepStrictEqual(checkMsg({ main: { msg: [] } }), [])
     assert.deepStrictEqual(checkMsg({ main: { msg: {} } }), [])
+  })
 
-    // Entries that are not maps are not declarations.
-    assert.deepStrictEqual(checkMsg({ main: { msg: { a: 1, b: null } } }), [])
+
+  test('checkMsg-rejects-non-definition-elements', () => {
+    assert.deepStrictEqual(
+      checkMsg({ main: { msg: ['nope'] } }),
+      ['model msg [0]: is not a message definition'])
+
+    assert.deepStrictEqual(
+      checkMsg({ main: { msg: [null] } }),
+      ['model msg [0]: is not a message definition'])
+
+    assert.deepStrictEqual(
+      checkMsg({ main: { msg: [[]] } }),
+      ['model msg [0]: is not a message definition'])
   })
 
 
   test('checkMsg-rejects-non-map-pat-element', () => {
-    assert.deepStrictEqual(
-      checkMsg({ main: { msg: { save_item: { pat: ['aim:web'] } } } }),
-      ['model msg "save_item": pat pair 0 is not a single key:value pair'])
-
-    assert.deepStrictEqual(
-      checkMsg({ main: { msg: { save_item: { pat: [[]] } } } }),
-      ['model msg "save_item": pat pair 0 is not a single key:value pair'])
-
-    assert.deepStrictEqual(
-      checkMsg({ main: { msg: { save_item: { pat: [{}] } } } }),
-      ['model msg "save_item": pat pair 0 is not a single key:value pair'])
+    for (const elem of ['aim:web', [], {}]) {
+      assert.deepStrictEqual(
+        checkMsg({ main: { msg: [{ pat: [elem] }] } }),
+        ['model msg [0]: pat pair 0 is not a single key:value pair'])
+    }
   })
 
 
-  // A malformed pair stops that message's checks: no key-mismatch error is
-  // piled on top of a pattern that could not be read.
+  // A malformed pair stops that definition's remaining checks.
   test('checkMsg-reports-one-problem-per-broken-pattern', () => {
     assert.deepStrictEqual(
-      checkMsg({ main: { msg: { wrong_name: { pat: [{ save: 1 }] } } } }),
-      ['model msg "wrong_name": pat pair 0 (save) value is not a string'])
+      checkMsg({ main: { msg: [{ pat: [{ save: 1 }], file: 2 }] } }),
+      ['model msg [0]: pat pair 0 (save) value is not a string'])
   })
 
 
-  // Problems are reported in byte order of the message name, so the two
+  // Problems come out in list order, which is the same in both
+  // implementations - no sorting needed, unlike map keys.
+  test('checkMsg-orders-problems-by-index', () => {
+    assert.deepStrictEqual(checkMsg({
+      main: {
+        msg: [
+          { pat: [{ a: 'b' }] },
+          { pat: [] },
+          { pat: [{ a: 'b' }] },
+        ]
+      }
+    }), [
+      'model msg [1]: pat declares no pattern pairs',
+      'model msg [2]: pat [a:b] is already declared by msg [0]',
+    ])
+  })
+
+
+  // Pattern identity is structural, not a rendering of it: a value carrying
+  // the delimiters used to display a pattern must not collide with a
+  // genuinely different pattern.
+  test('delimiters-in-values-do-not-collide', () => {
+    assert.deepStrictEqual(checkMsg({
+      main: {
+        msg: [
+          { pat: [{ a: 'b,c:d' }] },
+          { pat: [{ a: 'b' }, { c: 'd' }] },
+        ]
+      }
+    }), [])
+  })
+
+
+  // Two definitions in a chain are reported in byte order of the key, so both
   // implementations agree (Go map iteration is otherwise random).
-  test('checkMsg-orders-problems-by-name', () => {
-    const problems = checkMsg({
+  test('definitions-in-a-chain-are-ordered', () => {
+    const why = ': a message definition must be declared in the main.msg list' +
+      ', not as a keyed entry (main: msg: [ { pat: [...] } ])'
+
+    assert.deepStrictEqual(checkMsg({
       main: {
         msg: {
           zz: { pat: [{ a: 'b' }] },
           aa: { pat: [{ a: 'b' }] },
-          mm: { pat: [] },
         }
       }
-    })
-
-    assert.deepStrictEqual(problems, [
-      'model msg "aa": key does not match last pat pair a:b (expected "a_b")',
-      'model msg "mm": pat declares no pattern pairs',
-      'model msg "zz": key does not match last pat pair a:b (expected "a_b")',
-      'model msg "zz": pat [a:b] is already declared by "aa"',
+    }), [
+      'model msg "aa"' + why,
+      'model msg "zz"' + why,
     ])
   })
 
@@ -304,7 +329,7 @@ describe('msg', () => {
   // pre-only check would let the regenerated model through unchecked.
   test('producer-checks-in-post-too', async () => {
     const build: any = {
-      model: { main: { msg: { wrong: { pat: [{ save: 'item' }] } } } },
+      model: { main: { msg: [{ pat: [] }] } },
       errs: [],
       log: silentLog(),
     }
@@ -313,22 +338,36 @@ describe('msg', () => {
     const pr = await msg_producer(build, ctx)
 
     assert.strictEqual(pr.ok, false)
-    assert.match(errtext(pr.errs), /expected "save_item"/)
+    assert.match(errtext(pr.errs), /pat declares no pattern pairs/)
+  })
+
+
+  test('producer-reports-errors-on-build-and-result', async () => {
+    const build: any = {
+      model: { main: { msg: [{ pat: [] }] } },
+      errs: [],
+      log: silentLog(),
+    }
+    const ctx: BuildContext = { step: 'pre', watch: false, state: {} }
+
+    const pr = await msg_producer(build, ctx)
+
+    assert.strictEqual(pr.ok, false)
+    assert.strictEqual(pr.errs.length, 1)
+    assert.ok(pr.errs[0] instanceof Error)
+    assert.deepStrictEqual(build.errs, pr.errs)
   })
 
 
   // The real reload path: a pre producer rewrites the model source and asks
-  // for a reload, turning a valid model into an invalid one. The reloaded
-  // model must still be caught, with nothing written - this producer runs
-  // ahead of the model producer in the post phase too.
+  // for a reload, turning a valid model into an invalid one.
   test('reloaded-model-is-rechecked', async () => {
     const dir = GEN + '/msg-reload'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
 
     const path = dir + '/m.aon'
-    await writeFile(path,
-      'main: msg: save_item: { pat: [ {aim: web}, {save: item} ] }\n')
+    await writeFile(path, 'main: msg: [ { pat: [ {aim: web}, {save: item} ] } ]\n')
 
     let rewritten = false
 
@@ -345,8 +384,7 @@ describe('msg', () => {
             }
             if ('pre' === ctx.step && !rewritten) {
               rewritten = true
-              Fs.writeFileSync(path,
-                'main: msg: save_todo: { pat: [ {aim: web}, {save: item} ] }\n')
+              Fs.writeFileSync(path, 'main: msg: [ { pat: [] } ]\n')
               // Force a distinct mtime: resolveModel caches on it, and the
               // rewrite can land inside the same millisecond as the original.
               const future = new Date(Date.now() + 2000)
@@ -363,28 +401,8 @@ describe('msg', () => {
 
     assert.ok(rewritten, 'the rewrite producer did not run')
     assert.strictEqual(br.ok, false)
-    assert.match(errtext(br.errs), /model msg "save_todo": key does not match/)
+    assert.match(errtext(br.errs), /model msg \[0\]: pat declares no pattern pairs/)
     assert.strictEqual(existsSync(dir + '/m.json'), false)
-  })
-
-
-  // A failing check reports its errors both ways: on the result and on the
-  // build (BuildImpl.run only collects thrown errors).
-  test('producer-reports-errors-on-build-and-result', async () => {
-    const build: any = {
-      model: { main: { msg: { wrong: { pat: [{ save: 'item' }] } } } },
-      errs: [],
-      log: silentLog(),
-    }
-    const ctx: BuildContext = { step: 'pre', watch: false, state: {} }
-
-    const pr = await msg_producer(build, ctx)
-
-    assert.strictEqual(pr.ok, false)
-    assert.strictEqual(pr.errs.length, 1)
-    assert.ok(pr.errs[0] instanceof Error)
-    assert.match(pr.errs[0].message, /expected "save_item"/)
-    assert.deepStrictEqual(build.errs, pr.errs)
   })
 
 
@@ -394,8 +412,7 @@ describe('msg', () => {
     const dir = GEN + '/msg-model'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
-    await writeFile(dir + '/m.aon',
-      'main: msg: save_todo: { pat: [ {aim: web}, {save: item} ] }\n')
+    await writeFile(dir + '/m.aon', 'main: msg: [ { pat: [] } ]\n')
 
     const model = new Model({
       path: dir + '/m.aon', base: dir, config: false, debug: 'silent',
@@ -403,7 +420,7 @@ describe('msg', () => {
     const br = await model.run()
 
     assert.strictEqual(br.ok, false)
-    assert.match(errtext(br.errs), /expected "save_item"/)
+    assert.match(errtext(br.errs), /pat declares no pattern pairs/)
     assert.strictEqual(existsSync(dir + '/m.json'), false)
   })
 
@@ -413,7 +430,7 @@ describe('msg', () => {
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
     await writeFile(dir + '/m.aon',
-      'main: msg: save_item: { pat: [ {aim: web}, {save: item} ] }\n')
+      'main: msg: [ { pat: [ {aim: web}, {save: item} ] } ]\n')
 
     const model = new Model({
       path: dir + '/m.aon', base: dir, config: false, debug: 'silent',

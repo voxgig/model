@@ -10,33 +10,37 @@ import type { Build, Producer, BuildContext, ProducerResult } from '../types'
 //
 //   aim: web: { on: todo: { save: item: { '$': { file: './web_save_item' } } } }
 //
-// The declared shape is flat - one entry per message, keyed by the message
-// name, with the pattern as data and the definition at a known depth:
+// The declared shape is a LIST of definitions, each carrying its pattern as
+// data - an ordered list of single-pair maps:
 //
-//   save_item: { pat: [ {aim: web}, {save: item} ], doc: "Save a todo item" }
+//   main: msg: [
+//     { pat: [ {aim: todo}, {save: item} ] }
+//     { pat: [ {aim: web}, {on: todo}, {save: item} ], file: "./web_save_item" }
+//   ]
 //
-// The two are told apart by `pat`: a definition is a map holding a `pat`
-// LIST, and a legacy chain node never holds one, because every value in a
-// chain node is a map - either the next pattern level or the '$' leaf. So the
-// discriminator holds even for a legacy pattern pair that happens to be
-// spelled `pat:`. Anything without a `pat` list is left alone entirely, which
-// is what lets the two shapes coexist while models migrate message by
-// message.
+// A LIST, NOT A MAP KEYED BY MESSAGE NAME. The obvious flat shape - one entry
+// per message, keyed by name - cannot express a gateway proxy. A proxy and the
+// message it forwards to necessarily share their last pattern pair
+// (aim:web,on:todo,save:item proxies aim:todo,save:item), and a key derived
+// from that pair therefore collides. Keyed by name, the two above would both
+// demand `save_item`, and aontu would merge them and fail trying to unify
+// `todo` with `web`. A list has no key, so the question never arises.
 //
-// Only the declared shape is checked here. The checks are the two things the
-// flat shape makes checkable and the nested one did not:
+// The action file still comes from the LAST pattern pair (save:item ->
+// save_item), with `file` overriding it for a custom name - unchanged, and
+// exactly what a proxy uses. That convention lives in the consumers
+// (@voxgig/system's actpath, @voxgig/build's actfile), not here.
 //
-//   1. the entry key agrees with the last pattern pair - the key names the
-//      action file, a convention the legacy shape got implicitly from the
-//      chain's leaf, and which becomes a real consistency check once the key
-//      is written out by hand;
-//   2. no two messages declare the same pattern - previously impossible to
-//      state twice, because the pattern WAS the path.
+// The two shapes are told apart by main.msg being an array. Both may appear
+// in one model only in the sense that a model picks one; a chain model that
+// happens to contain a definition is a mistake this reports, because the
+// nested walk would read the definition's metadata as pattern pairs and
+// silently produce garbage patterns.
 
 
-// Report a problem against the message it belongs to.
-function msgerr(name: string, why: string): string {
-  return 'model msg "' + name + '": ' + why
+// Report a problem against the definition it belongs to.
+function msgerr(index: number, why: string): string {
+  return 'model msg [' + index + ']: ' + why
 }
 
 
@@ -45,7 +49,7 @@ function isObj(val: any): boolean {
 }
 
 
-// A message definition declares its pattern as a list; a chain node never does.
+// A message definition declares its pattern as a list.
 function isMsgDef(val: any): boolean {
   return isObj(val) && Array.isArray(val.pat)
 }
@@ -60,32 +64,48 @@ function sortNames(names: string[]): string[] {
 }
 
 
-// Validate the declared-shape message entries in main.msg, returning one
-// message per problem found (empty when the model is valid, which includes a
-// model with no messages at all, or only legacy chains).
+// Validate the message declarations in main.msg, returning one message per
+// problem found (empty when the model is valid, which includes a model with
+// no messages at all, or only a legacy chain).
 function checkMsg(model: any): string[] {
-  const problems: string[] = []
-
   const msg = model?.main?.msg
-  if (!isObj(msg)) {
-    return problems
+
+  if (Array.isArray(msg)) {
+    return checkMsgList(msg)
   }
 
-  // Canonical pattern -> the message that claimed it first.
-  const seen: { [canon: string]: string } = {}
+  if (isObj(msg)) {
+    return checkMsgChain(msg)
+  }
 
-  for (const name of sortNames(Object.keys(msg))) {
-    const def = msg[name]
+  return []
+}
 
-    // Legacy chain node (or not a map at all): not this check's business.
-    if (!isMsgDef(def)) {
+
+// The declared shape: a list of definitions.
+function checkMsgList(msg: any[]): string[] {
+  const problems: string[] = []
+
+  // Canonical pattern -> the index that declared it first.
+  const seen: { [canon: string]: number } = {}
+
+  for (let mI = 0; mI < msg.length; mI++) {
+    const def = msg[mI]
+
+    if (!isObj(def)) {
+      problems.push(msgerr(mI, 'is not a message definition'))
+      continue
+    }
+
+    if (!Array.isArray(def.pat)) {
+      problems.push(msgerr(mI, 'has no pat list'))
       continue
     }
 
     const pat: any[] = def.pat
 
     if (0 === pat.length) {
-      problems.push(msgerr(name, 'pat declares no pattern pairs'))
+      problems.push(msgerr(mI, 'pat declares no pattern pairs'))
       continue
     }
 
@@ -102,16 +122,16 @@ function checkMsg(model: any): string[] {
     // genuinely equal patterns produce equal keys.
     const pairs: string[] = []
     const canon: string[] = []
-    let last: string[] | undefined
+    let wellFormed = true
 
     for (let pI = 0; pI < pat.length; pI++) {
       const pair = pat[pI]
       const keys = isObj(pair) ? Object.keys(pair) : []
 
       if (1 !== keys.length) {
-        problems.push(msgerr(name, 'pat pair ' + pI +
+        problems.push(msgerr(mI, 'pat pair ' + pI +
           ' is not a single key:value pair'))
-        last = undefined
+        wellFormed = false
         break
       }
 
@@ -119,36 +139,53 @@ function checkMsg(model: any): string[] {
       const val = pair[key]
 
       if ('string' !== typeof val) {
-        problems.push(msgerr(name, 'pat pair ' + pI + ' (' + key +
+        problems.push(msgerr(mI, 'pat pair ' + pI + ' (' + key +
           ') value is not a string'))
-        last = undefined
+        wellFormed = false
         break
       }
 
       pairs.push(key + ':' + val)
       canon.push(JSON.stringify(key) + ':' + JSON.stringify(val))
-      last = [key, val]
     }
 
-    if (null == last) {
+    if (!wellFormed) {
       continue
     }
 
-    // The entry key names the action file, so it must agree with the last
-    // pattern pair.
-    const expected = last[0] + '_' + last[1]
-    if (name !== expected) {
-      problems.push(msgerr(name, 'key does not match last pat pair ' +
-        last[0] + ':' + last[1] + ' (expected "' + expected + '")'))
+    // `file` names the action file, overriding the last-pattern-pair
+    // convention. A non-string would reach the consumers as one.
+    if (undefined !== def.file && 'string' !== typeof def.file) {
+      problems.push(msgerr(mI, 'file is not a string'))
     }
 
     const canonKey = canon.join(',')
-    if (null == seen[canonKey]) {
-      seen[canonKey] = name
+    if (undefined === seen[canonKey]) {
+      seen[canonKey] = mI
     }
     else {
-      problems.push(msgerr(name, 'pat [' + pairs.join(',') +
-        '] is already declared by "' + seen[canonKey] + '"'))
+      problems.push(msgerr(mI, 'pat [' + pairs.join(',') +
+        '] is already declared by msg [' + seen[canonKey] + ']'))
+    }
+  }
+
+  return problems
+}
+
+
+// The legacy chain. Nothing to validate in the chain itself - it has been
+// valid by construction since before this producer existed - but a definition
+// found among its nodes is reported rather than walked: the nested walk reads
+// two levels at a time, so it would take the definition's metadata keys for
+// pattern pairs and emit patterns nobody declared.
+function checkMsgChain(msg: any): string[] {
+  const problems: string[] = []
+
+  for (const name of sortNames(Object.keys(msg))) {
+    if (isMsgDef(msg[name])) {
+      problems.push('model msg "' + name + '": a message definition must be ' +
+        'declared in the main.msg list, not as a keyed entry ' +
+        '(main: msg: [ { pat: [...] } ])')
     }
   }
 

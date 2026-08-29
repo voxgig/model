@@ -179,25 +179,30 @@ Other notes:
   expectations, so both languages are covered by one fixture.
 - **Message declarations are checked, not transformed.** `main.msg` accepts
   two shapes: the legacy chain (pattern pairs nested down to the definition)
-  and the declared shape (a flat entry per message, holding a `pat` list of
-  single-pair maps). `msg_producer` (`ts/src/producer/msg.ts`, `go/msg.go`)
-  validates the declared shape in **both** phases, first in the pipeline — so
-  a failure lands before `model_producer` writes anything — and leaves
-  everything without a `pat` list alone, which is what lets both shapes
-  coexist. The post-phase check is load-bearing, not belt-and-braces: a `pre`
-  action returning `reload: true` makes the build re-resolve the model *after*
-  the pre phase, so a pre-only check would validate a model that no longer
-  exists and let the regenerated one be written unchecked. Pattern identity is
-  keyed on a quoted encoding of the pairs, not on the `key:value,...`
-  rendering the error shows, so a value containing a delimiter cannot collide
-  with a genuinely different pattern. It never rewrites
-  the model, so the two shapes serialize exactly as written. Problems are
-  sorted by message name in both implementations (Go map iteration is
-  otherwise random), and the message strings are identical; keep them so, and
-  see `docs/reference.md` for the checks. One asymmetry is deliberate: the TS
-  producer pushes its errors onto `build.errs` itself, because
-  `BuildImpl.run` collects only the errors a producer *throws*, while Go's
-  `runProducer` already merges a failed producer's `Errs`.
+  and the declared shape, a **LIST** of definitions each holding a `pat` list
+  of single-pair maps. A LIST, not a map keyed by message name: a gateway
+  proxy and the message it forwards to necessarily share their last pattern
+  pair (`aim:web,on:todo,save:item` proxies `aim:todo,save:item`), so any key
+  derived from that pair collides and the two could not both be declared.
+  `msg_producer` (`ts/src/producer/msg.ts`, `go/msg.go`) validates the list in
+  **both** phases, first in the pipeline - so a failure lands before
+  `model_producer` writes anything. The post-phase check is load-bearing, not
+  belt-and-braces: a `pre` action returning `reload: true` makes the build
+  re-resolve the model *after* the pre phase, so a pre-only check would
+  validate a model that no longer exists and let the regenerated one be
+  written unchecked. Pattern identity is keyed on a quoted encoding of the
+  pairs, not on the `key:value,...` rendering the error shows, so a value
+  containing a delimiter cannot collide with a genuinely different pattern. A
+  definition found among chain nodes is REPORTED, not walked: the nested walk
+  reads two levels at a time and would take its metadata keys for pattern
+  pairs. It never rewrites the model, so both shapes serialize exactly as
+  written. Problems come out in list order (chain problems sort by key, since
+  Go map iteration is otherwise random), and the message strings are
+  identical; keep them so, and see `docs/reference.md` for the checks. One
+  asymmetry is deliberate: the TS producer pushes its errors onto
+  `build.errs` itself, because `BuildImpl.run` collects only the errors a
+  producer *throws*, while Go's `runProducer` already merges a failed
+  producer's `Errs`.
 - **`const VERSION`** lives in `go/model.go`. `make bump-go V=x.y.z` rewrites
   it and stops; the tag `go/vx.y.z` is written by `publish.yml`, never
   locally. See [Release and publish](#release-and-publish).
