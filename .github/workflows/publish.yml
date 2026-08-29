@@ -220,8 +220,13 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.go }}
         working-directory: go
         run: |
+          set -euo pipefail
           go version
-          gofmt -l .
+          # `gofmt -l` LISTS unformatted files and still exits 0, so the bare
+          # command gates nothing. build.yml tests for empty output; so does
+          # this, and here it stands between unformatted source and an
+          # irreversible module tag.
+          test -z "$(gofmt -l .)" || { gofmt -l .; echo "::error::gofmt reports unformatted files"; exit 1; }
           go vet ./...
           go build ./...
           go test ./... -count=1

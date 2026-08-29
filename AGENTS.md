@@ -198,8 +198,9 @@ Other notes:
   producer pushes its errors onto `build.errs` itself, because
   `BuildImpl.run` collects only the errors a producer *throws*, while Go's
   `runProducer` already merges a failed producer's `Errs`.
-- **`const Version`** lives in `go/model.go`; `make publish-go V=x.y.z`
-  rewrites it and tags `go/vx.y.z`.
+- **`const VERSION`** lives in `go/model.go`. `make bump-go V=x.y.z` rewrites
+  it and stops; the tag `go/vx.y.z` is written by `publish.yml`, never
+  locally. See [Release and publish](#release-and-publish).
 - The Go port depends on **`aontu/go` only**; it does not use `util/go` (the
   TypeScript `@voxgig/util` dependency is for pino logging, replaced here by a
   minimal `Log` interface).
