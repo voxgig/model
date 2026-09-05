@@ -55,15 +55,16 @@ Go:
 - **Actions are registered programmatically** (`ModelSpec.Actions`): the
   `.model-config/model-config.aon` file still declares which actions run and
   in what order (and is auto-created and written to `model-config.json`, as in
-  TypeScript), but Go binds each declared name to a registered func rather than
+  TypeScript), but Go binds each declared name to a registered function rather than
   `require()`-ing a module.
 - **Watching polls modification times** instead of using chokidar.
 - **Imports** resolve relative to the model base directory; the resolver
   briefly changes the working directory because the Go aontu `Generate(src)`
   API takes no base parameter.
-- **JSON object keys are emitted in sorted order** (Go's `encoding/json`),
-  where TypeScript preserves insertion order. The content is otherwise the
-  same.
+- **JSON object keys are emitted in sorted order** (Go's `encoding/json`
+  sorts them in UTF-8 byte order), and the TypeScript model producer imposes
+  the same order, so `model.json` is byte-for-byte identical across the two. The
+  shared fixtures in [`../test/spec`](../test/spec) pin that.
 
 ## CLI
 
@@ -71,5 +72,5 @@ Go:
 go run github.com/voxgig/model/go/cmd/voxgig-model -w model/model.aon
 ```
 
-Flags: `-w` watch, `-y` dryrun, `-g <level>` log level. The CLI writes the
-model JSON; for custom actions, embed the package and register them.
+Flags: `-w` watch, `-y` dryrun, `-g <level>` log level, `-no-config` skip the
+config build. The CLI writes the model JSON; for custom actions, embed the package, and register them.

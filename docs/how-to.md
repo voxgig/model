@@ -112,7 +112,7 @@ module.exports = async function deploy(model, build) {
    }
    ```
 
-   `load` is relative to the **project root** (the directory above `model/`),
+   `load` is relative to the **project root** (the directory containing `model/`),
    without a file extension. Action names are plain identifiers — use `genDocs`,
    not `gen-docs` (a hyphenated name would need quoting: `'gen-docs'`).
 

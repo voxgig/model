@@ -32,8 +32,11 @@ go/                 Go implementation (parity)
   go.mod  go.sum
 docs/               tutorial / how-to / reference / explanation
 test/spec/          shared TSV parity fixtures, run by BOTH test suites
-Makefile            orchestrates both: `make build`, `make test`
-.github/workflows/  CI (a `ts` job and a `go` job)
+STYLE-GUIDE.md      how the reader-facing pages are written (normative)
+tools/check_prose.py  the prose gate's second half; `--files` prints the page set
+.vale.ini  .vale/   Vale config, the vocabulary, and the banned list
+Makefile            orchestrates both: `make build`, `make test`, `make scan-prose`
+.github/workflows/  CI (a `ts` job and a `go` job, plus the `docs` prose gate)
 ```
 
 
@@ -43,7 +46,7 @@ From the repository root, `make` drives both implementations:
 
 ```bash
 make build     # build-ts + build-go
-make test      # test-ts + test-go
+make test      # test-ts + test-go + scan-prose
 make           # all: build then test
 ```
 
@@ -273,9 +276,33 @@ Rebuild and test both; commit `ts/dist/`.
 TypeScript: `ts/src/types.ts`. Go: `go/types.go`. Keep the two aligned.
 
 
+## Prose follows STYLE-GUIDE.md
+
+[`STYLE-GUIDE.md`](STYLE-GUIDE.md) is normative for the reader-facing pages:
+the root `README.md`, every page under `docs/`, and `go/README.md` (which
+pkg.go.dev shows). Two gates enforce it and both run in CI
+(`.github/workflows/docs.yml`) and under `make test`:
+
+| Gate | Checks |
+|---|---|
+| `vale --minAlertLevel=error $(python3 tools/check_prose.py --files)` | Google's rules plus the banned list, at the levels in `.vale.ini` |
+| `python3 tools/check_prose.py` | the banned list across line wraps, em-dash spacing and ration, first person, no emoji, no citations of a working document, resolving relative links, a complete page set |
+
+`make scan-prose` runs both (Vale where installed). The banned list is
+`.vale/styles/config/vocabularies/Model/reject.txt`, read by both gates. The
+page set is the configuration block at the top of `tools/check_prose.py`;
+a new documentation page must be reachable from it or neither gate reads it.
+
+Three things trip agents most often: a page must not name or link
+`AGENTS.md` or `CLAUDE.md` (state the fact instead); the em dash is spaced
+(` — `) and rationed to one aside per line; and a word Vale's dictionary
+does not know goes into `accept.txt` one entry at a time, never as a suffix
+pattern.
+
 ## Before you commit
 
-- `make build` is clean and `make test` is green (both languages).
+- `make build` is clean and `make test` is green (both languages, and the
+  prose gate over the documentation).
 - Regenerated `ts/dist/` and `ts/dist-test/` are staged with the source.
 - `gofmt -l go` prints nothing; `cd go && go vet ./...` is clean.
 - No `ts/test/_gen/` artifacts are staged.

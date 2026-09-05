@@ -68,7 +68,7 @@ that model.
 
 ## 3. Add structure with types and defaults
 
-The point of a modeling language is to capture rules, not just values. Replace
+A modeling language captures rules as well as values. Replace
 `model/model.aon` with:
 
 ```jsonic
@@ -166,7 +166,7 @@ sys: model: action: {
 }
 ```
 
-The `load` path is relative to the **project root** (the folder above `model/`)
+The `load` path is relative to the **project root** (the folder containing `model/`)
 and has no extension, so this points at `build/envFile.js`. (Action names are
 plain identifiers — use `envFile`, not `env-file`; a hyphen would need quoting.)
 
@@ -256,7 +256,7 @@ every write is redirected to an in-memory filesystem. Nothing on disk changes.
 
 ## Where to next
 
-- [How-to guides](./how-to.md) — focused recipes (build args, custom producers,
+- [How-to guides](./how-to.md) — focused recipes (build arguments, custom producers,
   embedding the API, in-memory filesystems, and more).
 - [Reference](./reference.md) — every CLI flag, config key, API type, and
   language construct.

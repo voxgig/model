@@ -1,0 +1,57 @@
+# Terms Vale's dictionary does not know. Entries are REGEXES, so
+# [Vv]oxgig accepts both casings without Vale.Terms then enforcing one of
+# them over the other -- listing both plain forms is what turns this file
+# into a capitalisation rule by accident.
+#
+# EVERY ENTRY BELOW WAS MEASURED, not guessed. `Vale.Spelling` at error
+# level over the 7 reader-facing pages produced 134 alerts across 41
+# distinct words on a clean run. Nine of those words left the pages in the
+# same change (identifiers such as `msg_producer` moved into code spans in
+# their headings, and `args`, `env` and `func` were spelled out); this
+# file is the rest, sorted into the groups below, and nothing else. A word
+# that stops appearing in the docs should come out of here, and a new one
+# is added when the gate asks for it.
+
+[Vv]oxgig
+
+# British spellings. Google style is US English; the house voice is not,
+# and the precedence in .vale.ini puts the house voice first.
+#
+# LISTED, not matched by suffix. `\w+ise` and friends accept any word
+# ending in those letters -- `madeupise` included -- and so punch a hole
+# straight through the error-level spelling gate this file exists to make
+# usable. Add the stem when a new one is needed; the cost of doing that is
+# the point. These pages were written in US spelling and the dictionary
+# knows `behaviour`, so no stem has been needed yet.
+
+# The model, the build, and the language.
+aontu
+[Bb]areword
+basename
+[Bb]oolean
+[Cc]onfig(?:'s)?
+debounce
+[Dd]ebouncing
+[Dd]ryrun
+enqueued
+jsonic
+misconfigured
+mtime
+[Pp]re
+subpaths
+superset
+
+# General programming vocabulary.
+APIs
+CLIs
+lockfiles
+sandboxed
+SDKs
+unticking
+walkthrough
+
+# Tools and their names.
+chokidar
+npm(?:'s)?
+[Pp]ino
+[Rr]epo

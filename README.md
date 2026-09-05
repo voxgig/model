@@ -31,8 +31,12 @@ go get github.com/voxgig/model/go
 ```
 
 Both implementations live in this repository — `ts/` (TypeScript, canonical)
-and `go/` (Go, kept in parity). See [go/README.md](./go/README.md) for Go usage
-and [AGENTS.md](./AGENTS.md) for working on the repo.
+and `go/` (Go, kept in parity). See [go/README.md](./go/README.md) for Go usage.
+TypeScript is canonical: change it first, with a test, then mirror the change
+in Go. Behaviour that a source compiles to (aontu in, `model.json` bytes out)
+is a row in the shared [`test/spec/*.tsv`](./test/spec) fixtures, which both
+suites run; an error case, or a value only a producer can introduce, is a
+mirrored per-language test instead.
 
 
 ## Quick start
@@ -89,8 +93,10 @@ if (!result.ok) throw new Error(result.errs.join('; '))
 | Look up a flag, type, config key, or language construct | [Reference](./docs/reference.md) |
 | Understand how and why it works | [Explanation](./docs/explanation.md) |
 
-Working **on** this repository (including with an AI coding agent)?
-See [AGENTS.md](./AGENTS.md).
+Working **on** this repository? From the root, `make build` and `make test`
+drive both languages. The TypeScript build output in `ts/dist/` is committed,
+so rebuild it with any source change, and the documentation follows
+[the style guide](./STYLE-GUIDE.md).
 
 
 ## A fuller example
