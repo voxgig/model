@@ -59,7 +59,7 @@ consequences make this powerful for modeling:
 - **Defaults are first-class.** `*true | boolean` says "default to `true`, but
   any boolean is allowed." Composition naturally fills in defaults only where
   nothing more specific was said.
-- **Composition is explicit and safe.** Reusing a shape with `&` cannot quietly
+- **Composition is explicit and safe.** Reusing a shape with `&` cannot silently
   produce something that violates the shape — a conflict is an error, not a
   silent overwrite.
 
@@ -110,7 +110,8 @@ A single build is a small state machine (`BuildImpl.run`):
 3. **Pre phase.** Run every producer with `step = 'pre'`. Producers may signal
    `reload` if they changed model source.
 4. **Reload if asked.** If a pre-producer requested a reload and there were no
-   errors, resolve the model again so the post phase sees the new source.
+   errors, resolve the model again so the post phase runs against the new
+   source.
 5. **Post phase.** Run every producer with `step = 'post'`.
 6. **Return a result.** `ok`, the per-producer results, collected `errs`, and a
    `runlog` of the phases.
@@ -245,7 +246,7 @@ than hidden:
   methods; it is explicitly "not complete." Treat `--dryrun` as a strong
   convenience, not a security boundary.
 - **Project layout assumption.** Action `load` paths resolve against the
-  directory two levels above the root model file, which bakes in the
+  directory two levels up from the root model file, which bakes in the
   `project/model/model.aon` convention.
 - **Error capture in the language layer.** Capturing *all* syntax and model
   errors as structured data (rather than some surfacing as thrown exceptions)

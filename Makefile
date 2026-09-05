@@ -1,10 +1,10 @@
-.PHONY: all build test clean build-ts build-go test-ts test-go vet-go clean-ts clean-go bump-go publish tags-go tags-npm reset
+.PHONY: all build test clean build-ts build-go test-ts test-go vet-go scan-prose clean-ts clean-go bump-go publish tags-go tags-npm reset
 
 all: build test
 
 build: build-ts build-go
 
-test: test-ts test-go
+test: test-ts test-go scan-prose
 
 clean: clean-ts clean-go
 
@@ -33,6 +33,22 @@ vet-go:
 
 clean-go:
 	cd go && go clean
+
+# The prose gate over the reader-facing pages (STYLE-GUIDE.md). Vale runs
+# where it is installed, over the page set tools/check_prose.py prints,
+# so both halves read the same files; check_prose always runs, because it
+# carries the house rules .vale.ini switches Google rules OFF in favour
+# of -- skipping it silently would widen what is allowed.
+scan-prose:
+	@echo "======== scan: prose (vale + check_prose) ========"
+	@if command -v vale >/dev/null 2>&1; then \
+	  vale sync >/dev/null && \
+	  vale --minAlertLevel=error $$(python3 tools/check_prose.py --files); \
+	else \
+	  echo "(vale not installed - skipping the Google/banned-list half;"; \
+	  echo " see .github/workflows/docs.yml for the pinned version)"; \
+	fi
+	@python3 tools/check_prose.py
 
 # RELEASING. Tagging happens IN publish.yml, never here: npm allows exactly
 # one workflow file to publish, so the tags have to be written by that same

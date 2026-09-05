@@ -36,7 +36,7 @@ a missing version. Withdraw only via `retract` in a new version.
 **The numbers are deliberately different.** npm is at 10.x; the Go module is
 at 0.x. "Parity" means the two are *released together and kept in
 architectural step* — not that they carry the same number. Making them match
-would put the module at v10, and a Go module at v2 or above must carry the
+would put the module at v10, and a Go module at v2 or later must carry the
 major in its path:
 
 ```
@@ -49,7 +49,7 @@ migration if it is ever wanted, never a release chore.
 
 ## Releasing
 
-Bump the version(s) in a normal reviewed PR, merge to `main`, then dispatch:
+Bump the versions in a normal reviewed PR, merge to `main`, then dispatch:
 
 ```sh
 gh workflow run publish.yml --ref main -f npm=true -f go=true
@@ -107,7 +107,7 @@ which is nonsense and costs an hour if you have not seen it before. Renaming
 `publish.yml` breaks publishing until the npm-side entry is updated.
 
 **Two jobs.** The publish job holds `id-token: write` with `contents: read`
-and runs `npm i`, the build and the tests. The tag job holds
+and runs `npm i`, the build, and the tests. The tag job holds
 `contents: write` and runs git and nothing else. Combined, every dependency
 `postinstall` from `npm i` would run alongside a repository-write credential,
 because `checkout` persists its token into the git config for the whole job.

@@ -104,7 +104,7 @@ Two paths are derived from the root file `model/model.aon`:
 
 - **base** = `model/` — the directory of the root file. Generated model JSON
   (`model.json`) and the `.model-config/` directory live here.
-- **project root** = `my-project/` — the directory **two levels above** the
+- **project root** = `my-project/` — the directory **two levels up** from the
   root file (`resolve(rootFile, '..', '..')`). Action `load` paths are
   resolved against the project root, so `build/foo` means
   `my-project/build/foo.js`.
@@ -330,7 +330,7 @@ interface BuildResult {
 that build (a `Build` reused across watch rebuilds does not accumulate stale
 errors).
 
-### makeBuild and BuildSpec
+### `makeBuild` and `BuildSpec`
 
 `makeBuild(spec, log)` constructs a single `Build` you can drive directly,
 bypassing `Model`'s config/watch machinery. Useful for embedding a custom
@@ -447,17 +447,17 @@ The default `Model` pipeline is, in order:
 2. `model_producer` — serializes and writes the unified model.
 3. `local_producer` — loads and runs project actions.
 
-### msg_producer
+### `msg_producer`
 
 - **Runs:** both phases, and first in the pipeline — so a bad declaration fails
   the build before `model_producer` writes anything. The `post` check is not
   redundant: a `pre` action that requests a `reload` replaces the model *after*
-  the pre phase, and only the second check sees the regenerated model.
+  the pre phase, and only the second check runs against the regenerated model.
 - **Effect:** validates the message declarations in `main.msg`. See
   [Message declarations](#message-declarations) for the shapes and the checks.
   A model with no messages, or with only a legacy chain, always passes.
 
-### model_producer
+### `model_producer`
 
 - **Runs:** `post` phase only.
 - **Effect:** writes `build.model` as pretty JSON to
@@ -470,7 +470,7 @@ The default `Model` pipeline is, in order:
   is skipped to avoid mtime churn that would invalidate caches and re-trigger
   watchers.
 
-### local_producer
+### `local_producer`
 
 - **Runs:** both phases. On first call it loads the action modules declared in
   the config (resolving each `load` against the project root) and caches them in
@@ -491,7 +491,7 @@ request the model be re-resolved before the post phase.
 A single build (`Build.run`) proceeds as:
 
 1. **Reset** — clear per-build error state.
-2. **resolveModel** — read the root file and unify it (and its imports) with
+2. **`resolveModel`** — read the root file and unify it (and its imports) with
    `aontu`, producing `build.model`. Results are cached by file modification
    time; an unchanged model is reused.
 3. **pre phase** — run every producer with `ctx.step = 'pre'`. Collect `reload`
@@ -719,15 +719,15 @@ notes are shown relative to the current working directory.
 
 ## npm scripts
 
-For working **on** the TypeScript package — run these from the `ts/` directory
-(see [AGENTS.md](../AGENTS.md) for the full contributor/agent guide, including
-the Go module and the root `Makefile` that builds and tests both):
+For working **on** the TypeScript package. Run these from the `ts/` directory;
+from the repository root, `make build` and `make test` drive both this package
+and the Go module:
 
 | Script | What it does |
 |--------|--------------|
 | `npm run build` | Compile `src` → `dist` and `test` → `dist-test` (`tsc --build src test`). |
 | `npm test` | Run the compiled tests (`node --test dist-test/**/*.test.js`). |
-| `npm run test-some` | Run tests matching `TEST_PATTERN` (env var). |
+| `npm run test-some` | Run tests matching `TEST_PATTERN` (an environment variable). |
 | `npm run test-cov` | Run tests with coverage, writing `coverage/lcov.info`. |
 | `npm run watch` | Recompile on change (`tsc --build -w`). |
 | `npm run model` | Run the CLI in watch mode on the package's own `model/sys.aon`. |
@@ -752,7 +752,7 @@ the Go module and the root `Makefile` that builds and tests both):
 | In-memory (`fs`) build fails to resolve `@voxgig/model/...` | The auto-created config imports a package path that is not in your volume. Seed a self-contained `.model-config/model-config.aon` (e.g. `sys: model: action: {}`). |
 | Watch process never exits | This is expected for `--watch` (runs until interrupted). For the API, call `model.stop()`. |
 | A change does not trigger a rebuild | Only tracked files rebuild: the root model, its imports, and the config files. Editing an unrelated file does nothing. Also note `add`/`rem` events are off by default in the API (`watch: { add, rem }`). |
-| Edits seem ignored after a failed build | Errors reset each build; fix the source and the next rebuild should succeed. If running the repo's own tooling, ensure you rebuilt (`dist/` can go stale — see [AGENTS.md](../AGENTS.md)). |
+| Edits seem ignored after a failed build | Errors reset each build; fix the source and the next rebuild should succeed. If running the repository's own tooling, rebuild first (`npm run build` from `ts/`): the tests run against `dist/`, which goes stale otherwise. |
 
 
 ## Requirements

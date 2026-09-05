@@ -35,6 +35,11 @@ shared `test/spec/*.tsv` fixtures — both suites run every row.
 - Go: standard `gofmt`; package `model`; `/* Copyright © ... */` header.
 - Never `console.log` in TS library code (use the pino logger); in Go log
   through the `Log` interface.
+- Prose follows [`STYLE-GUIDE.md`](./STYLE-GUIDE.md) — normative for
+  `README.md`, `docs/**`, and `go/README.md`: the voice, the banned phrases,
+  the spaced em dash, and the rule that documentation never cites a working
+  document (this file included). Two gates enforce it, `vale` and
+  `python3 tools/check_prose.py`; `make scan-prose` runs both.
 
 When you change behavior or a convention, update `@AGENTS.md` and the relevant
 file in `docs/` in the same change.
