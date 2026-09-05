@@ -20,7 +20,7 @@ import (
 // rewrites it; publish.yml then tags go/vx.y.z to match, so the tag and this
 // constant cannot disagree. Spelled in caps to match the TypeScript side's
 // exported VERSION, so the two ports name the same thing the same way.
-const VERSION = "0.4.0"
+const VERSION = "0.4.1"
 
 // DefaultIdle is the default watch debounce period.
 const DefaultIdle = 111 * time.Millisecond
