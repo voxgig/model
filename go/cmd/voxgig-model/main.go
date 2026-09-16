@@ -36,7 +36,7 @@ func run(args []string, stderr io.Writer) int {
 	watch := fs.Bool("w", false, "watch and rebuild on change")
 	dryrun := fs.Bool("y", false, "dry run (write nothing to disk)")
 	level := fs.String("g", "info", "log level: trace|debug|info|warn|error|silent")
-	noConfig := fs.Bool("no-config", false, "skip the .model-config build and run the model on its own")
+	noConfig := fs.Bool("no-config", false, "skip the .model-config build: no configured action runs, and the model is still written (use -y to inspect safely)")
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "usage: voxgig-model [-w] [-y] [-g level] [-no-config] <root-file>")
 		fs.PrintDefaults()
@@ -59,6 +59,29 @@ func run(args []string, stderr io.Writer) int {
 	if _, serr := os.Stat(abs); serr != nil {
 		fmt.Fprintln(stderr, "ERROR: model file does not exist:", path)
 		return 1
+	}
+
+	// `-no-config` is a MODEL-LAYER DEBUGGING MODE THAT STILL WRITES.
+	//
+	// Skipping the .model-config build means no configured action runs, and
+	// those actions are most of what populates a model: an SDK project loads
+	// apidef and sdkgen through exactly this mechanism. The build then writes
+	// its result anyway, replacing the model file with one missing whatever
+	// the actions contribute.
+	//
+	// NOTHING FAILS when that happens, which is the problem. A reduced model
+	// is a valid model; it simply has less in it. One project committed the
+	// reduced form repeatedly and its model alternated between two shapes for
+	// months before anyone noticed.
+	//
+	// Warn only when the run will actually write; -y is the safe way to look.
+	if *noConfig && !*dryrun {
+		fmt.Fprintln(stderr,
+			"WARNING: -no-config skips the .model-config build, so no configured")
+		fmt.Fprintln(stderr,
+			"  action runs, and the model is still written. The result omits")
+		fmt.Fprintln(stderr,
+			"  whatever those actions contribute. Use -y to inspect without writing.")
 	}
 
 	enableConfig := !*noConfig

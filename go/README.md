@@ -74,3 +74,8 @@ go run github.com/voxgig/model/go/cmd/voxgig-model -w model/model.aon
 
 Flags: `-w` watch, `-y` dryrun, `-g <level>` log level, `-no-config` skip the
 config build. The CLI writes the model JSON; for custom actions, embed the package, and register them.
+
+`-no-config` skips the `.model-config` build, so **no configured action runs**,
+and the model is **still written**: the result omits whatever those actions
+contribute. It is a debugging mode for the model layer. Use `-y` to inspect
+without writing.
