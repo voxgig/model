@@ -55,9 +55,9 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@tabnas/jsonic": "0.6.2",
-    "@tabnas/parser": "0.8.7",
-    "aontu": "0.53.0",
+    "@tabnas/jsonic": ">=0.6.2",
+    "@tabnas/parser": ">=0.8.7",
+    "aontu": ">=0.64.0",
     "chokidar": "5.0.0",
     "memfs": "4.64.0",
     "shape": ">=10"
