@@ -48,6 +48,43 @@ func TestCLINoConfigSkipsConfig(t *testing.T) {
 	}
 }
 
+// -no-config writes a model built WITHOUT the configured actions, and a
+// reduced model is still a valid one - nothing downstream fails on it. The
+// warning is the only thing standing between that and a committed model
+// missing whatever the actions contribute, so pin it.
+func TestCLINoConfigWarnsWhenItWrites(t *testing.T) {
+	dir := t.TempDir()
+	root := filepath.Join(dir, "m.aon")
+	write(t, root, "a: 1\n")
+
+	var out bytes.Buffer
+	if code := run([]string{"-no-config", "-g", "silent", root}, &out); code != 0 {
+		t.Fatalf("exit %d: %s", code, out.String())
+	}
+	if !strings.Contains(out.String(), "WARNING: -no-config") {
+		t.Fatalf("writing with -no-config must warn, got: %s", out.String())
+	}
+
+	// ... and stays quiet when the run writes nothing, which is the mode
+	// the warning points at.
+	var dry bytes.Buffer
+	if code := run([]string{"-no-config", "-y", "-g", "silent", root}, &dry); code != 0 {
+		t.Fatalf("exit %d: %s", code, dry.String())
+	}
+	if strings.Contains(dry.String(), "WARNING") {
+		t.Fatalf("-no-config -y writes nothing, so must not warn: %s", dry.String())
+	}
+
+	// No flag, no warning: it must not become noise on every build.
+	var plain bytes.Buffer
+	if code := run([]string{"-g", "silent", root}, &plain); code != 0 {
+		t.Fatalf("exit %d: %s", code, plain.String())
+	}
+	if strings.Contains(plain.String(), "WARNING") {
+		t.Fatalf("an ordinary build must not warn: %s", plain.String())
+	}
+}
+
 func TestCLIDryrunWritesNothing(t *testing.T) {
 	dir := t.TempDir()
 	root := filepath.Join(dir, "m.aon")

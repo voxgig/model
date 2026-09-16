@@ -49,6 +49,29 @@ const BIN = __dirname + '/../bin/voxgig-model';
         node_assert_1.default.deepStrictEqual(JSON.parse(await (0, promises_1.readFile)(dir + '/model/model.json', 'utf8')), { top: 1 });
         node_assert_1.default.strictEqual(existsSync(dir + '/model/.model-config'), false, '--no-config should not create .model-config');
     });
+    // --no-config writes a model built WITHOUT the configured actions, and a
+    // reduced model is still a valid one - nothing downstream fails on it. The
+    // warning is the only thing standing between that and a committed model
+    // missing whatever the actions contribute, so pin it.
+    (0, node_test_1.test)('no-config-warns-when-it-writes', async () => {
+        const dir = GEN + '/cli-noconfig-warn';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(dir + '/model', { recursive: true });
+        await (0, promises_1.writeFile)(dir + '/model/model.aon', 'top: 1\n');
+        const run = (args) => (0, node_child_process_1.spawnSync)(process.execPath, [BIN, dir + '/model/model.aon', ...args, '-g', 'silent'], { encoding: 'utf8' });
+        const wrote = run(['--no-config']);
+        node_assert_1.default.strictEqual(wrote.status, 0, 'cli should exit 0: ' + wrote.stderr);
+        node_assert_1.default.match(wrote.stderr, /WARNING: --no-config/, 'writing with --no-config must warn');
+        // ... and stays quiet when the run writes nothing, which is the mode the
+        // warning points at.
+        const dry = run(['--no-config', '--dryrun']);
+        node_assert_1.default.strictEqual(dry.status, 0, 'cli should exit 0: ' + dry.stderr);
+        node_assert_1.default.doesNotMatch(dry.stderr, /WARNING/, '--no-config --dryrun writes nothing, so must not warn');
+        // No flag, no warning: it must not become noise on every build.
+        const plain = run([]);
+        node_assert_1.default.strictEqual(plain.status, 0, 'cli should exit 0: ' + plain.stderr);
+        node_assert_1.default.doesNotMatch(plain.stderr, /WARNING/, 'an ordinary build must not warn');
+    });
     // A missing model file exits non-zero with a clear message rather than a
     // stack trace.
     (0, node_test_1.test)('missing-file-exits-nonzero', async () => {

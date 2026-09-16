@@ -71,6 +71,40 @@ describe('cli', () => {
   })
 
 
+  // --no-config writes a model built WITHOUT the configured actions, and a
+  // reduced model is still a valid one - nothing downstream fails on it. The
+  // warning is the only thing standing between that and a committed model
+  // missing whatever the actions contribute, so pin it.
+  test('no-config-warns-when-it-writes', async () => {
+    const dir = GEN + '/cli-noconfig-warn'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir + '/model', { recursive: true })
+    await writeFile(dir + '/model/model.aon', 'top: 1\n')
+
+    const run = (args: string[]) => spawnSync(process.execPath,
+      [BIN, dir + '/model/model.aon', ...args, '-g', 'silent'],
+      { encoding: 'utf8' })
+
+    const wrote = run(['--no-config'])
+    assert.strictEqual(wrote.status, 0, 'cli should exit 0: ' + wrote.stderr)
+    assert.match(wrote.stderr, /WARNING: --no-config/,
+      'writing with --no-config must warn')
+
+    // ... and stays quiet when the run writes nothing, which is the mode the
+    // warning points at.
+    const dry = run(['--no-config', '--dryrun'])
+    assert.strictEqual(dry.status, 0, 'cli should exit 0: ' + dry.stderr)
+    assert.doesNotMatch(dry.stderr, /WARNING/,
+      '--no-config --dryrun writes nothing, so must not warn')
+
+    // No flag, no warning: it must not become noise on every build.
+    const plain = run([])
+    assert.strictEqual(plain.status, 0, 'cli should exit 0: ' + plain.stderr)
+    assert.doesNotMatch(plain.stderr, /WARNING/,
+      'an ordinary build must not warn')
+  })
+
+
   // A missing model file exits non-zero with a clear message rather than a
   // stack trace.
   test('missing-file-exits-nonzero', async () => {

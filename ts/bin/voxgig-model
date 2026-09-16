@@ -41,11 +41,44 @@ async function run() {
 
     options = validateOptions(options)
 
+    warnNoConfig(options)
+
     await generate(options)
   }
   catch(err) {
     handleError(err)
   }
+}
+
+
+// `--no-config` is a MODEL-LAYER DEBUGGING MODE THAT STILL WRITES.
+//
+// Skipping the .model-config build means no configured action runs, and
+// those actions are most of what populates a model: an SDK project loads
+// apidef and sdkgen through exactly this mechanism. The build then writes
+// its result anyway, replacing the model file with one missing whatever
+// the actions contribute.
+//
+// NOTHING FAILS when that happens, which is the problem. A reduced model
+// is a valid model; it simply has less in it. One project committed the
+// reduced form repeatedly and its model alternated between two shapes for
+// months before anyone noticed, because the only symptom is a tree that
+// disagrees with the build.
+//
+// `--dryrun` is the side-effect-free way to inspect the model layer, so
+// say so at the point the damage would otherwise be silent. Warn only when
+// the run will actually write.
+function warnNoConfig(options) {
+  if(options.config || options.dryrun) {
+    return
+  }
+
+  console.error(
+    'WARNING: --no-config skips the .model-config build, so no configured\n' +
+    '  action runs, and the model is still written. The result omits\n' +
+    '  whatever those actions contribute. Use --dryrun to inspect without\n' +
+    '  writing.'
+  )
 }
 
 
@@ -83,7 +116,8 @@ function resolveOptions() {
         default: ''
       },
 
-      // Skip the .model-config build and run the model on its own.
+      // Skip the .model-config build and run the model on its own. See
+      // warnNoConfig below: this still WRITES the model.
       'no-config': {
         type: 'boolean',
       },
@@ -251,7 +285,9 @@ Usage:
     --build <spec>  Provide a jsonic specification for build actions.
     -b
 
-    --no-config     Skip the .model-config build and run the model on its own.
+    --no-config     Skip the .model-config build: NO configured action runs.
+                    The model is still WRITTEN, omitting whatever those
+                    actions contribute. Use --dryrun to inspect safely.
 
     --debug         Set log level (default: info): trace, error, debug, info, warn, fatal.
     -g
