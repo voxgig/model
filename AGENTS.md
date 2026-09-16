@@ -119,7 +119,7 @@ Go **1.24+** is required (the `aontu/go` dependency declares `go 1.24.7`).
 7. **`aontu` is a plain npm dependency, pinned exact** (see `ts/package.json`).
    It was once vendored as a committed `ts/vendor/aontu-<version>.tgz`
    tarball, because the npm package lives in a monorepo subdir
-   (`rjrodger/aontu` → `ts/`) that npm cannot install from git, and GitHub
+   (`aontu-lang/aontu` → `ts/`) that npm cannot install from git, and GitHub
    `main` was ahead of the npm release. The npm release caught up and the
    vendor mechanism was retired. If npm ever lags `main` again, the fallback
    is to vendor a tarball: `git clone` aontu at the target commit, `npm pack`
@@ -160,7 +160,7 @@ Other notes:
   sources. Locked down by `comment-hash-only` (`ts/test/extra.test.ts`) and
   `TestCommentHashOnly` (`go/extra_test.go`).
 - **Unification** uses the real Go aontu engine
-  (`github.com/rjrodger/aontu/go`). Its `Generate(src)` has no base parameter,
+  (`github.com/aontu-lang/aontu/go`). Its `Generate(src)` has no base parameter,
   so `AontuResolver` briefly `chdir`s to the model base (guarded by a mutex)
   so `@"..."` imports resolve. aontu/go does not report import deps, so the
   watcher tracks `*.aon` files (plus legacy `*.aontu`/`*.jsonic`) under the

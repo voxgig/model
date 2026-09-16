@@ -5,7 +5,7 @@ single declarative model, then generate every downstream artifact — code,
 configuration, documentation, infrastructure — from that one source of truth.
 
 The core tool unifies `.aon` source (using [CUE](https://cuelang.org)-style
-unification, via [aontu](https://github.com/voxgig/aontu)) into one canonical
+unification, via [aontu](https://github.com/aontu-lang/aontu)) into one canonical
 JSON model, then hands that model to your generators ("actions"). It can build
 once or watch and rebuild on change.
 

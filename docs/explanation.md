@@ -45,7 +45,7 @@ constraints, types, and composition. Plain JSON or YAML cannot; they only carry
 data, so the rules end up in code that interprets the data.
 
 `@voxgig/model` borrows from [CUE](https://cuelang.org) (via the
-[aontu](https://github.com/voxgig/aontu) engine) and uses **unification** as its
+[aontu](https://github.com/aontu-lang/aontu) engine) and uses **unification** as its
 core operation. Unification merges two descriptions into the single most
 specific description consistent with both — or fails if they conflict. A few
 consequences make this powerful for modeling:

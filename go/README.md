@@ -1,7 +1,7 @@
 # @voxgig/model (Go)
 
 A Go port of [@voxgig/model](https://github.com/voxgig/model): unify `.aon`
-source into a single model (via [aontu](https://github.com/rjrodger/aontu)) and
+source into a single model (via [aontu](https://github.com/aontu-lang/aontu)) and
 run generator "actions" over it, once or in a rebuild-on-change watch loop. The
 TypeScript implementation in [`../ts`](../ts) is canonical; this module is kept
 in architectural parity.

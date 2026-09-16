@@ -609,7 +609,7 @@ list, not as a keyed entry (main: msg: [ { pat: [...] } ])
 ## Modeling language essentials
 
 Models are written in **[jsonic](https://github.com/jsonic-lang/jsonic)**
-(a relaxed JSON superset) and unified with **[aontu](https://github.com/voxgig/aontu)**,
+(a relaxed JSON superset) and unified with **[aontu](https://github.com/aontu-lang/aontu)**,
 which implements [CUE](https://cuelang.org)-style unification. This is a
 practical summary; consult the CUE and aontu docs for the full language.
 
