@@ -308,7 +308,7 @@ sys: model: action: {}
         await (0, promises_1.writeFile)(dir + '/model/.model-config/local.aontu', 'sys: model: action: {}\n');
         await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', `
 @"@voxgig/model/model/.model-config/model-config.aontu"
-@"local.aontu"
+@"./local.aontu"
 `);
         const model = new model_1.Model({
             fs: node_fs_1.default,
@@ -319,7 +319,7 @@ sys: model: action: {}
         const br = await model.run();
         node_assert_1.default.ok(br.ok, 'migrated config did not build: ' + errtext(br.errs));
         const migrated = await (0, promises_1.readFile)(dir + '/model/.model-config/model-config.aon', 'utf8');
-        node_assert_1.default.ok(migrated.includes('@"local.aontu"'), "a project's own .aontu import must be left alone: " + migrated);
+        node_assert_1.default.ok(migrated.includes('@"./local.aontu"'), "a project's own .aontu import must be left alone: " + migrated);
     });
     // The rewrite is anchored to aontu's import syntax, not to the bare
     // pathname. A legacy config may carry this package's path as ordinary
