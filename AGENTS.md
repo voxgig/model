@@ -88,6 +88,17 @@ go test ./...
 Go **1.24+** is required (the `aontu/go` dependency declares `go 1.24.7`).
 
 
+## House style, in code
+
+- TypeScript: 2-space indent, no semicolons, single quotes, CommonJS. Match
+  the file you are in.
+- Go: standard `gofmt`, package `model`, and the `/* Copyright © ... */`
+  header every file carries.
+- **Never `console.log` in TypeScript library code** — use the pino logger.
+  In Go, log through the `Log` interface. A stray print in a library reaches
+  every consumer's output and cannot be turned off by the one who sees it.
+
+
 ## Critical gotchas (TypeScript)
 
 1. **Run TS commands from `ts/`.** `tsc --build src test` resolves `src` and
