@@ -375,7 +375,7 @@ sys: model: action: {}
       'sys: model: action: {}\n')
     await writeFile(dir + '/model/.model-config/model-config.aontu', `
 @"@voxgig/model/model/.model-config/model-config.aontu"
-@"local.aontu"
+@"./local.aontu"
 `)
 
     const model = new Model({
@@ -390,7 +390,7 @@ sys: model: action: {}
 
     const migrated = await readFile(
       dir + '/model/.model-config/model-config.aon', 'utf8')
-    assert.ok(migrated.includes('@"local.aontu"'),
+    assert.ok(migrated.includes('@"./local.aontu"'),
       "a project's own .aontu import must be left alone: " + migrated)
   })
 
