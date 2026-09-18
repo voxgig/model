@@ -8,8 +8,6 @@ sys: shape: type({})
 # Service base has no defaults.
 sys: shape: srv: base: {
   in: {
-    # TODO: validate leaf?
-    # &&: => &:, &: &:, &: &: &:, etc
   }
   out: {}
   deps: {
@@ -20,7 +18,7 @@ sys: shape: srv: base: {
     path: {
       prefix?: string
       area?: string
-      suffix?: string 
+      suffix?: string
     }
     method: string
     cors: {
@@ -38,7 +36,6 @@ sys: shape: srv: base: {
 }
 
 
-# Shared service defaults
 sys: shape: srv: std: $.sys.shape.srv.base & {
   api: web: {
     active: *true | boolean
@@ -91,36 +88,15 @@ sys: shape: ent: {
   }
 }
 
-# sys: shape: ent: field: &: {
-#   active: *true | boolean
-#   kind: *'Text' | string  
-#   title: string
-  
-#   # Developer model (backend)
-#   dx: {}
-
-#   # User inerface model (frontend)
-#   ux: {
-#     desc: string
-#   }
-# } 
 
 
 
-# App Shapes
-# --------------
+
+
 
 sys: shape: app: {
   name: string
   layout: string
-  # TODO: test
-  # parts: {
-  #   &: {
-  #     part: string
-  #     active: boolean
-  #     # active: *true | boolean
-  #   }
-  # }
 }
 
 sys: shape: part: img: {
@@ -128,29 +104,5 @@ sys: shape: part: img: {
   svg: string
 }
 
-  
+
 # app: web: basic: .sys.shape.app
-
-# app: web: basic: {
-#   name: basic
-#   layout: BasicAdmin
-# }
-
-# app: web: basic: parts: {
-#   head: {
-#     part: BasicHead
-#   }
-
-#   side: {
-#     part: BasicSide
-#   }
-
-#   main: {
-#     part: BasicMain
-#   }
-
-#   foot: {
-#     part: BasicFoot
-#   }
-# }
-

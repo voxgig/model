@@ -249,14 +249,6 @@ describe('extra', () => {
   })
 
 
-  // The model serializer mirrors JSON.stringify for values only a mutating
-  // producer can introduce (aontu sources cannot express them): undefined,
-  // function, and symbol props are dropped; undefined array elements and
-  // sparse holes become null; toJSON results (e.g. Date) are re-serialized
-  // canonically — sorted keys and indentation apply to structured toJSON
-  // output too. Key order stays lexical byte order — numeric-string keys do
-  // not jump ahead. The shared-spec rows in test/spec/output.tsv lock the
-  // aontu-reachable surface; this locks the rest of the TS serializer.
   test('model-serializer-mutated-values', async () => {
     const dir = GEN + '/ex-serializer'
     await rm(dir, { recursive: true, force: true })
@@ -326,11 +318,6 @@ describe('extra', () => {
   })
 
 
-  // A legacy .model-config/model-config.aontu is migrated to .aon. The copy
-  // is NOT verbatim: this package's own config moved to .aon in v10, so a
-  // legacy config's import of it names a file that no longer ships, and a
-  // straight copy leaves the migrated config unresolvable
-  // (aontu/multisource_not_found) on the very first build after upgrading.
   test('legacy-config-migrates-with-package-import-retargeted', async () => {
     const dir = GEN + '/ex-migrate-pkg'
     await rm(dir, { recursive: true, force: true })
@@ -395,12 +382,6 @@ sys: model: action: {}
   })
 
 
-  // The rewrite is anchored to aontu's import syntax, not to the bare
-  // pathname. A legacy config may carry this package's path as ordinary
-  // string DATA — a note, a compatibility path in action metadata — and an
-  // unanchored match would silently edit that value during a one-time
-  // migration. Same principle as the test above: migrate imports, never
-  // declarations. (Reported by Codex review on voxgig/model#16.)
   test('legacy-config-rewrite-does-not-touch-string-data', async () => {
     const dir = GEN + '/ex-migrate-data'
     await rm(dir, { recursive: true, force: true })

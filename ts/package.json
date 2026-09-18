@@ -19,7 +19,7 @@
     "url": "git://github.com/voxgig/model.git"
   },
   "scripts": {
-    "test": "node --test --experimental-test-coverage --test-coverage-include='dist/**' --test-coverage-lines=95 --test-coverage-functions=95 --test-coverage-branches=90 \"dist-test/**/*.test.js\"",
+    "test": "node ../tools/comment-gate.cjs && node --test --experimental-test-coverage --test-coverage-include='dist/**' --test-coverage-lines=95 --test-coverage-functions=95 --test-coverage-branches=90 \"dist-test/**/*.test.js\"",
     "test-some": "node --enable-source-maps --test-name-pattern=\"$TEST_PATTERN\" --test dist-test/**/*.test.js",
     "test-cov": "rm -rf ./coverage && mkdir -p ./coverage && node --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.info --enable-source-maps --test \"dist-test/*.test.js\"",
     "watch": "tsc --build src test -w",

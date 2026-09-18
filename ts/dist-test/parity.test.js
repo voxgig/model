@@ -4,14 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// Shared cross-language parity specs (top-level test/spec/*.tsv).
-//
-// Each row is (name, args, expected): args is [aontuSrc] and expected is the
-// exact bytes of the model.json the build must write — object keys sorted,
-// two-space indent, HTML characters literal, no trailing newline. The same
-// fixtures drive the Go suite (go/parity_test.go), so a behavioural drift
-// between the two implementations fails one of them. Spec files are
-// auto-discovered: add a .tsv under test/spec/ and both suites pick it up.
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const node_fs_1 = require("node:fs");

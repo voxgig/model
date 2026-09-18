@@ -200,12 +200,6 @@ func (b *Build) runProducer(pd ProducerDef) (pr ProducerResult) {
 	return pr
 }
 
-// resolveModel reads and unifies the root model. A successful result is
-// cached by the root file's modification time and reused while unchanged.
-//
-// Note: the Go aontu engine does not report the imports it followed, so the
-// cache tracks only the root file. Watchers call InvalidateCache when any
-// watched source changes, so imported-file edits still rebuild.
 func (b *Build) resolveModel() (hasErr bool) {
 	if b.Model != nil && b.cacheSig != nil && b.cacheHit() {
 		return false

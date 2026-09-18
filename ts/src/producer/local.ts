@@ -14,12 +14,8 @@ const local_producer: Producer = async (build: Build, ctx: BuildContext) => {
   if (null == actionDefs) {
     actionDefs = ctx.state.local.actionDefs = []
 
-    // TODO: need to provide project root via build
     let root = Path.resolve(build.path, '..', '..')
 
-    // TODO: build should do this
-    // Config is optional: with no .model-config build linked in, there are no
-    // declared actions and the model runs on its own.
     let configBuildResult = build.use.config?.watch?.last
     let configBuild = configBuildResult?.build()
     let config = configBuild?.model || {}
@@ -75,7 +71,6 @@ const local_producer: Producer = async (build: Build, ctx: BuildContext) => {
 
   for (let actionDef of runActionDefs) {
     try {
-      // TODO: this call signature needs to be well-defined as it is an external interface
       let ares = await actionDef.action(build.model, build, ctx)
       ok = ok && (null == ares || !!ares.ok)
       reload = reload || ares?.reload

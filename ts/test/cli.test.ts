@@ -49,8 +49,6 @@ describe('cli', () => {
   })
 
 
-  // --no-config builds the model without creating .model-config or running any
-  // config-declared action.
   test('no-config-skips-config', async () => {
     const { existsSync } = require('node:fs')
     const dir = GEN + '/cli-noconfig'
@@ -90,8 +88,6 @@ describe('cli', () => {
     assert.match(wrote.stderr, /WARNING: --no-config/,
       'writing with --no-config must warn')
 
-    // ... and stays quiet when the run writes nothing, which is the mode the
-    // warning points at.
     const dry = run(['--no-config', '--dryrun'])
     assert.strictEqual(dry.status, 0, 'cli should exit 0: ' + dry.stderr)
     assert.doesNotMatch(dry.stderr, /WARNING/,
@@ -105,8 +101,6 @@ describe('cli', () => {
   })
 
 
-  // A missing model file exits non-zero with a clear message rather than a
-  // stack trace.
   test('missing-file-exits-nonzero', async () => {
     const res = spawnSync(process.execPath,
       [BIN, GEN + '/cli-nope/does-not-exist.aon', '-g', 'silent'],
@@ -127,7 +121,6 @@ describe('cli', () => {
   })
 
 
-  // An invalid model (conflicting values) fails the build and exits non-zero.
   test('bad-model-exits-nonzero', async () => {
     const dir = GEN + '/cli-bad'
     await rm(dir, { recursive: true, force: true })

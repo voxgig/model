@@ -2,16 +2,6 @@
 
 package model
 
-// Shared cross-language parity specs (top-level test/spec/*.tsv).
-//
-// Each row is (name, args, expected): args is [aontuSrc] and expected is the
-// exact bytes of the model.json the build must write — object keys sorted,
-// two-space indent, HTML characters literal, no trailing newline. The same
-// fixtures drive the TypeScript suite (ts/test/parity.test.ts), so a
-// behavioural drift between the two implementations fails one of them. Spec
-// files are auto-discovered: add a .tsv under test/spec/ and both suites pick
-// it up.
-
 import (
 	"encoding/json"
 	"os"

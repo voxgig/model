@@ -11,14 +11,6 @@ import (
 	"strings"
 )
 
-// ModelProducer writes the unified model to <base>/<root-name>.json. It runs
-// in the post phase only, and skips the write when the output is byte-for-byte
-// unchanged (avoiding mtime churn that would re-trigger watchers).
-//
-// The output is byte-for-byte identical to the TypeScript implementation: both
-// emit object keys in sorted order (Go's encoding/json sorts map keys; the TS
-// model producer sorts them explicitly) with a two-space indent and no HTML
-// escaping. See marshalModel.
 func ModelProducer(b *Build, ctx *BuildContext) ProducerResult {
 	pr := ProducerResult{OK: true, Name: "model", Step: ctx.Step, Active: true}
 	if ctx.Step != StepPost {

@@ -28,7 +28,6 @@ const GEN = __dirname + '/../test/_gen';
         const bad = await b.run({ watch: false });
         node_assert_1.default.strictEqual(bad.ok, false, 'invalid model should fail');
         node_assert_1.default.ok(0 < bad.errs.length, 'invalid model should report errors');
-        // Repair the model and rebuild on the SAME instance.
         await (0, promises_1.writeFile)(path, 'x: 1\n');
         const good = await b.run({ watch: false });
         node_assert_1.default.strictEqual(good.ok, true, 'build should recover after repair');
@@ -49,7 +48,6 @@ const GEN = __dirname + '/../test/_gen';
         const model = new model_1.Model({
             path: dir + '/model/model.aon',
             base: dir + '/model',
-            // The build deliberately errors; silence the expected log noise.
             debug: 'silent',
         });
         const br = await model.run();
@@ -106,7 +104,6 @@ const GEN = __dirname + '/../test/_gen';
             base: dir,
             dryrun: true,
         });
-        // Parent dir (cwd) exists in the dryrun in-memory volume.
         const target = process.cwd() + '/.dryrun-probe-' + Date.now() + '.tmp';
         try {
             await model.fs.promises.writeFile(target, 'NOPE');

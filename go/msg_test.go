@@ -10,12 +10,6 @@ import (
 	"time"
 )
 
-// Mirrors ts/test/msg.test.ts. Sources use plain aontu, because the checks
-// read the RESOLVED model and must hold whatever the source used to express
-// it.
-//
-// Not parallel: AontuResolver changes the working directory.
-
 // msgBuild runs src through the msg check and the model producer, as New
 // wires them: msg first, then model.
 func msgBuild(t *testing.T, src string) (*BuildResult, string) {
@@ -320,8 +314,6 @@ func TestCheckMsgDelimitersInValuesDoNotCollide(t *testing.T) {
 	}
 }
 
-// Two definitions in a chain are reported in byte order of the key, so both
-// implementations agree (Go map iteration is otherwise random).
 func TestCheckMsgDefinitionsInAChainAreOrdered(t *testing.T) {
 	problems := checkMsg(map[string]any{"main": map[string]any{"msg": map[string]any{
 		"zz": map[string]any{"pat": []any{map[string]any{"a": "b"}}},

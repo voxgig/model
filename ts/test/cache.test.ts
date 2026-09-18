@@ -43,8 +43,6 @@ describe('cache', () => {
     const model1 = b.model
     assert.deepStrictEqual(model1, { a: 1 })
 
-    // No change between runs -> the cached model object is reused (identity
-    // preserved). A re-unification would produce a fresh object.
     const r2 = await b.run({ watch: false })
     assert.strictEqual(r2.ok, true)
     assert.strictEqual(b.model, model1,
@@ -52,8 +50,6 @@ describe('cache', () => {
   })
 
 
-  // Changing a tracked file invalidates the cache: the next build re-unifies
-  // and produces a fresh model reflecting the new source.
   test('re-resolves-changed-model', async () => {
     const dir = GEN + '/cache-miss'
     await rm(dir, { recursive: true, force: true })
@@ -91,7 +87,6 @@ describe('cache', () => {
 
     assert.strictEqual((await b.run({ watch: false })).ok, true)
 
-    // Conflicting scalar values do not unify.
     await writeFile(path, 'a: 1\na: 2\n')
     bumpMtime(path)
 

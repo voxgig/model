@@ -61,20 +61,6 @@ func run(args []string, stderr io.Writer) int {
 		return 1
 	}
 
-	// `-no-config` is a MODEL-LAYER DEBUGGING MODE THAT STILL WRITES.
-	//
-	// Skipping the .model-config build means no configured action runs, and
-	// those actions are most of what populates a model: an SDK project loads
-	// apidef and sdkgen through exactly this mechanism. The build then writes
-	// its result anyway, replacing the model file with one missing whatever
-	// the actions contribute.
-	//
-	// NOTHING FAILS when that happens, which is the problem. A reduced model
-	// is a valid model; it simply has less in it. One project committed the
-	// reduced form repeatedly and its model alternated between two shapes for
-	// months before anyone noticed.
-	//
-	// Warn only when the run will actually write; -y is the safe way to look.
 	if *noConfig && !*dryrun {
 		fmt.Fprintln(stderr,
 			"WARNING: -no-config skips the .model-config build, so no configured")
