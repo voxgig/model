@@ -4,17 +4,6 @@ import Path from 'path'
 import type { Build, Producer, BuildContext, ProducerResult } from '../types'
 
 
-// Serialize the model to two-space-indented JSON with object keys in strictly
-// lexical (UTF-8 byte) order, byte-for-byte identical to the Go
-// implementation's encoding/json. JSON.stringify cannot express this: JS
-// objects iterate integer-like keys ("9", "10") in numeric order ahead of the
-// other keys regardless of insertion order, so the order must be imposed
-// during serialization, and the default JS string sort compares UTF-16 code
-// units, which disagrees with Go's byte order for astral-plane keys. Arrays
-// keep their order. Values only producer mutation can introduce mirror
-// JSON.stringify: undefined, functions, and symbols are dropped from objects
-// and become null in arrays (sparse holes too), and toJSON results are fed
-// back through the canonical serializer.
 function jsonify(value: any, indent: string): string {
   if (Array.isArray(value)) {
     if (0 === value.length) {
@@ -54,9 +43,6 @@ function jsonify(value: any, indent: string): string {
 }
 
 
-// JSON.stringify, plus the U+2028/U+2029 escapes Go's encoding/json always
-// applies even with HTML escaping off. JSON.stringify emits the separators
-// literally (both forms are valid JSON), so escape them here for byte parity.
 function jstr(value: any): string | undefined {
   const out = JSON.stringify(value)
   return undefined === out ? undefined :

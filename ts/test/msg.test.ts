@@ -1,11 +1,5 @@
 /* Copyright © 2026 Voxgig Ltd, MIT License. */
 
-// Message declaration checks (ts/src/producer/msg.ts).
-//
-// Error behaviour, so per-language rather than a shared test/spec row; the Go
-// suite mirrors these in go/msg_test.go. Sources here use plain aontu (no
-// aliases or close()), because the checks read the RESOLVED model and must
-// hold whatever the source used to express it.
 
 import Fs from 'node:fs'
 import { mkdir, writeFile, rm } from 'node:fs/promises'
@@ -287,9 +281,6 @@ describe('msg', () => {
   })
 
 
-  // Pattern identity is structural, not a rendering of it: a value carrying
-  // the delimiters used to display a pattern must not collide with a
-  // genuinely different pattern.
   test('delimiters-in-values-do-not-collide', () => {
     assert.deepStrictEqual(checkMsg({
       main: {
@@ -302,8 +293,6 @@ describe('msg', () => {
   })
 
 
-  // Two definitions in a chain are reported in byte order of the key, so both
-  // implementations agree (Go map iteration is otherwise random).
   test('definitions-in-a-chain-are-ordered', () => {
     const why = ': a message definition must be declared in the main.msg list' +
       ', not as a keyed entry (main: msg: [ { pat: [...] } ])'

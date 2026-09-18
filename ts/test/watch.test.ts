@@ -62,7 +62,6 @@ describe('watch', () => {
 
     await writeFile(base + '/model.aon', 'top: 1\nval: @"./zed.aon"\n')
     await writeFile(base + '/zed.aon', '2')
-    // Standalone config (no actions) so we don't depend on package resolution.
     await writeFile(base + '/.model-config/model-config.aon',
       'sys: model: action: {}\n')
 
@@ -164,9 +163,8 @@ describe('watch', () => {
       // Break the model: conflicting scalar values do not unify.
       await new Promise(r => setTimeout(r, 200))
       await writeFile(base + '/model.aon', 'val: 1\nval: 2\n')
-      await new Promise(r => setTimeout(r, 400)) // let the failed rebuild run
+      await new Promise(r => setTimeout(r, 400))
 
-      // Fix it; the watcher should recover.
       await writeFile(base + '/model.aon', 'val: 9\n')
       assert.ok(
         await waitFor(async () => (await readVal(out)) === 9),
@@ -228,7 +226,6 @@ describe('watch-internals', () => {
     try {
       const fsw = w.ensureFSW()
       assert.ok(fsw, 'ensureFSW should create a watcher')
-      // Calling again returns the same watcher (idempotent).
       assert.strictEqual(w.ensureFSW(), fsw)
     }
     finally {

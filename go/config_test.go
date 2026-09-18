@@ -137,8 +137,6 @@ func TestConfigOrderFallsBackToSortedKeys(t *testing.T) {
 		t.Fatal(err)
 	}
 	writeFile(t, mdir, "model.aon", "x: 1\n")
-	// Two actions, declared out of order and with no order.action -> the
-	// producer should run them by sorted key (a,b).
 	writeFile(t, cdir, "model-config.aon",
 		"sys: model: action: { b: load: 'y', a: load: 'x' }\n")
 
@@ -162,16 +160,6 @@ func TestConfigOrderFallsBackToSortedKeys(t *testing.T) {
 	}
 }
 
-// A legacy .model-config/model-config.aontu is migrated to .aon, and THIS
-// package's own config import is retargeted on the way. The package config
-// moved to .aon in v10, so a verbatim copy would leave the migrated config
-// importing a file that no longer ships. Mirrors the TypeScript
-// legacy-config-migrates-with-package-import-retargeted.
-//
-// The assertion is on the migrated bytes, not on a successful build: the Go
-// aontu engine does not resolve npm package imports at all (which is why
-// configStub is self-contained), so building one would fail for an unrelated
-// reason in either direction.
 func TestConfigLegacyMigrationRetargetsPackageImport(t *testing.T) {
 	dir := t.TempDir()
 	cdir := filepath.Join(dir, ".model-config")
@@ -199,10 +187,6 @@ func TestConfigLegacyMigrationRetargetsPackageImport(t *testing.T) {
 	if !strings.Contains(migrated, "@voxgig/model/model/.model-config/model-config.aon\"") {
 		t.Fatalf("package import should name .aon, got:\n%s", migrated)
 	}
-	// The rewrite is anchored to aontu's `@"..."` import syntax, so this same
-	// pathname held as ordinary string DATA is left exactly as it was. A bare
-	// pathname match would silently edit a declaration during a one-time
-	// migration. (Reported by Codex review on voxgig/model#16.)
 	if !strings.Contains(migrated,
 		"was: '@voxgig/model/model/.model-config/model-config.aontu'") {
 		t.Fatalf("a path held as string data must be left alone, got:\n%s", migrated)

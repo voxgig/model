@@ -35,14 +35,10 @@ function bumpMtime(path) {
         node_assert_1.default.strictEqual(r1.ok, true);
         const model1 = b.model;
         node_assert_1.default.deepStrictEqual(model1, { a: 1 });
-        // No change between runs -> the cached model object is reused (identity
-        // preserved). A re-unification would produce a fresh object.
         const r2 = await b.run({ watch: false });
         node_assert_1.default.strictEqual(r2.ok, true);
         node_assert_1.default.strictEqual(b.model, model1, 'unchanged model should be reused (cache hit)');
     });
-    // Changing a tracked file invalidates the cache: the next build re-unifies
-    // and produces a fresh model reflecting the new source.
     (0, node_test_1.test)('re-resolves-changed-model', async () => {
         const dir = GEN + '/cache-miss';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
@@ -70,7 +66,6 @@ function bumpMtime(path) {
         await (0, promises_1.writeFile)(path, 'a: 1\n');
         const b = (0, build_1.makeBuild)({ fs: node_fs_1.default, base: dir, path, res: [] }, silentLog());
         node_assert_1.default.strictEqual((await b.run({ watch: false })).ok, true);
-        // Conflicting scalar values do not unify.
         await (0, promises_1.writeFile)(path, 'a: 1\na: 2\n');
         bumpMtime(path);
         const bad = await b.run({ watch: false });

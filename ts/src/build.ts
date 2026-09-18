@@ -81,10 +81,6 @@ class BuildImpl implements Build {
     let hasErr = false
     let runlog = []
 
-    // Reset per-run error state. The BuildImpl is reused across watch
-    // rebuilds, so without this a single failure would stick to every
-    // later build. Reassign (don't clear in place) so a previously
-    // returned BuildResult keeps its own errors.
     this.errs = []
 
     this.ctx = { step: 'pre', state: {}, watch: rspec.watch }
@@ -117,8 +113,6 @@ class BuildImpl implements Build {
       }
     }
 
-    // Only reload when a pre-producer actually modified model sources
-    // (signalled via pr.reload). Previously this always ran on success.
     const reload = forceReload && !hasErr
 
     if (reload) {
@@ -150,7 +144,6 @@ class BuildImpl implements Build {
 
     const br: BuildResult =
     {
-      // TODO: remove need for this
       build: () => this,
 
       ok: !hasErr,

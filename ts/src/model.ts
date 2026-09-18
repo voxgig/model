@@ -83,10 +83,6 @@ class Model {
 
         if (self.trigger_model) {
 
-          // TODO: better design
-          // Point the config's last result at the current build so the model
-          // producer reads fresh config state. It must be a thunk to satisfy
-          // BuildResult.build's `() => Build` contract (consumers call it).
           const lastConfig = self.build.use?.config?.watch?.last
           if (lastConfig) {
             lastConfig.build = () => build
@@ -194,33 +190,8 @@ function makeConfig(mspec: ModelSpec, log: Log, fs: any, trigger_model_build: Pr
   let cbase = mspec.base + '/.model-config'
   let cpath = cbase + '/model-config.aon'
 
-  // MIGRATE A LEGACY .aontu CONFIG RATHER THAN WRITING OVER IT. This block
-  // CREATES the config when it finds none, so looking only for `.aon` in a
-  // project that has a `model-config.aontu` would not read the old file — it
-  // would decide there is no config and write a fresh default beside it,
-  // silently discarding whatever the project had declared there.
   const legacycpath = cbase + '/model-config.aontu'
   if (!fs.existsSync(cpath) && fs.existsSync(legacycpath)) {
-    // NOT A VERBATIM COPY. This package's OWN config moved to .aon in v10, so
-    // a legacy config's import of it names a file that no longer ships and the
-    // migrated config fails to resolve - `aontu/multisource_not_found:
-    // @voxgig/model/model/.model-config/model-config.aontu` - on the first
-    // build after upgrading. Renaming the file without retargeting that import
-    // just moves the breakage.
-    //
-    // Only THIS package's import is retargeted, and only where it is an
-    // IMPORT. Two things are deliberately left alone:
-    //
-    //   - a project's own `.aontu` imports, which still name real files on
-    //     its disk that nothing here renamed;
-    //   - this same pathname held as ordinary string DATA (a note, a
-    //     compatibility path in action metadata).
-    //
-    // Hence the match is anchored to aontu's `@"..."` import syntax, closing
-    // quote included, rather than to the bare pathname. Both are declarations
-    // the migration exists to preserve, and silently editing one during a
-    // one-time migration is precisely the failure this whole block guards
-    // against.
     const legacy = fs.readFileSync(legacycpath, 'utf8')
     fs.writeFileSync(cpath, legacy.replace(
       /@(\s*)"(@voxgig\/model\/[^"]*model-config)\.aontu"/g, '@$1"$2.aon"'))

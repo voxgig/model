@@ -22,10 +22,8 @@ type FS interface {
 // OSFS is the real, disk-backed filesystem.
 type OSFS struct{}
 
-// ReadFile reads a file from disk.
 func (OSFS) ReadFile(name string) ([]byte, error) { return os.ReadFile(name) }
 
-// WriteFile writes a file to disk.
 func (OSFS) WriteFile(name string, data []byte, perm os.FileMode) error {
 	return os.WriteFile(name, data, perm)
 }
@@ -33,7 +31,6 @@ func (OSFS) WriteFile(name string, data []byte, perm os.FileMode) error {
 // MkdirAll creates a directory and any parents.
 func (OSFS) MkdirAll(path string, perm os.FileMode) error { return os.MkdirAll(path, perm) }
 
-// Stat returns file info from disk.
 func (OSFS) Stat(name string) (os.FileInfo, error) { return os.Stat(name) }
 
 // dryFS reads from the real filesystem but keeps writes in memory, so a

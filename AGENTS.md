@@ -384,3 +384,11 @@ exists for a release that reached the registry.
 - [docs/reference.md](./docs/reference.md) — CLI, API, config, language.
 - [docs/explanation.md](./docs/explanation.md) — architecture and design
   rationale (read before structural changes).
+
+## Source code comments
+
+Follow [COMMENT-POLICY.md](COMMENT-POLICY.md): comments are sparse and terse,
+only for intricate or surprising code. Names carry intent; documents carry
+requirements. Run `make comments comments-test` after editing source.
+
+Durable implementation rationale is in [COMMENT-NOTES.md](COMMENT-NOTES.md).

@@ -36,8 +36,6 @@ const BIN = __dirname + '/../bin/voxgig-model';
         const args = JSON.parse(await (0, promises_1.readFile)(out, 'utf8'));
         node_assert_1.default.deepStrictEqual(args, { outer: { inner: 'VAL' } });
     });
-    // --no-config builds the model without creating .model-config or running any
-    // config-declared action.
     (0, node_test_1.test)('no-config-skips-config', async () => {
         const { existsSync } = require('node:fs');
         const dir = GEN + '/cli-noconfig';
@@ -62,8 +60,6 @@ const BIN = __dirname + '/../bin/voxgig-model';
         const wrote = run(['--no-config']);
         node_assert_1.default.strictEqual(wrote.status, 0, 'cli should exit 0: ' + wrote.stderr);
         node_assert_1.default.match(wrote.stderr, /WARNING: --no-config/, 'writing with --no-config must warn');
-        // ... and stays quiet when the run writes nothing, which is the mode the
-        // warning points at.
         const dry = run(['--no-config', '--dryrun']);
         node_assert_1.default.strictEqual(dry.status, 0, 'cli should exit 0: ' + dry.stderr);
         node_assert_1.default.doesNotMatch(dry.stderr, /WARNING/, '--no-config --dryrun writes nothing, so must not warn');
@@ -72,8 +68,6 @@ const BIN = __dirname + '/../bin/voxgig-model';
         node_assert_1.default.strictEqual(plain.status, 0, 'cli should exit 0: ' + plain.stderr);
         node_assert_1.default.doesNotMatch(plain.stderr, /WARNING/, 'an ordinary build must not warn');
     });
-    // A missing model file exits non-zero with a clear message rather than a
-    // stack trace.
     (0, node_test_1.test)('missing-file-exits-nonzero', async () => {
         const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN, GEN + '/cli-nope/does-not-exist.aon', '-g', 'silent'], { encoding: 'utf8' });
         node_assert_1.default.notStrictEqual(res.status, 0, 'missing file should exit non-zero');
@@ -86,7 +80,6 @@ const BIN = __dirname + '/../bin/voxgig-model';
         node_assert_1.default.notStrictEqual(res.status, 0, 'no args should exit non-zero');
         node_assert_1.default.match(res.stderr, /ERROR/);
     });
-    // An invalid model (conflicting values) fails the build and exits non-zero.
     (0, node_test_1.test)('bad-model-exits-nonzero', async () => {
         const dir = GEN + '/cli-bad';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });

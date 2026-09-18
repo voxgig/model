@@ -1,14 +1,5 @@
 /* Copyright © 2021-2026 Voxgig Ltd, MIT License. */
 
-// Package model is a Go port of @voxgig/model. It unifies .aon source
-// into a single model (via the aontu engine) and runs generator "actions"
-// over it, once or in a rebuild-on-change watch loop.
-//
-// The TypeScript implementation in ts/ is canonical; this package is kept in
-// architectural parity. Two mechanisms differ by necessity: action functions
-// are registered programmatically (Go cannot require() code at runtime),
-// though the .model-config file still declares which actions run and in what
-// order; and watching polls modification times (rather than using chokidar).
 package model
 
 import (
@@ -16,20 +7,10 @@ import (
 	"time"
 )
 
-// VERSION is the released version of the Go module. `make bump-go V=x.y.z`
-// rewrites it; publish.yml then tags go/vx.y.z to match, so the tag and this
-// constant cannot disagree. Spelled in caps to match the TypeScript side's
-// exported VERSION, so the two ports name the same thing the same way.
 const VERSION = "0.4.2"
 
-// DefaultIdle is the default watch debounce period.
 const DefaultIdle = 111 * time.Millisecond
 
-// Model unifies a .aon model and runs producers (the model writer and any
-// registered actions) over it. It can build once or watch and rebuild, and
-// optionally resolves a .model-config/model-config.aon config (auto-created
-// when missing) that declares the action order. The config is enabled by
-// default; ModelSpec.Config can disable it (see New).
 type Model struct {
 	config *Config
 	build  *Build
@@ -37,7 +18,6 @@ type Model struct {
 	log    Log
 }
 
-// New creates a Model from a spec.
 func New(spec ModelSpec) *Model {
 	log := spec.Log
 	if log == nil {
@@ -125,11 +105,9 @@ func (m *Model) Start() *BuildResult {
 	return m.watch.Start()
 }
 
-// Stop ends watching and releases the watcher.
 func (m *Model) Stop() { m.watch.Stop() }
 
 // Build returns the underlying model Build (valid after Run or Start).
 func (m *Model) Build() *Build { return m.build }
 
-// Config returns the model's config build.
 func (m *Model) Config() *Config { return m.config }

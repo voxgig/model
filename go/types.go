@@ -4,16 +4,12 @@ package model
 
 import "time"
 
-// Step is a build phase.
 type Step string
 
 const (
-	// StepPre runs before the model is finalized.
-	StepPre Step = "pre"
-	// StepPost runs after the model is finalized.
+	StepPre  Step = "pre"
 	StepPost Step = "post"
-	// StepAll runs in both phases.
-	StepAll Step = "all"
+	StepAll  Step = "all"
 )
 
 // BuildContext carries the current phase and shared state through one build.
@@ -23,7 +19,6 @@ type BuildContext struct {
 	State map[string]any
 }
 
-// ProducerResult is what a producer reports for one phase.
 type ProducerResult struct {
 	OK     bool
 	Name   string
@@ -34,7 +29,6 @@ type ProducerResult struct {
 	Runlog []string
 }
 
-// Producer transforms or emits output from the model during a build phase.
 type Producer func(b *Build, ctx *BuildContext) ProducerResult
 
 // ProducerDef pairs a producer with a (currently informational) path scope.
@@ -43,7 +37,6 @@ type ProducerDef struct {
 	Build Producer
 }
 
-// BuildResult summarizes one build.
 type BuildResult struct {
 	OK        bool
 	Errs      []error
@@ -66,7 +59,6 @@ func (r *BuildResult) Build() *Build {
 // the model should be re-resolved.
 type Action func(model map[string]any, b *Build, ctx *BuildContext) ActionResult
 
-// ActionResult is what an Action reports.
 type ActionResult struct {
 	OK     bool
 	Reload bool
@@ -77,17 +69,15 @@ type ActionResult struct {
 // actions are registered programmatically (Go cannot load code at runtime).
 type ActionDef struct {
 	Run  Action
-	Step Step // StepPre, StepPost (the zero value defaults to post) or StepAll
+	Step Step
 }
 
-// WatchModes selects which filesystem events trigger a rebuild.
 type WatchModes struct {
 	Mod bool
 	Add bool
 	Rem bool
 }
 
-// BuildSpec configures a Build.
 type BuildSpec struct {
 	Name     string
 	Path     string
@@ -104,7 +94,6 @@ type BuildSpec struct {
 	Log      Log
 }
 
-// ModelSpec configures a Model.
 type ModelSpec struct {
 	Path     string
 	Base     string
@@ -117,10 +106,5 @@ type ModelSpec struct {
 	Watch    WatchModes
 	Log      Log
 
-	// Config resolves a .model-config/model-config.aon (auto-created when
-	// missing) that declares the build action order. A nil pointer defaults to
-	// enabled; set it to a pointer-to-false to skip the config entirely and run
-	// the model on its own (action order then comes from Order, else the
-	// registered Actions).
 	Config *bool
 }

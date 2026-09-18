@@ -10,9 +10,6 @@ import (
 	"time"
 )
 
-// modelExts are the source extensions a watcher tracks: .aon is canonical,
-// .aontu and .jsonic are accepted as legacy. Generated output (e.g. .json) is
-// deliberately excluded so writing it cannot loop.
 var modelExts = map[string]bool{".aon": true, ".aontu": true, ".jsonic": true}
 
 // Watch rebuilds a Build when its source files change. It polls modification
@@ -23,8 +20,6 @@ type Watch struct {
 	name  string
 	idle  time.Duration
 
-	// reload, if set, runs before each change-triggered rebuild (used to
-	// re-resolve the config so config edits are picked up).
 	reload func()
 
 	mu      sync.Mutex

@@ -201,14 +201,6 @@ function errtext(errs) {
             node_assert_1.default.strictEqual(v.ok, ok, name + ' comment: expected ok=' + ok);
         }
     });
-    // The model serializer mirrors JSON.stringify for values only a mutating
-    // producer can introduce (aontu sources cannot express them): undefined,
-    // function, and symbol props are dropped; undefined array elements and
-    // sparse holes become null; toJSON results (e.g. Date) are re-serialized
-    // canonically — sorted keys and indentation apply to structured toJSON
-    // output too. Key order stays lexical byte order — numeric-string keys do
-    // not jump ahead. The shared-spec rows in test/spec/output.tsv lock the
-    // aontu-reachable surface; this locks the rest of the TS serializer.
     (0, node_test_1.test)('model-serializer-mutated-values', async () => {
         const dir = GEN + '/ex-serializer';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
@@ -270,11 +262,6 @@ function errtext(errs) {
         node_assert_1.default.strictEqual(v.ok, false);
         node_assert_1.default.ok(0 < v.errs.length);
     });
-    // A legacy .model-config/model-config.aontu is migrated to .aon. The copy
-    // is NOT verbatim: this package's own config moved to .aon in v10, so a
-    // legacy config's import of it names a file that no longer ships, and a
-    // straight copy leaves the migrated config unresolvable
-    // (aontu/multisource_not_found) on the very first build after upgrading.
     (0, node_test_1.test)('legacy-config-migrates-with-package-import-retargeted', async () => {
         const dir = GEN + '/ex-migrate-pkg';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
@@ -321,12 +308,6 @@ sys: model: action: {}
         const migrated = await (0, promises_1.readFile)(dir + '/model/.model-config/model-config.aon', 'utf8');
         node_assert_1.default.ok(migrated.includes('@"./local.aontu"'), "a project's own .aontu import must be left alone: " + migrated);
     });
-    // The rewrite is anchored to aontu's import syntax, not to the bare
-    // pathname. A legacy config may carry this package's path as ordinary
-    // string DATA — a note, a compatibility path in action metadata — and an
-    // unanchored match would silently edit that value during a one-time
-    // migration. Same principle as the test above: migrate imports, never
-    // declarations. (Reported by Codex review on voxgig/model#16.)
     (0, node_test_1.test)('legacy-config-rewrite-does-not-touch-string-data', async () => {
         const dir = GEN + '/ex-migrate-data';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });

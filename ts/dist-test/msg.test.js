@@ -4,12 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// Message declaration checks (ts/src/producer/msg.ts).
-//
-// Error behaviour, so per-language rather than a shared test/spec row; the Go
-// suite mirrors these in go/msg_test.go. Sources here use plain aontu (no
-// aliases or close()), because the checks read the RESOLVED model and must
-// hold whatever the source used to express it.
 const node_fs_1 = __importDefault(require("node:fs"));
 const promises_1 = require("node:fs/promises");
 const node_fs_2 = require("node:fs");
@@ -191,9 +185,6 @@ async function runMsg(name, src) {
             'model msg [2]: pat [a:b] is already declared by msg [0]',
         ]);
     });
-    // Pattern identity is structural, not a rendering of it: a value carrying
-    // the delimiters used to display a pattern must not collide with a
-    // genuinely different pattern.
     (0, node_test_1.test)('delimiters-in-values-do-not-collide', () => {
         node_assert_1.default.deepStrictEqual((0, msg_1.checkMsg)({
             main: {
@@ -204,8 +195,6 @@ async function runMsg(name, src) {
             }
         }), []);
     });
-    // Two definitions in a chain are reported in byte order of the key, so both
-    // implementations agree (Go map iteration is otherwise random).
     (0, node_test_1.test)('definitions-in-a-chain-are-ordered', () => {
         const why = ': a message definition must be declared in the main.msg list' +
             ', not as a keyed entry (main: msg: [ { pat: [...] } ])';

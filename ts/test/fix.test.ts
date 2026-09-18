@@ -36,7 +36,6 @@ describe('fix', () => {
     assert.strictEqual(bad.ok, false, 'invalid model should fail')
     assert.ok(0 < bad.errs.length, 'invalid model should report errors')
 
-    // Repair the model and rebuild on the SAME instance.
     await writeFile(path, 'x: 1\n')
 
     const good = await b.run({ watch: false })
@@ -64,7 +63,6 @@ describe('fix', () => {
     const model = new Model({
       path: dir + '/model/model.aon',
       base: dir + '/model',
-      // The build deliberately errors; silence the expected log noise.
       debug: 'silent',
     })
     const br = await model.run()
@@ -139,7 +137,6 @@ describe('fix', () => {
       dryrun: true,
     })
 
-    // Parent dir (cwd) exists in the dryrun in-memory volume.
     const target = process.cwd() + '/.dryrun-probe-' + Date.now() + '.tmp'
     try {
       await model.fs.promises.writeFile(target, 'NOPE')

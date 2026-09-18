@@ -108,7 +108,6 @@ class Watch {
 
     // Check if there have been no recent changes, if so, run build.
     this.intervalId = setInterval(() => {
-      // const start = this.startTime
       const now = Date.now()
       const idleDuration = now - this.lastChange.when
 
@@ -117,9 +116,6 @@ class Watch {
       // this.lastChange.path !== this.lastTrigger.path
 
       if (trigger) {
-        // Only add to build queue if we've been idle.
-        // This allows external compilation outputting multiple files to complete fully.
-        // IMPORTANT: always trigger a new build if there were changes *inside* a build period
         if (this.idle < idleDuration) {
           this.lastTrigger.path = this.lastChange.path
           this.lastTrigger.when = this.lastChange.when
@@ -216,7 +212,6 @@ class Watch {
         files.push(...Object.keys(build.deps[target]))
       }
 
-      // TODO: remove deleted files
       for (const file of files) {
         if ('string' === typeof file && '' !== file && build.opts.base !== file) {
           await this.add(file)

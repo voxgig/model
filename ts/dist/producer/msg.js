@@ -3,39 +3,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.msg_producer = void 0;
 exports.checkMsg = checkMsg;
-// Message declarations live in `main.msg` and come in two shapes.
-//
-// The legacy shape nests the pattern pairs, so the pattern is the path down
-// to the definition, and the definition sits at whatever depth that reaches:
-//
-//   aim: web: { on: todo: { save: item: { '$': { file: './web_save_item' } } } }
-//
-// The declared shape is a LIST of definitions, each carrying its pattern as
-// data - an ordered list of single-pair maps:
-//
-//   main: msg: [
-//     { pat: [ {aim: todo}, {save: item} ] }
-//     { pat: [ {aim: web}, {on: todo}, {save: item} ], file: "./web_save_item" }
-//   ]
-//
-// A LIST, NOT A MAP KEYED BY MESSAGE NAME. The obvious flat shape - one entry
-// per message, keyed by name - cannot express a gateway proxy. A proxy and the
-// message it forwards to necessarily share their last pattern pair
-// (aim:web,on:todo,save:item proxies aim:todo,save:item), and a key derived
-// from that pair therefore collides. Keyed by name, the two above would both
-// demand `save_item`, and aontu would merge them and fail trying to unify
-// `todo` with `web`. A list has no key, so the question never arises.
-//
-// The action file still comes from the LAST pattern pair (save:item ->
-// save_item), with `file` overriding it for a custom name - unchanged, and
-// exactly what a proxy uses. That convention lives in the consumers
-// (@voxgig/system's actpath, @voxgig/build's actfile), not here.
-//
-// The two shapes are told apart by main.msg being an array. Both may appear
-// in one model only in the sense that a model picks one; a chain model that
-// happens to contain a definition is a mistake this reports, because the
-// nested walk would read the definition's metadata as pattern pairs and
-// silently produce garbage patterns.
 // Report a problem against the definition it belongs to.
 function msgerr(index, why) {
     return 'model msg [' + index + ']: ' + why;
@@ -47,10 +14,6 @@ function isObj(val) {
 function isMsgDef(val) {
     return isObj(val) && Array.isArray(val.pat);
 }
-// Sort in UTF-8 byte order, matching Go's sort.Strings, so both
-// implementations report the same problems in the same order. The default JS
-// string sort compares UTF-16 code units, which disagrees for astral-plane
-// names (see the model producer's jsonify, which sorts keys the same way).
 function sortNames(names) {
     return names.sort((a, b) => Buffer.compare(Buffer.from(a), Buffer.from(b)));
 }
@@ -87,17 +50,6 @@ function checkMsgList(msg) {
             problems.push(msgerr(mI, 'pat declares no pattern pairs'));
             continue;
         }
-        // Reduce the pattern to its pairs, stopping at the first malformed one -
-        // the rest of the checks read the pairs, so there is nothing further to
-        // say about this message until its pattern is well-formed.
-        //
-        // Two renderings: `pairs` reads well in a message, and `canon` identifies
-        // the pattern. They cannot be the same string, because `key:value` joined
-        // by commas is ambiguous once a key or value contains a delimiter -
-        // [{a: "b,c:d"}] and [{a: b}, {c: d}] would both render `a:b,c:d` and the
-        // second would be rejected as a duplicate of the first. Quoting each part
-        // removes the ambiguity: a delimiter inside a part is escaped, so only
-        // genuinely equal patterns produce equal keys.
         const pairs = [];
         const canon = [];
         let wellFormed = true;
@@ -140,11 +92,6 @@ function checkMsgList(msg) {
     }
     return problems;
 }
-// The legacy chain. Nothing to validate in the chain itself - it has been
-// valid by construction since before this producer existed - but a definition
-// found among its nodes is reported rather than walked: the nested walk reads
-// two levels at a time, so it would take the definition's metadata keys for
-// pattern pairs and emit patterns nobody declared.
 function checkMsgChain(msg) {
     const problems = [];
     for (const name of sortNames(Object.keys(msg))) {
@@ -156,16 +103,6 @@ function checkMsgChain(msg) {
     }
     return problems;
 }
-// Checks the message declarations before anything is written.
-//
-// This runs in BOTH phases, and must: a `pre` action can rewrite model source
-// and request a reload, and the build re-resolves the model AFTER the pre
-// phase has finished (see BuildImpl.run). A pre-only check would then have
-// validated a model that no longer exists, and the model producer would write
-// the regenerated one unchecked. Checking again in post closes that window -
-// this producer is first in the pipeline, so it still runs ahead of the model
-// producer, and a build whose model went bad during a reload fails with
-// nothing written.
 const msg_producer = async (build, ctx) => {
     const pr = {
         ok: true,

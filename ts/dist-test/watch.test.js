@@ -51,7 +51,6 @@ async function read(file) {
         await (0, promises_1.mkdir)(base + '/.model-config', { recursive: true });
         await (0, promises_1.writeFile)(base + '/model.aon', 'top: 1\nval: @"./zed.aon"\n');
         await (0, promises_1.writeFile)(base + '/zed.aon', '2');
-        // Standalone config (no actions) so we don't depend on package resolution.
         await (0, promises_1.writeFile)(base + '/.model-config/model-config.aon', 'sys: model: action: {}\n');
         const out = base + '/model.json';
         const model = new model_1.Model({ path: base + '/model.aon', base });
@@ -120,8 +119,7 @@ async function read(file) {
             // Break the model: conflicting scalar values do not unify.
             await new Promise(r => setTimeout(r, 200));
             await (0, promises_1.writeFile)(base + '/model.aon', 'val: 1\nval: 2\n');
-            await new Promise(r => setTimeout(r, 400)); // let the failed rebuild run
-            // Fix it; the watcher should recover.
+            await new Promise(r => setTimeout(r, 400));
             await (0, promises_1.writeFile)(base + '/model.aon', 'val: 9\n');
             node_assert_1.default.ok(await waitFor(async () => (await readVal(out)) === 9), 'watcher should recover to val:9 after the model is fixed');
         }
@@ -168,7 +166,6 @@ async function read(file) {
         try {
             const fsw = w.ensureFSW();
             node_assert_1.default.ok(fsw, 'ensureFSW should create a watcher');
-            // Calling again returns the same watcher (idempotent).
             node_assert_1.default.strictEqual(w.ensureFSW(), fsw);
         }
         finally {

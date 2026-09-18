@@ -69,7 +69,6 @@ func (l *stdLog) emit(level int, label, point, note string) {
 // NopLog discards all log entries.
 type NopLog struct{}
 
-// Info discards the entry.
 func (NopLog) Info(string, string) {}
 
 // Debug discards the entry.
