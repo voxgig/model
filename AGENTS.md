@@ -15,6 +15,16 @@ Keep this file accurate: if you change the build, test layout, or a convention,
 update it in the same change.
 
 
+## Status output from long-running work
+
+Every transient task reports its status at least every 30 seconds, even if
+the report is one line, with a percentage-complete estimate wherever one can
+be computed (items done of items total, phases done of phases). That covers a
+build, a test or validation run, a script, a background agent, and a wait on
+CI or a release. It covers an agent's own updates to the person it works for
+too: relay progress at the same cadence rather than going quiet until the
+work is done. Silence longer than that cannot be told apart from a hang.
+
 ## Layout
 
 ```
@@ -127,11 +137,17 @@ Go **1.24+** is required (the `aontu/go` dependency declares `go 1.24.7`).
 6. **Generated test fixtures go in `ts/test/_gen/`** (gitignored). Tests write
    their own fixtures there at runtime; do not commit them.
 
-7. **`aontu` is a plain npm dependency, pinned exact** (see `ts/package.json`).
-   It was once vendored as a committed `ts/vendor/aontu-<version>.tgz`
-   tarball, because the npm package lives in a monorepo subdir
-   (`aontu-lang/aontu` → `ts/`) that npm cannot install from git, and GitHub
-   `main` was ahead of the npm release. The npm release caught up and the
+7. **`aontu` is a plain npm dependency with a floor, not a pin** (see
+   `ts/package.json`), and so are `@tabnas/jsonic` and `@tabnas/parser`. A
+   project installs one aontu for the whole toolchain; an exact pin here
+   cannot dedupe with it, and npm would nest a second engine for this package
+   alone. The parser floors are the versions aontu itself pins, so both
+   resolve to the copy aontu uses. The aontu floor is the release the
+   toolchain moved to together, on or after 0.73, which made `.aontu` the only
+   source extension. aontu was once vendored as a committed
+   `ts/vendor/aontu-<version>.tgz` tarball, because the npm package lives in
+   a monorepo subdir (`aontu-lang/aontu` → `ts/`) that npm cannot install
+   from git, and GitHub `main` was ahead of the npm release. The npm release caught up and the
    vendor mechanism was retired. If npm ever lags `main` again, the fallback
    is to vendor a tarball: `git clone` aontu at the target commit, `npm pack`
    its `ts/`, commit the `.tgz` under `ts/vendor/` (whitelist it in
@@ -148,7 +164,7 @@ lifecycle (pre → reload → post), producers, model output, dryrun, and watch
 semantics match TypeScript. Two things differ by necessity:
 
 - **The config declares actions; the registry binds them.** Like TypeScript,
-  Go resolves `.model-config/model-config.aon` (auto-created when missing),
+  Go resolves `.model-config/model-config.aontu` (auto-created when missing),
   writes `model-config.json`, and takes the action order from
   `sys.model.order.action` (`go/config.go`). But Go cannot load code at
   runtime, so the action *functions* are registered programmatically via
@@ -171,11 +187,13 @@ Other notes:
   sources. Locked down by `comment-hash-only` (`ts/test/extra.test.ts`) and
   `TestCommentHashOnly` (`go/extra_test.go`).
 - **Unification** uses the real Go aontu engine
-  (`github.com/aontu-lang/aontu/go`). Its `Generate(src)` has no base parameter,
-  so `AontuResolver` briefly `chdir`s to the model base (guarded by a mutex)
-  so `@"..."` imports resolve. aontu/go does not report import deps, so the
-  watcher tracks `*.aon` files (plus legacy `*.aontu`/`*.jsonic`) under the
-  base directory.
+  (`github.com/aontu-lang/aontu/go`, on the same version series as the npm
+  `aontu`). `AontuResolver` builds it with `aontu.NewWithBase(base)`, so
+  `@"..."` imports resolve against the model base without touching the
+  working directory. aontu/go records the files a build included
+  (`Aontu.IncludeDeps`), but the `Resolver` seam returns only the model, so
+  the watcher tracks `*.aontu` source (plus `*.jsonic` data) under the base
+  directory rather than the import graph TypeScript watches.
 - **Model JSON output is byte-for-byte identical** across the two
   implementations. Go's `encoding/json` sorts object keys lexically (UTF-8
   byte order), so the TypeScript model producer imposes the same order during
@@ -246,7 +264,11 @@ TypeScript is canonical. When changing behavior:
 line 0 is the header and `#` lines are comments. For the model specs `args`
 is `[aontuSrc]` and `expected` is the exact `model.json` bytes the build must
 write. Both parity runners (`ts/test/parity.test.ts`, `go/parity_test.go`)
-auto-discover every `.tsv` in the directory. Generate `expected` from the
+auto-discover every `.tsv` in the directory. A file that is not a model spec
+names its own function in both runners (`RUNNERS`, `specRunners`):
+`migrate.tsv` rows are a legacy `model-config.aon` source in and the
+`model-config.aontu` source out, run through `rewriteAonIncludes`
+(`ts/src/config.ts`, `go/config.go`). Generate `expected` from the
 TypeScript implementation (canonical) and confirm the row passes the Go suite
 too — a row only belongs here if the two implementations agree on it. Rows
 assert successful builds; error behavior, and values only producer mutation
@@ -266,15 +288,14 @@ must `await model.stop()` in a `finally`. CLI tests spawn the built bin without
 a shell.
 
 **Go:** standard `testing` with `t.TempDir()` fixtures. Watch tests must
-`defer m.Stop()`. Do **not** `t.Parallel()` resolver-using tests —
-`AontuResolver` changes the working directory.
+`defer m.Stop()`.
 
 
 ## Common tasks (playbooks)
 
 ### Add a build action (product-level generator)
 User-space, not framework code. TypeScript: declare in
-`.model-config/model-config.aon`, implement under `build/`. Go: register an
+`.model-config/model-config.aontu`, implement under `build/`. Go: register an
 `ActionDef` in `ModelSpec.Actions`. See
 [docs/how-to.md](./docs/how-to.md#write-a-build-action).
 

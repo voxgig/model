@@ -87,7 +87,7 @@ CLI (bin/voxgig-model)
 | Component | File | Responsibility |
 |-----------|------|----------------|
 | `Model` | `ts/src/model.ts` | Public entry. Wires a config build and a model build together; exposes `run`/`start`/`stop`. |
-| `Config` | `ts/src/config.ts` | A specialized build for `.model-config/model-config.aon`. |
+| `Config` | `ts/src/config.ts` | A specialized build for `.model-config/model-config.aontu`. |
 | `Watch` | `ts/src/watch.ts` | File watching, debouncing, the rebuild queue, dependency tracking. |
 | `Build` / `BuildImpl` | `ts/src/build.ts` | One build: resolve the model via aontu, run the producer pipeline, cache by mtime. |
 | `model_producer` | `ts/src/producer/model.ts` | Serialize the unified model to JSON. |
@@ -117,7 +117,7 @@ A single build is a small state machine (`BuildImpl.run`):
    `runlog` of the phases.
 
 The `pre` → `reload` → `post` shape exists for a specific need: actions that
-*generate model source*. A code generator might emit a `.aon` fragment that
+*generate model source*. A code generator might emit a `.aontu` fragment that
 the model itself imports; running it in `pre` and reloading lets that generated
 source participate in the final model that `post` actions consume.
 
@@ -144,7 +144,7 @@ pipeline (via `makeBuild`) when you need control over the whole build.
 ## Why there are two builds
 
 A model build needs to know which actions to run *before* it can run them — and
-that list is itself modeled, in `.model-config/model-config.aon`. So a `Model`
+that list is itself modeled, in `.model-config/model-config.aontu`. So a `Model`
 resolves **two** models:
 
 1. The **config build** unifies the config file into a config model and writes
@@ -209,8 +209,12 @@ through `build.fs` rather than importing `fs` directly. That indirection is the
 seam that makes `--dryrun` work: in dry-run mode the build swaps the write
 methods (both synchronous and promise-based) for ones backed by an in-memory
 [`memfs`](https://github.com/streamich/memfs) volume. Reads still hit the real
-disk; writes go nowhere. The same seam lets you supply any `fs` implementation
-to build entirely in memory.
+disk; writes go nowhere. The one exception is the config file the `Model`
+would create or migrate. A dry run writes nothing for it: the config build
+reads it from memory instead, derived afresh from a legacy config on every
+build. A dry run of a project with no config, or with a legacy one, therefore
+builds and watches as a real run does. The same seam lets you supply any `fs` implementation to build
+entirely in memory.
 
 This is a pragmatic, internal-use safeguard — it covers the standard write
 methods, not every conceivable path to disk. An action that bypasses `build.fs`
@@ -247,7 +251,7 @@ than hidden:
   convenience, not a security boundary.
 - **Project layout assumption.** Action `load` paths resolve against the
   directory two levels up from the root model file, which bakes in the
-  `project/model/model.aon` convention.
+  `project/model/model.aontu` convention.
 - **Error capture in the language layer.** Capturing *all* syntax and model
   errors as structured data (rather than some surfacing as thrown exceptions)
   depends on continued work in aontu.

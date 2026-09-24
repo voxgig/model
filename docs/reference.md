@@ -26,7 +26,7 @@ start with the [tutorial](./tutorial.md); for goal-oriented recipes see the
 voxgig-model <root-file> [options]
 ```
 
-`<root-file>` is the root `.aon` file of the model. It is also accepted as
+`<root-file>` is the root `.aontu` file of the model. It is also accepted as
 `--model <file>`. The directory containing the root file is the model **base**;
 generated model JSON is written next to the root file.
 
@@ -50,19 +50,19 @@ error, a missing model file, or an uncaught build error.
 
 ```bash
 # Build once, writing model/model.json
-voxgig-model model/model.aon
+voxgig-model model/model.aontu
 
 # Watch and rebuild, with debug logging
-voxgig-model -w -g debug model/model.aon
+voxgig-model -w -g debug model/model.aontu
 
 # Dry run (no files written)
-voxgig-model --dryrun model/model.aon
+voxgig-model --dryrun model/model.aontu
 
 # Pass build arguments to actions
-voxgig-model -b '{env:prod, region:eu-west-1}' model/model.aon
+voxgig-model -b '{env:prod, region:eu-west-1}' model/model.aontu
 
 # Build the model alone, without the .model-config machinery
-voxgig-model --no-config model/model.aon
+voxgig-model --no-config model/model.aontu
 ```
 
 ### `init` — scaffold a new model
@@ -72,13 +72,13 @@ voxgig-model init [dir]
 ```
 
 Creates a starter project under `<dir>/model` (default `dir`: the current
-directory): `model/model.aon` and `model/.model-config/model-config.aon`.
+directory): `model/model.aontu` and `model/.model-config/model-config.aontu`.
 Existing files are left untouched. Both the TypeScript and Go CLIs support
 this and produce identical files.
 
 ```bash
 voxgig-model init            # scaffold ./model
-voxgig-model model/model.aon   # build it
+voxgig-model model/model.aontu   # build it
 ```
 
 
@@ -89,18 +89,18 @@ A model is a directory tree. The conventional shape:
 ```
 my-project/
 ├─ model/
-│  ├─ model.aon                  # root model file (your entry point)
-│  ├─ ...more .aon files         # imported by the root
+│  ├─ model.aontu                   # root model file (your entry point)
+│  ├─ ...more .aontu files          # imported by the root
 │  ├─ model.json                    # GENERATED: the unified model
 │  └─ .model-config/
-│     ├─ model-config.aon        # config: declares actions
+│     ├─ model-config.aontu         # config: declares actions
 │     └─ model-config.json          # GENERATED: the unified config
 └─ build/
    ├─ foo.js                        # an action module
    └─ bar.js
 ```
 
-Two paths are derived from the root file `model/model.aon`:
+Two paths are derived from the root file `model/model.aontu`:
 
 - **base** = `model/` — the directory of the root file. Generated model JSON
   (`model.json`) and the `.model-config/` directory live here.
@@ -110,14 +110,43 @@ Two paths are derived from the root file `model/model.aon`:
   `my-project/build/foo.js`.
 
 This two-levels-up rule means the root model file is expected to sit one
-directory below the project root (e.g. `model/model.aon`).
+directory below the project root (e.g. `model/model.aontu`).
 
 
 ## The config file
 
-`<base>/.model-config/model-config.aon` declares the **actions** that run
+`<base>/.model-config/model-config.aontu` declares the **actions** that run
 during a build. If it does not exist, the `Model` constructor creates a minimal
 one that imports the package's base config.
+
+A project from before the `.aontu` extension has `model-config.aon` instead,
+which aontu no longer includes. The `Model` constructor migrates it once,
+before the config build runs:
+
+- It writes `model-config.aontu` with the legacy file's content and deletes
+  `model-config.aon`. The tool never writes a `.aon` file. The new file is
+  written beside its target and renamed into place, as the default config
+  is, so a write that fails part way leaves no partial `model-config.aontu`
+  behind to take precedence on the next run.
+- Only a missing `model-config.aon` counts as absent. One that exists but
+  cannot be read fails the config build with the read error, and no default
+  config is written over it.
+- Each include of a `.aon` file is pointed at `.aontu`, whatever the quote
+  (`"`, `'` or a backtick) and whatever whitespace follows the `@`. A `.aon`
+  path held as a string value or inside a comment keeps its name, and every
+  other byte is kept as written.
+- Only the config file is renamed. A file it includes, such as the
+  `./local.aon` in `@"./local.aon"`, must be renamed to match, or the config
+  build reports it as not found.
+- When both files exist, `model-config.aontu` is read, `model-config.aon` is
+  left in place, and the log names the file it ignored.
+- A dry run migrates in memory and writes nothing: each config build derives
+  the config afresh from `model-config.aon`, and a watching dry run watches
+  that file, so an edit to it rebuilds.
+
+The rewrite is pinned by the rows of `test/spec/migrate.tsv`, which both
+implementations run; the file handling is pinned by the config tests in
+`ts/test/extra.test.ts` and `go/config_test.go`.
 
 The config is **optional**. Pass `config: false` to `ModelSpec` (or `--no-config`
 on the CLI) to skip it entirely: no `.model-config/` is created, no actions are
@@ -154,7 +183,7 @@ fails the build with `Unknown model action "<name>"`. An action whose
 definition has no `load` fails with `Model action "<name>" is missing a "load"
 path`.
 
-The generated `model-config.json` is written next to `model-config.aon`.
+The generated `model-config.json` is written next to `model-config.aontu`.
 
 
 ## Actions
@@ -208,7 +237,7 @@ A thrown error fails the build; the error is logged once and surfaced in
 
 | Step | Runs | Use for |
 |------|------|---------|
-| `pre` | before the model is finalized | Generating or rewriting `.aon` source that the model itself depends on; pair with `reload: true`. |
+| `pre` | before the model is finalized | Generating or rewriting `.aontu` source that the model itself depends on; pair with `reload: true`. |
 | `post` (default) | after the model is finalized | Emitting artifacts from the finished model. |
 | `all` | both phases | Actions that must observe both phases. |
 
@@ -222,7 +251,7 @@ const Fs = require('node:fs')
 module.exports = async function pre(model, build) {
   const root = Path.resolve(build.path, '..', '..')
   if (!build.dryrun) {
-    Fs.writeFileSync(Path.resolve(root, 'model', 'pre.aon'), 'OK')
+    Fs.writeFileSync(Path.resolve(root, 'model', 'pre.aontu'), 'OK')
   }
   return { ok: true, reload: true }
 }
@@ -365,7 +394,7 @@ const { prettyPino } = require('@voxgig/util')
 const build = makeBuild({
   fs: Fs,
   base: __dirname + '/model',
-  path: __dirname + '/model/model.aon',
+  path: __dirname + '/model/model.aontu',
   res: [
     { path: '/', build: model_producer },
     { path: '/', build: async (build, ctx) => {
@@ -503,7 +532,7 @@ A single build (`Build.run`) proceeds as:
 
 A `Model` orchestrates up to **two** builds:
 
-- The **config build** resolves `.model-config/model-config.aon` (writing
+- The **config build** resolves `.model-config/model-config.aontu` (writing
   `model-config.json`) and, via an internal trigger producer, drives the main
   model build.
 - The **model build** resolves your root model (writing `model.json`) and runs
@@ -692,11 +721,16 @@ Pull in another file with `@"..."`:
 
 ```jsonic
 # relative to the importing file
-color: @"./color.aon"
+color: @"./color.aontu"
 
 # a path inside an installed package
-@"@voxgig/model/model/.model-config/model-config.aon"
+@"@voxgig/model/model/.model-config/model-config.aontu"
 ```
+
+An imported source file is named `.aontu`. aontu refuses an import of a `.aon`
+file with `include_extension`, and a bare `@"./color"` completes to
+`./color.aontu` only. A data file keeps its own extension (`.json`, `.yaml`,
+`.toml` and the other formats aontu reads) and is read by that format's parser.
 
 Imported files are tracked as dependencies, so changing one triggers a rebuild
 in watch mode.
@@ -730,8 +764,8 @@ and the Go module:
 | `npm run test-some` | Run tests matching `TEST_PATTERN` (an environment variable). |
 | `npm run test-cov` | Run tests with coverage, writing `coverage/lcov.info`. |
 | `npm run watch` | Recompile on change (`tsc --build -w`). |
-| `npm run model` | Run the CLI in watch mode on the package's own `model/sys.aon`. |
-| `npm run test-model` | Run the CLI once on `test/sys01/model/model.aon`. |
+| `npm run model` | Run the CLI in watch mode on the package's own `model/sys.aontu`. |
+| `npm run test-model` | Run the CLI once on `test/sys01/model/model.aontu`. |
 | `npm run clean` | Remove `node_modules`, `dist`, `dist-test`, lockfiles. |
 | `npm run reset` | `clean` + install + build + test. |
 
@@ -749,7 +783,7 @@ and the Go module:
 | `Unknown model action "X"` | `sys.model.order.action` names an action that has no `sys.model.action.X` definition. Add the action or fix the order list. |
 | `Model action "X" is missing a "load" path` | An action definition has no `load`. Add `load: 'build/X'`. |
 | A required action does not run | Check its `step` (`pre`/`post`/`all`) and that it appears in `order.action` (or that `order.action` is absent so all run). |
-| In-memory (`fs`) build fails to resolve `@voxgig/model/...` | The auto-created config imports a package path that is not in your volume. Seed a self-contained `.model-config/model-config.aon` (e.g. `sys: model: action: {}`). |
+| In-memory (`fs`) build fails to resolve `@voxgig/model/...` | The auto-created config imports a package path that is not in your volume. Seed a self-contained `.model-config/model-config.aontu` (e.g. `sys: model: action: {}`). |
 | Watch process never exits | This is expected for `--watch` (runs until interrupted). For the API, call `model.stop()`. |
 | A change does not trigger a rebuild | Only tracked files rebuild: the root model, its imports, and the config files. Editing an unrelated file does nothing. Also note `add`/`rem` events are off by default in the API (`watch: { add, rem }`). |
 | Edits seem ignored after a failed build | Errors reset each build; fix the source and the next rebuild should succeed. If running the repository's own tooling, rebuild first (`npm run build` from `ts/`): the tests run against `dist/`, which goes stale otherwise. |
@@ -758,8 +792,10 @@ and the Go module:
 ## Requirements
 
 - **Node.js.** CI tests on Node 24 (recommended). Node 20.19+ generally works;
-  the `shape` dependency declares `engines.node >= 24`, so older versions emit
-  an `EBADENGINE` warning.
+  the `aontu` and `shape` dependencies declare `engines.node >= 24`, so older
+  versions emit an `EBADENGINE` warning.
+- **aontu.** 0.75.0 or later, which reads only `.aontu` source. The Go module
+  requires `github.com/aontu-lang/aontu/go` at the same version.
 - **Peer dependencies:** `pino` (`>=10`) and `@voxgig/util`. Install them in the
   host project.
 - **Module system:** CommonJS (`"type": "commonjs"`).

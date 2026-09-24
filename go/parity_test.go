@@ -50,8 +50,8 @@ func loadSpec(t *testing.T, path string) []specRow {
 func buildModelJSON(t *testing.T, src string) string {
 	t.Helper()
 	dir := t.TempDir()
-	path := filepath.Join(dir, "model.aon")
-	writeFile(t, dir, "model.aon", src)
+	path := filepath.Join(dir, "model.aontu")
+	writeFile(t, dir, "model.aontu", src)
 
 	b := NewBuild(BuildSpec{Path: path, Base: dir,
 		Res: []ProducerDef{
@@ -68,9 +68,14 @@ func buildModelJSON(t *testing.T, src string) string {
 	return string(data)
 }
 
-// TestSharedSpecs runs every test/spec/*.tsv row: model.json output must be
+// specRunners maps a spec file to the function its rows run through.
+var specRunners = map[string]func(t *testing.T, src string) string{
+	"migrate": func(_ *testing.T, src string) string { return rewriteAonIncludes(src) },
+}
+
+// TestSharedSpecs runs every test/spec/*.tsv row: the output must be
 // byte-for-byte identical to the TypeScript implementation, which generated
-// the expected values. No t.Parallel: AontuResolver chdirs to the model base.
+// the expected values.
 func TestSharedSpecs(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join("..", "test", "spec", "*.tsv"))
 	if err != nil {
@@ -83,13 +88,17 @@ func TestSharedSpecs(t *testing.T) {
 
 	for _, file := range files {
 		group := strings.TrimSuffix(filepath.Base(file), ".tsv")
+		run := specRunners[group]
+		if run == nil {
+			run = buildModelJSON
+		}
 		t.Run(group, func(t *testing.T) {
 			for _, row := range loadSpec(t, file) {
 				t.Run(row.name, func(t *testing.T) {
 					src, _ := row.args[0].(string)
 					exp, _ := row.expected.(string)
-					if got := buildModelJSON(t, src); got != exp {
-						t.Fatalf("model.json parity mismatch:\n--- got ---\n%s\n--- want ---\n%s", got, exp)
+					if got := run(t, src); got != exp {
+						t.Fatalf("%s parity mismatch:\n--- got ---\n%s\n--- want ---\n%s", group, got, exp)
 					}
 				})
 			}

@@ -11,6 +11,7 @@ import assert from 'node:assert'
 import { prettyPino } from '@voxgig/util'
 
 import { makeBuild } from '../dist/build'
+import { rewriteAonIncludes } from '../dist/config'
 import { model_producer } from '../dist/producer/model'
 import { msg_producer } from '../dist/producer/msg'
 
@@ -44,14 +45,14 @@ function loadSpec(file: string): SpecRow[] {
 async function buildModelJson(name: string, src: string): Promise<string> {
   const base = Path.join(__dirname, '..', 'test', '_gen', 'spec', name)
   mkdirSync(base, { recursive: true })
-  writeFileSync(Path.join(base, 'model.aon'), src)
+  writeFileSync(Path.join(base, 'model.aontu'), src)
 
   const log = prettyPino('test', {})
 
   const b = makeBuild({
     fs: Fs,
     base,
-    path: Path.join(base, 'model.aon'),
+    path: Path.join(base, 'model.aontu'),
     // As the Model wires them: the msg check first (pre), then the model
     // producer (post). A row therefore asserts both that the source passes
     // the built-in checks and that it serializes to the expected bytes.
@@ -68,6 +69,12 @@ async function buildModelJson(name: string, src: string): Promise<string> {
 }
 
 
+// Maps a spec file to the function its rows run through.
+const RUNNERS: Record<string, (name: string, src: string) => Promise<string>> = {
+  migrate: async (_name: string, src: string) => rewriteAonIncludes(src),
+}
+
+
 describe('parity', () => {
 
   const files = Fs.readdirSync(SPEC_DIR).filter(f => f.endsWith('.tsv')).sort()
@@ -76,11 +83,13 @@ describe('parity', () => {
   for (const file of files) {
     const group = file.slice(0, -'.tsv'.length)
 
+    const run = RUNNERS[group] || buildModelJson
+
     describe(group, () => {
       for (const row of loadSpec(file)) {
         test(row.name, async () => {
           assert.strictEqual(
-            await buildModelJson(group + '-' + row.name, String(row.args[0])),
+            await run(group + '-' + row.name, String(row.args[0])),
             row.expected)
         })
       }

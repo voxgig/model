@@ -170,25 +170,10 @@ class Model {
 }
 exports.Model = Model;
 function makeConfig(mspec, log, fs, trigger_model_build) {
-    let cbase = mspec.base + '/.model-config';
-    let cpath = cbase + '/model-config.aon';
-    const legacycpath = cbase + '/model-config.aontu';
-    if (!fs.existsSync(cpath) && fs.existsSync(legacycpath)) {
-        const legacy = fs.readFileSync(legacycpath, 'utf8');
-        fs.writeFileSync(cpath, legacy.replace(/@(\s*)"(@voxgig\/model\/[^"]*model-config)\.aontu"/g, '@$1"$2.aon"'));
-        try {
-            fs.unlinkSync(legacycpath);
-        }
-        catch (_err) { }
-    }
-    if (!fs.existsSync(cpath)) {
-        fs.mkdirSync(cbase, { recursive: true });
-        fs.writeFileSync(cpath, `
-@"@voxgig/model/model/.model-config/model-config.aon"
-
-sys: model: action: {}
-`);
-    }
+    const cbase = mspec.base + '/.model-config';
+    const cpath = cbase + '/' + config_1.CONFIG_FILE;
+    const prep = (0, config_1.prepareConfig)(fs, cbase, log, mspec.dryrun);
+    const cfs = null == prep.text ? fs : (0, config_1.readBack)(fs, cpath, prep.text, prep.from);
     let cspec = {
         name: 'config',
         path: cpath,
@@ -205,9 +190,9 @@ sys: model: action: {}
         ],
         require: mspec.require,
         log,
-        fs,
+        fs: cfs,
     };
-    return new config_1.Config(cspec, log);
+    return new config_1.Config(cspec, log, prep);
 }
 function makeReadOnly(fsm) {
     // NOTE: NOT COMPLETE!

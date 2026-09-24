@@ -163,7 +163,7 @@ phrases. Ten habits, with the register they apply in:
    dry beat.** Tutorial and how-to pages. Reference pages open by stating
    what the thing is.
 2. **Introduce code with a short colon-terminated sentence** — "Build it
-   once:", "Create `model/model.aon`:". Never "The following code snippet
+   once:", "Create `model/model.aontu`:". Never "The following code snippet
    demonstrates". Everywhere.
 3. **After a code block, point at the one interesting thing.** Do not
    recap the code. Everywhere.
@@ -373,8 +373,8 @@ The rest:
   are `@voxgig/model` on npm and `github.com/voxgig/model/go` as a Go
   module.
 - **model** — the unified data structure the build writes as
-  `model.json`. The `.aon` files it comes from are **model source**, and
-  `model/model.aon` is **the root file**. Never "the model" for the source
+  `model.json`. The `.aontu` files it comes from are **model source**, and
+  `model/model.aontu` is **the root file**. Never "the model" for the source
   files.
 - **build** — one run of the pipeline: resolve, **pre phase**, reload if
   asked, **post phase**. A `Model` runs two of them, **the config build**
@@ -382,7 +382,7 @@ The rest:
 - **producer** and **action** are different layers. A producer is the
   framework's unit (`msg_producer`, `model_producer`, `local_producer`);
   an action is the module a project declares in
-  `.model-config/model-config.aon`. Never "builder" for either: the
+  `.model-config/model-config.aontu`. Never "builder" for either: the
   legacy config key `sys.model.builders` is the only place that word
   survives.
 - **canonical** — the TypeScript implementation in `ts/`. The Go module
@@ -393,7 +393,7 @@ The rest:
 - **unify** — what aontu does to two descriptions, and what `&` writes.
   Never "merge": a merge picks a winner, and a unification that conflicts
   is an error.
-- **`#` comments** — the only comment syntax the language has. A `.aon`
+- **`#` comments** — the only comment syntax the language has. A `.aontu`
   example never contains `//` or `/* */`, because both implementations
   reject them.
 - **message declaration** — an entry in the `main.msg` list; its

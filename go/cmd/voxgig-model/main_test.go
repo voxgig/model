@@ -19,7 +19,7 @@ func write(t *testing.T, path, content string) {
 
 func TestCLIWritesModel(t *testing.T) {
 	dir := t.TempDir()
-	root := filepath.Join(dir, "m.aon")
+	root := filepath.Join(dir, "m.aontu")
 	write(t, root, "a: 1\nb: 2\n")
 
 	var out bytes.Buffer
@@ -33,7 +33,7 @@ func TestCLIWritesModel(t *testing.T) {
 
 func TestCLINoConfigSkipsConfig(t *testing.T) {
 	dir := t.TempDir()
-	root := filepath.Join(dir, "m.aon")
+	root := filepath.Join(dir, "m.aontu")
 	write(t, root, "a: 1\n")
 
 	var out bytes.Buffer
@@ -54,7 +54,7 @@ func TestCLINoConfigSkipsConfig(t *testing.T) {
 // missing whatever the actions contribute, so pin it.
 func TestCLINoConfigWarnsWhenItWrites(t *testing.T) {
 	dir := t.TempDir()
-	root := filepath.Join(dir, "m.aon")
+	root := filepath.Join(dir, "m.aontu")
 	write(t, root, "a: 1\n")
 
 	var out bytes.Buffer
@@ -87,7 +87,7 @@ func TestCLINoConfigWarnsWhenItWrites(t *testing.T) {
 
 func TestCLIDryrunWritesNothing(t *testing.T) {
 	dir := t.TempDir()
-	root := filepath.Join(dir, "m.aon")
+	root := filepath.Join(dir, "m.aontu")
 	write(t, root, "a: 1\n")
 
 	var out bytes.Buffer
@@ -101,7 +101,7 @@ func TestCLIDryrunWritesNothing(t *testing.T) {
 
 func TestCLIMissingFile(t *testing.T) {
 	var out bytes.Buffer
-	code := run([]string{filepath.Join(t.TempDir(), "nope.aon")}, &out)
+	code := run([]string{filepath.Join(t.TempDir(), "nope.aontu")}, &out)
 	if code == 0 {
 		t.Fatal("expected non-zero exit for missing file")
 	}
@@ -119,7 +119,7 @@ func TestCLINoArgs(t *testing.T) {
 
 func TestCLIBadModel(t *testing.T) {
 	dir := t.TempDir()
-	root := filepath.Join(dir, "m.aon")
+	root := filepath.Join(dir, "m.aontu")
 	write(t, root, "x: 1\nx: 2\n")
 
 	var out bytes.Buffer
@@ -142,7 +142,7 @@ func TestCLIInit(t *testing.T) {
 	if !strings.Contains(out.String(), "created:") {
 		t.Fatalf("init output = %q", out.String())
 	}
-	root := filepath.Join(dir, "model", "model.aon")
+	root := filepath.Join(dir, "model", "model.aontu")
 	if _, err := os.Stat(root); err != nil {
 		t.Fatalf("init did not scaffold the model: %v", err)
 	}

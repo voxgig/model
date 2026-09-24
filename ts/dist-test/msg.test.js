@@ -27,9 +27,9 @@ async function runMsg(name, src) {
     const dir = GEN + '/msg-' + name;
     await (0, promises_1.rm)(dir, { recursive: true, force: true });
     await (0, promises_1.mkdir)(dir, { recursive: true });
-    await (0, promises_1.writeFile)(dir + '/m.aon', src);
+    await (0, promises_1.writeFile)(dir + '/m.aontu', src);
     const b = (0, build_1.makeBuild)({
-        fs: node_fs_1.default, base: dir, path: dir + '/m.aon',
+        fs: node_fs_1.default, base: dir, path: dir + '/m.aontu',
         res: [
             { path: '/', build: msg_1.msg_producer },
             { path: '/', build: model_2.model_producer },
@@ -244,7 +244,7 @@ async function runMsg(name, src) {
         const dir = GEN + '/msg-reload';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        const path = dir + '/m.aon';
+        const path = dir + '/m.aontu';
         await (0, promises_1.writeFile)(path, 'main: msg: [ { pat: [ {aim: web}, {save: item} ] } ]\n');
         let rewritten = false;
         const b = (0, build_1.makeBuild)({
@@ -283,9 +283,9 @@ async function runMsg(name, src) {
         const dir = GEN + '/msg-model';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aon', 'main: msg: [ { pat: [] } ]\n');
+        await (0, promises_1.writeFile)(dir + '/m.aontu', 'main: msg: [ { pat: [] } ]\n');
         const model = new model_1.Model({
-            path: dir + '/m.aon', base: dir, config: false, debug: 'silent',
+            path: dir + '/m.aontu', base: dir, config: false, debug: 'silent',
         });
         const br = await model.run();
         node_assert_1.default.strictEqual(br.ok, false);
@@ -296,9 +296,9 @@ async function runMsg(name, src) {
         const dir = GEN + '/msg-model-ok';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aon', 'main: msg: [ { pat: [ {aim: web}, {save: item} ] } ]\n');
+        await (0, promises_1.writeFile)(dir + '/m.aontu', 'main: msg: [ { pat: [ {aim: web}, {save: item} ] } ]\n');
         const model = new model_1.Model({
-            path: dir + '/m.aon', base: dir, config: false, debug: 'silent',
+            path: dir + '/m.aontu', base: dir, config: false, debug: 'silent',
         });
         const br = await model.run();
         node_assert_1.default.ok(br.ok, 'build failed: ' + errtext(br.errs));

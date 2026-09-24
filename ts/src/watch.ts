@@ -17,6 +17,7 @@ import type {
 import { makeBuild } from './build'
 import { FSWatcher } from 'chokidar'
 
+import { existsSync } from 'node:fs'
 import { stat } from 'fs/promises'
 
 
@@ -213,7 +214,9 @@ class Watch {
       }
 
       for (const file of files) {
-        if ('string' === typeof file && '' !== file && build.opts.base !== file) {
+        // A dry run's in-memory config is not on disk to be watched.
+        if ('string' === typeof file && '' !== file && build.opts.base !== file &&
+          existsSync(file)) {
           await this.add(file)
         }
       }

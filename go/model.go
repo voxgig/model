@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-const VERSION = "0.4.2"
+const VERSION = "0.5.0"
 
 const DefaultIdle = 111 * time.Millisecond
 
@@ -74,6 +74,9 @@ func New(spec ModelSpec) *Model {
 
 	// Re-resolve the config on each watch rebuild so config edits are picked up.
 	if config != nil {
+		if config.prep.from != "" {
+			m.watch.extra = []string{config.prep.from}
+		}
 		m.watch.reload = func() {
 			config.build.InvalidateCache()
 			config.Run()

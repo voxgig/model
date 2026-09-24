@@ -1,6 +1,6 @@
 /* Copyright © 2021-2026 Voxgig Ltd, MIT License. */
 
-// Command voxgig-model unifies a .aon model and writes the resulting
+// Command voxgig-model unifies a .aontu model and writes the resulting
 // model JSON. It mirrors the core of the TypeScript CLI. Custom build
 // actions — which the TypeScript CLI loads dynamically from a config file —
 // are not available here, because Go cannot load code at runtime; embed the
@@ -39,6 +39,8 @@ func run(args []string, stderr io.Writer) int {
 	noConfig := fs.Bool("no-config", false, "skip the .model-config build: no configured action runs, and the model is still written (use -y to inspect safely)")
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "usage: voxgig-model [-w] [-y] [-g level] [-no-config] <root-file>")
+		fmt.Fprintln(stderr, "       voxgig-model init [dir]")
+		fmt.Fprintln(stderr, "<root-file> is the model's root .aontu file, such as model/model.aontu.")
 		fs.PrintDefaults()
 	}
 	if err := fs.Parse(args); err != nil {
@@ -112,7 +114,7 @@ func runInit(args []string, out io.Writer) int {
 	for _, p := range skipped {
 		fmt.Fprintln(out, "exists: ", p)
 	}
-	fmt.Fprintln(out, "Next: voxgig-model "+filepath.Join(dir, "model", "model.aon"))
+	fmt.Fprintln(out, "Next: voxgig-model "+filepath.Join(dir, "model", "model.aontu"))
 	return 0
 }
 

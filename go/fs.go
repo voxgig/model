@@ -33,6 +33,10 @@ func (OSFS) MkdirAll(path string, perm os.FileMode) error { return os.MkdirAll(p
 
 func (OSFS) Stat(name string) (os.FileInfo, error) { return os.Stat(name) }
 
+func (OSFS) Rename(oldpath, newpath string) error { return os.Rename(oldpath, newpath) }
+
+func (OSFS) Remove(name string) error { return os.Remove(name) }
+
 // dryFS reads from the real filesystem but keeps writes in memory, so a
 // dryrun build runs normally without touching disk.
 type dryFS struct {

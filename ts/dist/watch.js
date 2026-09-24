@@ -8,6 +8,7 @@ exports.Watch = void 0;
 const node_path_1 = __importDefault(require("node:path"));
 const build_1 = require("./build");
 const chokidar_1 = require("chokidar");
+const node_fs_1 = require("node:fs");
 const promises_1 = require("fs/promises");
 class Watch {
     constructor(bspec, log) {
@@ -141,7 +142,9 @@ class Watch {
                 files.push(...Object.keys(build.deps[target]));
             }
             for (const file of files) {
-                if ('string' === typeof file && '' !== file && build.opts.base !== file) {
+                // A dry run's in-memory config is not on disk to be watched.
+                if ('string' === typeof file && '' !== file && build.opts.base !== file &&
+                    (0, node_fs_1.existsSync)(file)) {
                     await this.add(file);
                 }
             }

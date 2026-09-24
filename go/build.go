@@ -4,10 +4,9 @@ package model
 
 import (
 	"fmt"
-	"os"
 	"sync"
 
-	aontu "github.com/rjrodger/aontu/go"
+	aontu "github.com/aontu-lang/aontu/go"
 )
 
 // Resolver turns model source text into a unified model. The default
@@ -17,31 +16,15 @@ type Resolver interface {
 	Resolve(src string) (model map[string]any, errs []error)
 }
 
-// chdirMu serializes the working-directory changes AontuResolver needs to
-// resolve @"..." imports relative to a model's base directory.
-var chdirMu sync.Mutex
-
-// AontuResolver resolves source with the aontu engine. The Go aontu API has
-// no base-directory parameter, so imports are resolved relative to Base by
-// briefly changing the working directory (serialized across builds).
+// AontuResolver resolves source with the aontu engine. Relative imports
+// resolve against Base, or the working directory when Base is empty.
 type AontuResolver struct {
 	Base string
 }
 
 // Resolve implements Resolver.
 func (r AontuResolver) Resolve(src string) (map[string]any, []error) {
-	chdirMu.Lock()
-	defer chdirMu.Unlock()
-
-	if r.Base != "" {
-		if prev, err := os.Getwd(); err == nil {
-			if cerr := os.Chdir(r.Base); cerr == nil {
-				defer func() { _ = os.Chdir(prev) }()
-			}
-		}
-	}
-
-	out, err := aontu.New().Generate(src)
+	out, err := aontu.NewWithBase(r.Base).Generate(src)
 	if err != nil {
 		return nil, []error{err}
 	}

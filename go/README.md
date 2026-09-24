@@ -1,6 +1,6 @@
 # @voxgig/model (Go)
 
-A Go port of [@voxgig/model](https://github.com/voxgig/model): unify `.aon`
+A Go port of [@voxgig/model](https://github.com/voxgig/model): unify `.aontu`
 source into a single model (via [aontu](https://github.com/aontu-lang/aontu)) and
 run generator "actions" over it, once or in a rebuild-on-change watch loop. The
 TypeScript implementation in [`../ts`](../ts) is canonical; this module is kept
@@ -23,7 +23,7 @@ import (
 
 func main() {
 	m := model.New(model.ModelSpec{
-		Path: "model/model.aon",
+		Path: "model/model.aontu",
 		Base: "model",
 		Actions: map[string]model.ActionDef{
 			"summary": {Run: func(mod map[string]any, b *model.Build, ctx *model.BuildContext) model.ActionResult {
@@ -53,14 +53,15 @@ post), producers, dryrun, and watch semantics — but adapts a few mechanisms to
 Go:
 
 - **Actions are registered programmatically** (`ModelSpec.Actions`): the
-  `.model-config/model-config.aon` file still declares which actions run and
+  `.model-config/model-config.aontu` file still declares which actions run and
   in what order (and is auto-created and written to `model-config.json`, as in
   TypeScript), but Go binds each declared name to a registered function rather than
   `require()`-ing a module.
 - **Watching polls modification times** instead of using chokidar.
-- **Imports** resolve relative to the model base directory; the resolver
-  briefly changes the working directory because the Go aontu `Generate(src)`
-  API takes no base parameter.
+- **Imports** resolve relative to the model base directory, through
+  `aontu.NewWithBase`. The watcher polls the `.aontu` and `.jsonic` files
+  under that directory rather than following the import graph, so an import
+  from outside it is not watched.
 - **JSON object keys are emitted in sorted order** (Go's `encoding/json`
   sorts them in UTF-8 byte order), and the TypeScript model producer imposes
   the same order, so `model.json` is byte-for-byte identical across the two. The
@@ -69,7 +70,7 @@ Go:
 ## CLI
 
 ```bash
-go run github.com/voxgig/model/go/cmd/voxgig-model -w model/model.aon
+go run github.com/voxgig/model/go/cmd/voxgig-model -w model/model.aontu
 ```
 
 Flags: `-w` watch, `-y` dryrun, `-g <level>` log level, `-no-config` skip the

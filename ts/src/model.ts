@@ -20,7 +20,7 @@ import type {
 } from './types'
 
 
-import { Config } from './config'
+import { Config, CONFIG_FILE, prepareConfig, readBack } from './config'
 import { Watch } from './watch'
 
 import { model_producer } from './producer/model'
@@ -187,25 +187,11 @@ class Model {
 
 
 function makeConfig(mspec: ModelSpec, log: Log, fs: any, trigger_model_build: ProducerDef) {
-  let cbase = mspec.base + '/.model-config'
-  let cpath = cbase + '/model-config.aon'
+  const cbase = mspec.base + '/.model-config'
+  const cpath = cbase + '/' + CONFIG_FILE
 
-  const legacycpath = cbase + '/model-config.aontu'
-  if (!fs.existsSync(cpath) && fs.existsSync(legacycpath)) {
-    const legacy = fs.readFileSync(legacycpath, 'utf8')
-    fs.writeFileSync(cpath, legacy.replace(
-      /@(\s*)"(@voxgig\/model\/[^"]*model-config)\.aontu"/g, '@$1"$2.aon"'))
-    try { fs.unlinkSync(legacycpath) } catch (_err: any) { }
-  }
-
-  if (!fs.existsSync(cpath)) {
-    fs.mkdirSync(cbase, { recursive: true })
-    fs.writeFileSync(cpath, `
-@"@voxgig/model/model/.model-config/model-config.aon"
-
-sys: model: action: {}
-`)
-  }
+  const prep = prepareConfig(fs, cbase, log, mspec.dryrun)
+  const cfs = null == prep.text ? fs : readBack(fs, cpath, prep.text, prep.from)
 
   let cspec: BuildSpec = {
     name: 'config',
@@ -225,10 +211,10 @@ sys: model: action: {}
     ],
     require: mspec.require,
     log,
-    fs,
+    fs: cfs,
   }
 
-  return new Config(cspec, log)
+  return new Config(cspec, log, prep)
 }
 
 

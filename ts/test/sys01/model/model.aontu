@@ -1,5 +1,5 @@
 
-@"../../../model/sys.aon"
+@"../../../model/sys.aontu"
 
 
 main: srv: &: $.sys.shape.srv.std_js
@@ -25,8 +25,8 @@ color: green: {
   value: '0f0'
 }
 
-color: @"./color.aon"
+color: @"./color.aontu"
 
 
-pre: @"./pre.aon"
+pre: @"./pre.aontu"
 
