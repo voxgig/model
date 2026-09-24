@@ -1,7 +1,7 @@
 /* Copyright © 2021-2025 Voxgig Ltd, MIT License. */
 
 
-import { memfs as MemFs } from 'memfs'
+import Path from 'node:path'
 
 import type { BuildResult, BuildSpec, Log } from './types'
 
@@ -99,14 +99,25 @@ function prepareConfig(
 
 
 // A dry run writes to memory but reads from disk, so the config it just
-// wrote is served back from memory.
+// wrote is served back from memory. Matched by resolved path: callers join
+// with '/', which a Windows path does not spell the same way.
 function readBack(fs: any, path: string, src: string) {
-  const { fs: mem } = MemFs({ [path]: src })
-  const from = (p: any) => p === path ? mem : fs
+  const at = Path.resolve(path)
+  const mtimeMs = Date.now()
+  const mine = (p: any) => Path.resolve(String(p)) === at
+
   return {
     ...fs,
-    readFileSync: (p: any, ...rest: any[]) => from(p).readFileSync(p, ...rest),
-    statSync: (p: any, ...rest: any[]) => from(p).statSync(p, ...rest),
+    readFileSync: (p: any, opts?: any) => {
+      if (!mine(p)) {
+        return fs.readFileSync(p, opts)
+      }
+      const enc = 'string' === typeof opts ? opts : opts?.encoding
+      return null == enc ? Buffer.from(src) : src
+    },
+    statSync: (p: any, ...rest: any[]) => mine(p) ?
+      { mtimeMs, isFile: () => true, isDirectory: () => false } :
+      fs.statSync(p, ...rest),
   }
 }
 

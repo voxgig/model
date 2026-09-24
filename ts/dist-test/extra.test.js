@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const node_fs_1 = __importDefault(require("node:fs"));
+const node_path_1 = __importDefault(require("node:path"));
 const promises_1 = require("node:fs/promises");
 const node_test_1 = require("node:test");
 const node_assert_1 = __importDefault(require("node:assert"));
@@ -12,6 +13,7 @@ const util_1 = require("@voxgig/util");
 const build_1 = require("../dist/build");
 const model_1 = require("../dist/model");
 const model_2 = require("../dist/producer/model");
+const config_1 = require("../dist/config");
 const GEN = __dirname + '/../test/_gen';
 function silentLog() {
     return (0, util_1.prettyPino)('test', { debug: 'silent' });
@@ -369,6 +371,14 @@ function errtext(errs) {
         node_assert_1.default.ok(br.ok, 'dry run did not build: ' + errtext(br.errs));
         node_assert_1.default.strictEqual(node_fs_1.default.existsSync(dir + '/model/.model-config'), false);
         node_assert_1.default.strictEqual(node_fs_1.default.existsSync(dir + '/model/model.json'), false);
+    });
+    (0, node_test_1.test)('dryrun-config-is-served-back-by-resolved-path', () => {
+        const at = GEN + '/ex-readback/model/.model-config/model-config.aontu';
+        const fs = (0, config_1.readBack)(node_fs_1.default, GEN + '/ex-readback/model/x/../.model-config/model-config.aontu', 'x: 1\n');
+        node_assert_1.default.strictEqual(fs.readFileSync(at, 'utf8'), 'x: 1\n');
+        node_assert_1.default.strictEqual(String(fs.readFileSync(node_path_1.default.resolve(at))), 'x: 1\n');
+        node_assert_1.default.strictEqual(typeof fs.statSync(at).mtimeMs, 'number');
+        node_assert_1.default.throws(() => fs.readFileSync(GEN + '/ex-readback/absent.aontu', 'utf8'));
     });
     (0, node_test_1.test)('dryrun-watch-starts-with-config-in-memory', async () => {
         const dir = GEN + '/ex-config-dry-watch';

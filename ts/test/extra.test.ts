@@ -1,6 +1,7 @@
 /* Copyright © 2021-2025 Voxgig Ltd, MIT License. */
 
 import Fs from 'node:fs'
+import Path from 'node:path'
 import { mkdir, writeFile, readFile, rm } from 'node:fs/promises'
 import { test, describe } from 'node:test'
 import assert from 'node:assert'
@@ -10,6 +11,7 @@ import { prettyPino } from '@voxgig/util'
 import { makeBuild } from '../dist/build'
 import { Model } from '../dist/model'
 import { model_producer } from '../dist/producer/model'
+import { readBack } from '../dist/config'
 import type { Build, BuildContext } from '../dist/types'
 
 
@@ -454,6 +456,17 @@ describe('extra', () => {
     assert.ok(br.ok, 'dry run did not build: ' + errtext(br.errs))
     assert.strictEqual(Fs.existsSync(dir + '/model/.model-config'), false)
     assert.strictEqual(Fs.existsSync(dir + '/model/model.json'), false)
+  })
+
+
+  test('dryrun-config-is-served-back-by-resolved-path', () => {
+    const at = GEN + '/ex-readback/model/.model-config/model-config.aontu'
+    const fs = readBack(Fs, GEN + '/ex-readback/model/x/../.model-config/model-config.aontu', 'x: 1\n')
+
+    assert.strictEqual(fs.readFileSync(at, 'utf8'), 'x: 1\n')
+    assert.strictEqual(String(fs.readFileSync(Path.resolve(at))), 'x: 1\n')
+    assert.strictEqual(typeof fs.statSync(at).mtimeMs, 'number')
+    assert.throws(() => fs.readFileSync(GEN + '/ex-readback/absent.aontu', 'utf8'))
   })
 
 

@@ -1,11 +1,14 @@
 "use strict";
 /* Copyright © 2021-2025 Voxgig Ltd, MIT License. */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LEGACY_CONFIG_FILE = exports.CONFIG_FILE = exports.Config = void 0;
 exports.prepareConfig = prepareConfig;
 exports.readBack = readBack;
 exports.rewriteAonIncludes = rewriteAonIncludes;
-const memfs_1 = require("memfs");
+const node_path_1 = __importDefault(require("node:path"));
 const watch_1 = require("./watch");
 const CONFIG_FILE = 'model-config.aontu';
 exports.CONFIG_FILE = CONFIG_FILE;
@@ -82,14 +85,24 @@ function prepareConfig(fs, cbase, log, dryrun) {
     return src;
 }
 // A dry run writes to memory but reads from disk, so the config it just
-// wrote is served back from memory.
+// wrote is served back from memory. Matched by resolved path: callers join
+// with '/', which a Windows path does not spell the same way.
 function readBack(fs, path, src) {
-    const { fs: mem } = (0, memfs_1.memfs)({ [path]: src });
-    const from = (p) => p === path ? mem : fs;
+    const at = node_path_1.default.resolve(path);
+    const mtimeMs = Date.now();
+    const mine = (p) => node_path_1.default.resolve(String(p)) === at;
     return {
         ...fs,
-        readFileSync: (p, ...rest) => from(p).readFileSync(p, ...rest),
-        statSync: (p, ...rest) => from(p).statSync(p, ...rest),
+        readFileSync: (p, opts) => {
+            if (!mine(p)) {
+                return fs.readFileSync(p, opts);
+            }
+            const enc = 'string' === typeof opts ? opts : opts?.encoding;
+            return null == enc ? Buffer.from(src) : src;
+        },
+        statSync: (p, ...rest) => mine(p) ?
+            { mtimeMs, isFile: () => true, isDirectory: () => false } :
+            fs.statSync(p, ...rest),
     };
 }
 // Points each include of a .aon file at its .aontu successor. Strings and
