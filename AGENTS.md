@@ -15,6 +15,16 @@ Keep this file accurate: if you change the build, test layout, or a convention,
 update it in the same change.
 
 
+## Status output from long-running work
+
+Every transient task reports its status at least every 30 seconds, even if
+the report is one line, with a percentage-complete estimate wherever one can
+be computed (items done of items total, phases done of phases). That covers a
+build, a test or validation run, a script, a background agent, and a wait on
+CI or a release. It covers an agent's own updates to the person it works for
+too: relay progress at the same cadence rather than going quiet until the
+work is done. Silence longer than that cannot be told apart from a hang.
+
 ## Layout
 
 ```
