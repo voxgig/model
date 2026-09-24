@@ -209,8 +209,11 @@ through `build.fs` rather than importing `fs` directly. That indirection is the
 seam that makes `--dryrun` work: in dry-run mode the build swaps the write
 methods (both synchronous and promise-based) for ones backed by an in-memory
 [`memfs`](https://github.com/streamich/memfs) volume. Reads still hit the real
-disk; writes go nowhere. The same seam lets you supply any `fs` implementation
-to build entirely in memory.
+disk; writes go nowhere. The one exception is the config file the `Model`
+creates or migrates before its first build: the config build reads that back
+from memory, so a dry run of a project with no config, or with a legacy one,
+still builds. The same seam lets you supply any `fs` implementation to build
+entirely in memory.
 
 This is a pragmatic, internal-use safeguard — it covers the standard write
 methods, not every conceivable path to disk. An action that bypasses `build.fs`

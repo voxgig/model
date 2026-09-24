@@ -20,7 +20,7 @@ import type {
 } from './types'
 
 
-import { Config } from './config'
+import { Config, CONFIG_FILE, prepareConfig, readBack } from './config'
 import { Watch } from './watch'
 
 import { model_producer } from './producer/model'
@@ -187,17 +187,11 @@ class Model {
 
 
 function makeConfig(mspec: ModelSpec, log: Log, fs: any, trigger_model_build: ProducerDef) {
-  let cbase = mspec.base + '/.model-config'
-  let cpath = cbase + '/model-config.aontu'
+  const cbase = mspec.base + '/.model-config'
+  const cpath = cbase + '/' + CONFIG_FILE
 
-  if (!fs.existsSync(cpath)) {
-    fs.mkdirSync(cbase, { recursive: true })
-    fs.writeFileSync(cpath, `
-@"@voxgig/model/model/.model-config/model-config.aontu"
-
-sys: model: action: {}
-`)
-  }
+  const written = prepareConfig(fs, cbase, log, mspec.dryrun)
+  const cfs = mspec.dryrun && null != written ? readBack(fs, cpath, written) : fs
 
   let cspec: BuildSpec = {
     name: 'config',
@@ -217,7 +211,7 @@ sys: model: action: {}
     ],
     require: mspec.require,
     log,
-    fs,
+    fs: cfs,
   }
 
   return new Config(cspec, log)

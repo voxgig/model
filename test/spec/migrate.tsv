@@ -1,0 +1,28 @@
+name	args	expected
+# Legacy config migration parity: args is [the source of a project's
+# model-config.aon], expected is the source the migration writes to
+# model-config.aontu. Each include of a .aon file, in any quote style and
+# with any whitespace after the @, is pointed at .aontu; strings and
+# comments, and every other byte, are kept as written.
+double-quoted	["@\"@voxgig/model/model/.model-config/model-config.aon\"\n"]	"@\"@voxgig/model/model/.model-config/model-config.aontu\"\n"
+single-quoted	["@'@voxgig/model/model/.model-config/model-config.aon'\n"]	"@'@voxgig/model/model/.model-config/model-config.aontu'\n"
+backtick	["@`./local.aon`\n"]	"@`./local.aontu`\n"
+space-after-at	["@ \"./local.aon\"\n"]	"@ \"./local.aontu\"\n"
+whitespace-run-after-at	["@\t\n  './local.aon'\n"]	"@\t\n  './local.aontu'\n"
+value-position	["sys: model: extra: @\"./extra.aon\"\n"]	"sys: model: extra: @\"./extra.aontu\"\n"
+several-in-one-file	["@\"./a.aon\"\n@'./b.aon'\nc: @`./c.aon`\n"]	"@\"./a.aontu\"\n@'./b.aontu'\nc: @`./c.aontu`\n"
+crlf-kept	["@\"./a.aon\"\r\nsys: model: action: {}\r\n"]	"@\"./a.aontu\"\r\nsys: model: action: {}\r\n"
+aontu-kept	["@\"./local.aontu\"\n"]	"@\"./local.aontu\"\n"
+data-include-kept	["a: @\"./data.json\"\nb: @'./x.aon.yaml'\n"]	"a: @\"./data.json\"\nb: @'./x.aon.yaml'\n"
+near-miss-kept	["@\"./aon\"\n@\"./x.aonx\"\n@\"./x.AON\"\n"]	"@\"./aon\"\n@\"./x.aonx\"\n@\"./x.AON\"\n"
+string-data-kept	["was: '@voxgig/model/model/.model-config/model-config.aon'\n"]	"was: '@voxgig/model/model/.model-config/model-config.aon'\n"
+include-text-in-string-kept	["note: \"@'./x.aon'\"\nsrc: '@\"./y.aon\"'\n"]	"note: \"@'./x.aon'\"\nsrc: '@\"./y.aon\"'\n"
+backtick-string-spans-lines	["doc: `\n@\"./x.aon\"\n`\nb: @\"./y.aon\"\n"]	"doc: `\n@\"./x.aon\"\n`\nb: @\"./y.aontu\"\n"
+comment-kept	["# @\"./old.aon\"\nb: @\"./new.aon\"  # was @\"./older.aon\"\n"]	"# @\"./old.aon\"\nb: @\"./new.aontu\"  # was @\"./older.aon\"\n"
+hash-in-string-is-not-a-comment	["a: '#' b: @'./x.aon'\n"]	"a: '#' b: @'./x.aontu'\n"
+escaped-quote-in-string	["a: 'it\\'s' b: @'./x.aon'\n"]	"a: 'it\\'s' b: @'./x.aontu'\n"
+unterminated-string-ends-at-line	["a: \"open\n@\"./x.aon\"\n"]	"a: \"open\n@\"./x.aontu\"\n"
+unterminated-include-kept	["@\"./x.aon"]	"@\"./x.aon"
+at-without-string-kept	["email: 'a@b'\nx: @y\nz: @\n"]	"email: 'a@b'\nx: @y\nz: @\n"
+empty	[""]	""
+aon-era-sdk-config	["\n\n@'@voxgig/model/model/.model-config/model-config.aon'\n\nsys: model: action: {\n  apidef: load: 'build/apidef.js'\n  sdkgen: load: 'build/sdkgen.js'\n}\n\nsys: model: order: action: 'apidef,sdkgen'\n\nsys: model: watch: {\n  'src': {}   # To catch fragment updates.\n  'dist': {}\n  'tm': {}\n  'def': {}\n  # 'doc/static/src': {}\n}\n"]	"\n\n@'@voxgig/model/model/.model-config/model-config.aontu'\n\nsys: model: action: {\n  apidef: load: 'build/apidef.js'\n  sdkgen: load: 'build/sdkgen.js'\n}\n\nsys: model: order: action: 'apidef,sdkgen'\n\nsys: model: watch: {\n  'src': {}   # To catch fragment updates.\n  'dist': {}\n  'tm': {}\n  'def': {}\n  # 'doc/static/src': {}\n}\n"

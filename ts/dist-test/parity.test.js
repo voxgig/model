@@ -11,6 +11,7 @@ const node_test_1 = require("node:test");
 const node_assert_1 = __importDefault(require("node:assert"));
 const util_1 = require("@voxgig/util");
 const build_1 = require("../dist/build");
+const config_1 = require("../dist/config");
 const model_1 = require("../dist/producer/model");
 const msg_1 = require("../dist/producer/msg");
 const SPEC_DIR = path_1.default.join(__dirname, '..', '..', 'test', 'spec');
@@ -55,15 +56,20 @@ async function buildModelJson(name, src) {
     node_assert_1.default.ok(r.ok, 'build failed: ' + JSON.stringify(r.errs));
     return (0, node_fs_1.readFileSync)(path_1.default.join(base, 'model.json'), 'utf8');
 }
+// Maps a spec file to the function its rows run through.
+const RUNNERS = {
+    migrate: async (_name, src) => (0, config_1.rewriteAonIncludes)(src),
+};
 (0, node_test_1.describe)('parity', () => {
     const files = fs_1.default.readdirSync(SPEC_DIR).filter(f => f.endsWith('.tsv')).sort();
     node_assert_1.default.ok(0 < files.length, 'no shared spec files in ' + SPEC_DIR);
     for (const file of files) {
         const group = file.slice(0, -'.tsv'.length);
+        const run = RUNNERS[group] || buildModelJson;
         (0, node_test_1.describe)(group, () => {
             for (const row of loadSpec(file)) {
                 (0, node_test_1.test)(row.name, async () => {
-                    node_assert_1.default.strictEqual(await buildModelJson(group + '-' + row.name, String(row.args[0])), row.expected);
+                    node_assert_1.default.strictEqual(await run(group + '-' + row.name, String(row.args[0])), row.expected);
                 });
             }
         });

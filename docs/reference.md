@@ -119,6 +119,28 @@ directory below the project root (e.g. `model/model.aontu`).
 during a build. If it does not exist, the `Model` constructor creates a minimal
 one that imports the package's base config.
 
+A project from before the `.aontu` extension has `model-config.aon` instead,
+which aontu no longer includes. The `Model` constructor migrates it once,
+before the config build runs:
+
+- It writes `model-config.aontu` with the legacy file's content and deletes
+  `model-config.aon`. The tool never writes a `.aon` file.
+- Each include of a `.aon` file is pointed at `.aontu`, whatever the quote
+  (`"`, `'` or a backtick) and whatever whitespace follows the `@`. A `.aon`
+  path held as a string value or inside a comment keeps its name, and every
+  other byte is kept as written.
+- Only the config file is renamed. A file it includes, such as the
+  `./local.aon` in `@"./local.aon"`, must be renamed to match, or the config
+  build reports it as not found.
+- When both files exist, `model-config.aontu` is read, `model-config.aon` is
+  left in place, and the log names the file it ignored.
+- A dry run migrates in memory: the config build reads the migrated source,
+  and nothing on disk changes.
+
+The rewrite is pinned by the rows of `test/spec/migrate.tsv`, which both
+implementations run; the file handling is pinned by the config tests in
+`ts/test/extra.test.ts` and `go/config_test.go`.
+
 The config is **optional**. Pass `config: false` to `ModelSpec` (or `--no-config`
 on the CLI) to skip it entirely: no `.model-config/` is created, no actions are
 loaded or run, and the model is built on its own (the model JSON is still

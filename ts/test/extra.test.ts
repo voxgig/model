@@ -24,6 +24,25 @@ function okResult(name: string) {
 }
 
 
+const LEGACY_CONFIG = `
+@'@voxgig/model/model/.model-config/model-config.aon'
+@ "./local.aon"
+
+sys: model: action: {}
+sys: model: was: '@voxgig/model/model/.model-config/model-config.aon'
+# @"./retired.aon"
+`
+
+const MIGRATED_CONFIG = `
+@'@voxgig/model/model/.model-config/model-config.aontu'
+@ "./local.aontu"
+
+sys: model: action: {}
+sys: model: was: '@voxgig/model/model/.model-config/model-config.aon'
+# @"./retired.aon"
+`
+
+
 // aontu errors carry circular Val graphs, so JSON.stringify(errs) throws
 // ERR_TEST_FAILURE on the message rather than reporting the real failure.
 function errtext(errs: any[]) {
@@ -315,6 +334,153 @@ describe('extra', () => {
     const v = await b.run({ watch: false })
     assert.strictEqual(v.ok, false)
     assert.ok(0 < v.errs.length)
+  })
+
+
+  // A project still on model-config.aon is moved to model-config.aontu: the
+  // file is renamed and each .aon include points at .aontu, in any quote
+  // style, with every other byte kept.
+  test('legacy-config-migrates-forward', async () => {
+    const dir = GEN + '/ex-migrate'
+    const cdir = dir + '/model/.model-config'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(cdir, { recursive: true })
+    await writeFile(dir + '/model/model.aontu', 'x: 1\n')
+    await writeFile(cdir + '/local.aontu', 'sys: model: local: true\n')
+    await writeFile(cdir + '/model-config.aon', LEGACY_CONFIG)
+
+    const model = new Model({
+      fs: Fs, path: dir + '/model/model.aontu', base: dir + '/model',
+      debug: 'silent',
+    } as any)
+    const br = await model.run()
+
+    assert.ok(br.ok, 'migrated config did not build: ' + errtext(br.errs))
+    assert.strictEqual(Fs.existsSync(cdir + '/model-config.aon'), false,
+      'the legacy config should be gone once migrated')
+    assert.strictEqual(await readFile(cdir + '/model-config.aontu', 'utf8'),
+      MIGRATED_CONFIG)
+
+    const config = JSON.parse(await readFile(cdir + '/model-config.json', 'utf8'))
+    assert.strictEqual(config.sys.model.local, true)
+    assert.strictEqual(config.sys.model.was,
+      '@voxgig/model/model/.model-config/model-config.aon')
+  })
+
+
+  test('aontu-config-wins-over-legacy', async () => {
+    const dir = GEN + '/ex-migrate-both'
+    const cdir = dir + '/model/.model-config'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(cdir, { recursive: true })
+    await writeFile(dir + '/model/model.aontu', 'x: 1\n')
+    await writeFile(cdir + '/model-config.aon', 'sys: model: which: aon\n')
+    await writeFile(cdir + '/model-config.aontu', 'sys: model: which: aontu\n')
+
+    const model = new Model({
+      fs: Fs, path: dir + '/model/model.aontu', base: dir + '/model',
+      debug: 'silent',
+    } as any)
+    const br = await model.run()
+
+    assert.ok(br.ok, errtext(br.errs))
+    assert.strictEqual(await readFile(cdir + '/model-config.aon', 'utf8'),
+      'sys: model: which: aon\n')
+    assert.strictEqual(await readFile(cdir + '/model-config.aontu', 'utf8'),
+      'sys: model: which: aontu\n')
+    const config = JSON.parse(await readFile(cdir + '/model-config.json', 'utf8'))
+    assert.strictEqual(config.sys.model.which, 'aontu')
+  })
+
+
+  test('missing-config-is-created-as-aontu', async () => {
+    const dir = GEN + '/ex-config-new'
+    const cdir = dir + '/model/.model-config'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir + '/model', { recursive: true })
+    await writeFile(dir + '/model/model.aontu', 'x: 1\n')
+
+    const model = new Model({
+      fs: Fs, path: dir + '/model/model.aontu', base: dir + '/model',
+      debug: 'silent',
+    } as any)
+    const br = await model.run()
+
+    assert.ok(br.ok, errtext(br.errs))
+    assert.ok((await readFile(cdir + '/model-config.aontu', 'utf8')).includes(
+      '@"@voxgig/model/model/.model-config/model-config.aontu"'))
+    assert.strictEqual(Fs.existsSync(cdir + '/model-config.aon'), false)
+  })
+
+
+  // A dry run migrates in memory: the build uses the migrated config and
+  // nothing on disk changes.
+  test('dryrun-migrates-legacy-config-in-memory', async () => {
+    const dir = GEN + '/ex-migrate-dry'
+    const cdir = dir + '/model/.model-config'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(cdir, { recursive: true })
+    await writeFile(dir + '/model/model.aontu', 'x: 1\n')
+    await writeFile(cdir + '/local.aontu', 'sys: model: local: true\n')
+    await writeFile(cdir + '/model-config.aon', LEGACY_CONFIG)
+
+    const model = new Model({
+      path: dir + '/model/model.aontu', base: dir + '/model',
+      debug: 'silent', dryrun: true,
+    } as any)
+    const br = await model.run()
+
+    assert.ok(br.ok, 'dry run did not build: ' + errtext(br.errs))
+    assert.strictEqual(await readFile(cdir + '/model-config.aon', 'utf8'),
+      LEGACY_CONFIG)
+    assert.strictEqual(Fs.existsSync(cdir + '/model-config.aontu'), false)
+    assert.strictEqual(Fs.existsSync(cdir + '/model-config.json'), false)
+    assert.strictEqual(model.config?.watch.build?.model.sys.model.local, true)
+  })
+
+
+  test('dryrun-creates-missing-config-in-memory', async () => {
+    const dir = GEN + '/ex-config-dry'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir + '/model', { recursive: true })
+    await writeFile(dir + '/model/model.aontu', 'x: 1\n')
+
+    const model = new Model({
+      path: dir + '/model/model.aontu', base: dir + '/model',
+      debug: 'silent', dryrun: true,
+    } as any)
+    const br = await model.run()
+
+    assert.ok(br.ok, 'dry run did not build: ' + errtext(br.errs))
+    assert.strictEqual(Fs.existsSync(dir + '/model/.model-config'), false)
+    assert.strictEqual(Fs.existsSync(dir + '/model/model.json'), false)
+  })
+
+
+  test('dryrun-watch-starts-with-config-in-memory', async () => {
+    const dir = GEN + '/ex-config-dry-watch'
+    const cdir = dir + '/model/.model-config'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(cdir, { recursive: true })
+    await writeFile(dir + '/model/model.aontu', 'x: 1\n')
+    await writeFile(cdir + '/local.aontu', 'sys: model: local: true\n')
+    await writeFile(cdir + '/model-config.aon', LEGACY_CONFIG)
+
+    const model = new Model({
+      path: dir + '/model/model.aontu', base: dir + '/model',
+      debug: 'silent', dryrun: true,
+    } as any)
+    try {
+      const failed: any = await model.start()
+      assert.strictEqual(failed, undefined,
+        'dry run did not start: ' + errtext(failed?.errs))
+      assert.strictEqual(await readFile(cdir + '/model-config.aon', 'utf8'),
+        LEGACY_CONFIG)
+      assert.strictEqual(Fs.existsSync(cdir + '/model-config.aontu'), false)
+    }
+    finally {
+      await model.stop()
+    }
   })
 
 })

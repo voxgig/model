@@ -170,16 +170,10 @@ class Model {
 }
 exports.Model = Model;
 function makeConfig(mspec, log, fs, trigger_model_build) {
-    let cbase = mspec.base + '/.model-config';
-    let cpath = cbase + '/model-config.aontu';
-    if (!fs.existsSync(cpath)) {
-        fs.mkdirSync(cbase, { recursive: true });
-        fs.writeFileSync(cpath, `
-@"@voxgig/model/model/.model-config/model-config.aontu"
-
-sys: model: action: {}
-`);
-    }
+    const cbase = mspec.base + '/.model-config';
+    const cpath = cbase + '/' + config_1.CONFIG_FILE;
+    const written = (0, config_1.prepareConfig)(fs, cbase, log, mspec.dryrun);
+    const cfs = mspec.dryrun && null != written ? (0, config_1.readBack)(fs, cpath, written) : fs;
     let cspec = {
         name: 'config',
         path: cpath,
@@ -196,7 +190,7 @@ sys: model: action: {}
         ],
         require: mspec.require,
         log,
-        fs,
+        fs: cfs,
     };
     return new config_1.Config(cspec, log);
 }

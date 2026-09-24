@@ -246,7 +246,11 @@ TypeScript is canonical. When changing behavior:
 line 0 is the header and `#` lines are comments. For the model specs `args`
 is `[aontuSrc]` and `expected` is the exact `model.json` bytes the build must
 write. Both parity runners (`ts/test/parity.test.ts`, `go/parity_test.go`)
-auto-discover every `.tsv` in the directory. Generate `expected` from the
+auto-discover every `.tsv` in the directory. A file that is not a model spec
+names its own function in both runners (`RUNNERS`, `specRunners`):
+`migrate.tsv` rows are a legacy `model-config.aon` source in and the
+`model-config.aontu` source out, run through `rewriteAonIncludes`
+(`ts/src/config.ts`, `go/config.go`). Generate `expected` from the
 TypeScript implementation (canonical) and confirm the row passes the Go suite
 too — a row only belongs here if the two implementations agree on it. Rows
 assert successful builds; error behavior, and values only producer mutation
