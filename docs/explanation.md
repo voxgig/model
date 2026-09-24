@@ -210,9 +210,10 @@ seam that makes `--dryrun` work: in dry-run mode the build swaps the write
 methods (both synchronous and promise-based) for ones backed by an in-memory
 [`memfs`](https://github.com/streamich/memfs) volume. Reads still hit the real
 disk; writes go nowhere. The one exception is the config file the `Model`
-creates or migrates before its first build: the config build reads that back
-from memory, so a dry run of a project with no config, or with a legacy one,
-still builds. The same seam lets you supply any `fs` implementation to build
+would create or migrate. A dry run writes nothing for it: the config build
+reads it from memory instead, derived afresh from a legacy config on every
+build. A dry run of a project with no config, or with a legacy one, therefore
+builds and watches as a real run does. The same seam lets you supply any `fs` implementation to build
 entirely in memory.
 
 This is a pragmatic, internal-use safeguard — it covers the standard write

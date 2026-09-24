@@ -190,8 +190,8 @@ function makeConfig(mspec: ModelSpec, log: Log, fs: any, trigger_model_build: Pr
   const cbase = mspec.base + '/.model-config'
   const cpath = cbase + '/' + CONFIG_FILE
 
-  const written = prepareConfig(fs, cbase, log, mspec.dryrun)
-  const cfs = mspec.dryrun && null != written ? readBack(fs, cpath, written) : fs
+  const prep = prepareConfig(fs, cbase, log, mspec.dryrun)
+  const cfs = null == prep.text ? fs : readBack(fs, cpath, prep.text, prep.from)
 
   let cspec: BuildSpec = {
     name: 'config',
@@ -214,7 +214,7 @@ function makeConfig(mspec: ModelSpec, log: Log, fs: any, trigger_model_build: Pr
     fs: cfs,
   }
 
-  return new Config(cspec, log)
+  return new Config(cspec, log, prep)
 }
 
 

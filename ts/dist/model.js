@@ -172,8 +172,8 @@ exports.Model = Model;
 function makeConfig(mspec, log, fs, trigger_model_build) {
     const cbase = mspec.base + '/.model-config';
     const cpath = cbase + '/' + config_1.CONFIG_FILE;
-    const written = (0, config_1.prepareConfig)(fs, cbase, log, mspec.dryrun);
-    const cfs = mspec.dryrun && null != written ? (0, config_1.readBack)(fs, cpath, written) : fs;
+    const prep = (0, config_1.prepareConfig)(fs, cbase, log, mspec.dryrun);
+    const cfs = null == prep.text ? fs : (0, config_1.readBack)(fs, cpath, prep.text, prep.from);
     let cspec = {
         name: 'config',
         path: cpath,
@@ -192,7 +192,7 @@ function makeConfig(mspec, log, fs, trigger_model_build) {
         log,
         fs: cfs,
     };
-    return new config_1.Config(cspec, log);
+    return new config_1.Config(cspec, log, prep);
 }
 function makeReadOnly(fsm) {
     // NOTE: NOT COMPLETE!

@@ -3,9 +3,13 @@
 package model
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -32,6 +36,23 @@ const configStub = "# Model configuration. Declare build actions and their order
 type Config struct {
 	build *Build
 	log   Log
+	prep  configPrep
+}
+
+// configFS is the filesystem the config is prepared through.
+type configFS interface {
+	FS
+	Rename(oldpath, newpath string) error
+	Remove(name string) error
+}
+
+// configPrep is what the Model prepared before the config build: a failure
+// to report, or, for a dryrun, the config text to serve and the legacy file
+// it comes from.
+type configPrep struct {
+	err  error
+	text func() ([]byte, error)
+	from string
 }
 
 // newConfig sets up (and bootstraps) the config build for a model base.
@@ -39,7 +60,9 @@ func newConfig(base string, spec ModelSpec, log Log) *Config {
 	cbase := filepath.Join(base, ".model-config")
 	cpath := filepath.Join(cbase, configFile)
 
-	cb := NewBuild(BuildSpec{
+	prep := prepareConfig(OSFS{}, cbase, spec.Dryrun, log)
+
+	bspec := BuildSpec{
 		Name:     "config",
 		Path:     cpath,
 		Base:     cbase,
@@ -47,16 +70,18 @@ func newConfig(base string, spec ModelSpec, log Log) *Config {
 		Resolver: spec.Resolver,
 		Log:      log,
 		Res:      []ProducerDef{{Path: "/", Build: ModelProducer}},
-	})
+	}
+	if prep.text != nil {
+		bspec.FS = readBackFS{FS: newDryFS(), path: cpath, text: prep.text, from: prep.from}
+	}
 
-	prepareConfig(cb.FS, cbase, spec.Dryrun, log)
-	return &Config{build: cb, log: log}
+	return &Config{build: NewBuild(bspec), log: log, prep: prep}
 }
 
 // prepareConfig creates the config when there is none, migrating a legacy
-// model-config.aon forward if one is present. Writes go through fs, so a
-// dryrun keeps them in memory and leaves the legacy file in place.
-func prepareConfig(fs FS, cbase string, dryrun bool, log Log) {
+// model-config.aon forward if one is present. A dryrun writes nothing: the
+// config text is derived afresh from its source on every read instead.
+func prepareConfig(fs configFS, cbase string, dryrun bool, log Log) configPrep {
 	cpath := filepath.Join(cbase, configFile)
 	legacy := filepath.Join(cbase, legacyConfigFile)
 
@@ -65,27 +90,95 @@ func prepareConfig(fs FS, cbase string, dryrun bool, log Log) {
 			log.Info("config-legacy-ignored",
 				"ignoring "+legacy+": "+cpath+" takes precedence")
 		}
-		return
+		return configPrep{}
 	}
 
-	src := []byte(configStub)
 	old, rerr := fs.ReadFile(legacy)
-	migrate := rerr == nil
-	if migrate {
-		src = []byte(rewriteAonIncludes(string(old)))
+	if rerr != nil && !errors.Is(rerr, os.ErrNotExist) {
+		return configPrep{err: configError("cannot read "+legacy, rerr)}
 	}
+	migrate := rerr == nil
 
-	_ = fs.MkdirAll(cbase, 0o755)
-	if werr := fs.WriteFile(cpath, src, 0o644); werr != nil || !migrate {
-		return
+	if migrate {
+		note := "migrated " + legacy + " to " + cpath
+		if dryrun {
+			note += " (dry run: in memory only)"
+		}
+		log.Info("config-migrate", note)
 	}
 
 	if dryrun {
-		log.Info("config-migrate", "migrated "+legacy+" to "+cpath+" (dry run: in memory only)")
-		return
+		if !migrate {
+			return configPrep{text: func() ([]byte, error) { return []byte(configStub), nil }}
+		}
+		return configPrep{from: legacy, text: func() ([]byte, error) {
+			src, err := fs.ReadFile(legacy)
+			if err != nil {
+				return nil, err
+			}
+			return []byte(rewriteAonIncludes(string(src))), nil
+		}}
 	}
-	log.Info("config-migrate", "migrated "+legacy+" to "+cpath)
-	_ = os.Remove(legacy)
+
+	src := []byte(configStub)
+	if migrate {
+		src = []byte(rewriteAonIncludes(string(old)))
+	}
+	err := fs.MkdirAll(cbase, 0o755)
+	if err == nil {
+		err = writeAtomic(fs, cpath, src)
+	}
+	if err != nil {
+		return configPrep{err: configError("cannot write "+cpath, err)}
+	}
+
+	if migrate {
+		_ = fs.Remove(legacy)
+	}
+	return configPrep{}
+}
+
+func configError(what string, cause error) error {
+	return fmt.Errorf("model config: %s: %w", what, cause)
+}
+
+// writeAtomic lands data beside path and renames it over, so a reader never
+// sees a partial file.
+func writeAtomic(fs configFS, path string, data []byte) error {
+	tmp := path + "." + strconv.Itoa(os.Getpid()) + "." +
+		strconv.FormatInt(time.Now().UnixNano(), 36) + ".tmp"
+	err := fs.WriteFile(tmp, data, 0o644)
+	if err == nil {
+		err = fs.Rename(tmp, path)
+	}
+	if err != nil {
+		_ = fs.Remove(tmp)
+	}
+	return err
+}
+
+// readBackFS serves a dryrun's config from memory, derived on every read. Its
+// mtime is that of the legacy source, so an edit there invalidates the build
+// cache.
+type readBackFS struct {
+	FS
+	path string
+	text func() ([]byte, error)
+	from string
+}
+
+func (r readBackFS) ReadFile(name string) ([]byte, error) {
+	if filepath.Clean(name) == filepath.Clean(r.path) {
+		return r.text()
+	}
+	return r.FS.ReadFile(name)
+}
+
+func (r readBackFS) Stat(name string) (os.FileInfo, error) {
+	if r.from != "" && filepath.Clean(name) == filepath.Clean(r.path) {
+		return os.Stat(r.from)
+	}
+	return r.FS.Stat(name)
 }
 
 // rewriteAonIncludes points each include of a .aon file at its .aontu
@@ -157,7 +250,12 @@ func stringEnd(src string, start int) (end int, closed bool) {
 }
 
 // Run resolves the config model and writes model-config.json.
-func (c *Config) Run() *BuildResult { return c.build.Run(false) }
+func (c *Config) Run() *BuildResult {
+	if c.prep.err != nil {
+		return &BuildResult{OK: false, Errs: []error{c.prep.err}}
+	}
+	return c.build.Run(false)
+}
 
 // Model returns the resolved config model (valid after Run).
 func (c *Config) Model() map[string]any {

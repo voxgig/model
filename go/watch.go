@@ -21,6 +21,7 @@ type Watch struct {
 	idle  time.Duration
 
 	reload func()
+	extra  []string
 
 	mu      sync.Mutex
 	last    *BuildResult
@@ -135,7 +136,7 @@ func (w *Watch) loop() {
 }
 
 // snapshot records the modification times of model source files under the
-// build's base directory.
+// build's base directory, and of any extra paths.
 func (w *Watch) snapshot() map[string]int64 {
 	sig := map[string]int64{}
 	base := w.build.Base
@@ -153,6 +154,11 @@ func (w *Watch) snapshot() map[string]int64 {
 		}
 		return nil
 	})
+	for _, path := range w.extra {
+		if info, serr := os.Stat(path); serr == nil {
+			sig[path] = info.ModTime().UnixNano()
+		}
+	}
 	return sig
 }
 

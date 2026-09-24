@@ -124,7 +124,13 @@ which aontu no longer includes. The `Model` constructor migrates it once,
 before the config build runs:
 
 - It writes `model-config.aontu` with the legacy file's content and deletes
-  `model-config.aon`. The tool never writes a `.aon` file.
+  `model-config.aon`. The tool never writes a `.aon` file. The new file is
+  written beside its target and renamed into place, as the default config
+  is, so a write that fails part way leaves no partial `model-config.aontu`
+  behind to take precedence on the next run.
+- Only a missing `model-config.aon` counts as absent. One that exists but
+  cannot be read fails the config build with the read error, and no default
+  config is written over it.
 - Each include of a `.aon` file is pointed at `.aontu`, whatever the quote
   (`"`, `'` or a backtick) and whatever whitespace follows the `@`. A `.aon`
   path held as a string value or inside a comment keeps its name, and every
@@ -134,8 +140,9 @@ before the config build runs:
   build reports it as not found.
 - When both files exist, `model-config.aontu` is read, `model-config.aon` is
   left in place, and the log names the file it ignored.
-- A dry run migrates in memory: the config build reads the migrated source,
-  and nothing on disk changes.
+- A dry run migrates in memory and writes nothing: each config build derives
+  the config afresh from `model-config.aon`, and a watching dry run watches
+  that file, so an edit to it rebuilds.
 
 The rewrite is pinned by the rows of `test/spec/migrate.tsv`, which both
 implementations run; the file handling is pinned by the config tests in

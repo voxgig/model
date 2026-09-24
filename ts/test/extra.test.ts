@@ -11,11 +11,40 @@ import { prettyPino } from '@voxgig/util'
 import { makeBuild } from '../dist/build'
 import { Model } from '../dist/model'
 import { model_producer } from '../dist/producer/model'
-import { readBack } from '../dist/config'
+import { prepareConfig, readBack } from '../dist/config'
 import type { Build, BuildContext } from '../dist/types'
 
 
 const GEN = __dirname + '/../test/_gen'
+
+const FLAG_CONFIG = (flag: number) =>
+  '@"./local.aon"\nsys: model: action: {}\nsys: model: flag: ' + flag + '\n'
+
+function sleep(ms: number) {
+  return new Promise(r => setTimeout(r, ms))
+}
+
+// An edit a second into the future, so the mtime moves on any filesystem.
+async function editLater(path: string, src: string) {
+  await writeFile(path, src)
+  const later = new Date(Date.now() + 1000)
+  Fs.utimesSync(path, later, later)
+}
+
+async function flagProject(name: string) {
+  const dir = GEN + '/' + name
+  const cdir = dir + '/model/.model-config'
+  await rm(dir, { recursive: true, force: true })
+  await mkdir(cdir, { recursive: true })
+  await writeFile(dir + '/model/model.aontu', 'x: 1\n')
+  await writeFile(cdir + '/local.aontu', 'sys: model: order: action: *""\n')
+  await writeFile(cdir + '/model-config.aon', FLAG_CONFIG(1))
+  return { dir, cdir }
+}
+
+function configFlag(model: any) {
+  return model.config?.watch.build?.model?.sys?.model?.flag
+}
 
 function silentLog() {
   return prettyPino('test', { debug: 'silent' })
@@ -461,7 +490,7 @@ describe('extra', () => {
 
   test('dryrun-config-is-served-back-by-resolved-path', () => {
     const at = GEN + '/ex-readback/model/.model-config/model-config.aontu'
-    const fs = readBack(Fs, GEN + '/ex-readback/model/x/../.model-config/model-config.aontu', 'x: 1\n')
+    const fs = readBack(Fs, GEN + '/ex-readback/model/x/../.model-config/model-config.aontu', () => 'x: 1\n')
 
     assert.strictEqual(fs.readFileSync(at, 'utf8'), 'x: 1\n')
     assert.strictEqual(String(fs.readFileSync(Path.resolve(at))), 'x: 1\n')
@@ -494,6 +523,125 @@ describe('extra', () => {
     finally {
       await model.stop()
     }
+  })
+
+
+  // A dry run keeps no snapshot of a legacy config: each config build
+  // re-derives it from model-config.aon.
+  test('dryrun-rerun-reads-legacy-config-edits', async () => {
+    const { dir, cdir } = await flagProject('ex-dry-rerun')
+    const model = new Model({
+      path: dir + '/model/model.aontu', base: dir + '/model',
+      debug: 'silent', dryrun: true,
+    } as any)
+
+    assert.ok((await model.run()).ok)
+    assert.strictEqual(configFlag(model), 1)
+
+    await editLater(cdir + '/model-config.aon', FLAG_CONFIG(2))
+    const br = await model.run()
+
+    assert.ok(br.ok, errtext(br.errs))
+    assert.strictEqual(configFlag(model), 2)
+    assert.strictEqual(Fs.existsSync(cdir + '/model-config.aontu'), false)
+  })
+
+
+  test('dryrun-watch-rebuilds-on-legacy-config-edit', async () => {
+    const { dir, cdir } = await flagProject('ex-dry-watch-edit')
+    const model = new Model({
+      path: dir + '/model/model.aontu', base: dir + '/model',
+      debug: 'silent', dryrun: true,
+    } as any)
+
+    try {
+      const failed: any = await model.start()
+      assert.strictEqual(failed, undefined, errtext(failed?.errs))
+      assert.strictEqual(configFlag(model), 1)
+
+      await sleep(500)
+      await editLater(cdir + '/model-config.aon', FLAG_CONFIG(2))
+
+      for (let i = 0; i < 80 && 2 !== configFlag(model); i++) {
+        await sleep(100)
+      }
+      assert.strictEqual(configFlag(model), 2)
+      assert.strictEqual(Fs.existsSync(cdir + '/model-config.aontu'), false)
+    }
+    finally {
+      await model.stop()
+    }
+  })
+
+
+  // Only a missing legacy file means there is none. One that cannot be read
+  // fails the config build, and no default is written over it.
+  test('unreadable-legacy-config-fails-and-writes-nothing', async () => {
+    const dir = GEN + '/ex-legacy-unreadable'
+    const cdir = dir + '/model/.model-config'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(cdir + '/model-config.aon', { recursive: true })
+    await writeFile(dir + '/model/model.aontu', 'x: 1\n')
+
+    const model = new Model({
+      path: dir + '/model/model.aontu', base: dir + '/model', debug: 'silent',
+    } as any)
+    const br = await model.run()
+
+    assert.strictEqual(br.ok, false)
+    assert.match(errtext(br.errs), /model config: cannot read .*model-config\.aon/)
+    assert.strictEqual(Fs.existsSync(cdir + '/model-config.aontu'), false)
+    assert.strictEqual(Fs.existsSync(dir + '/model/model.json'), false)
+  })
+
+
+  test('legacy-config-read-error-is-reported', async () => {
+    const { cdir } = await flagProject('ex-legacy-eacces')
+    const denied = {
+      ...Fs,
+      readFileSync: (p: any, ...rest: any[]) => String(p).endsWith('.aon') ?
+        (() => { throw Object.assign(new Error('EACCES: permission denied'),
+          { code: 'EACCES' }) })() :
+        (Fs.readFileSync as any)(p, ...rest),
+    }
+
+    const prep = prepareConfig(denied, cdir, silentLog())
+
+    assert.strictEqual((prep.err as any)?.code, 'EACCES')
+    assert.deepStrictEqual(Fs.readdirSync(cdir).sort(),
+      ['local.aontu', 'model-config.aon'])
+  })
+
+
+  // A write that fails part way leaves no model-config.aontu, which would
+  // otherwise take precedence over the intact legacy file on the next run.
+  test('failed-config-write-leaves-no-partial-file', async () => {
+    const { dir, cdir } = await flagProject('ex-write-partial')
+    const full = {
+      ...Fs,
+      writeFileSync: (p: any, data: any) => {
+        Fs.writeFileSync(p, String(data).slice(0, 7))
+        throw Object.assign(new Error('ENOSPC: no space left on device'),
+          { code: 'ENOSPC' })
+      },
+    }
+
+    const prep = prepareConfig(full, cdir, silentLog())
+
+    assert.strictEqual((prep.err as any)?.code, 'ENOSPC')
+    assert.deepStrictEqual(Fs.readdirSync(cdir).sort(),
+      ['local.aontu', 'model-config.aon'])
+    assert.strictEqual(await readFile(cdir + '/model-config.aon', 'utf8'),
+      FLAG_CONFIG(1))
+
+    const model = new Model({
+      path: dir + '/model/model.aontu', base: dir + '/model', debug: 'silent',
+    } as any)
+    const br = await model.run()
+    assert.ok(br.ok, errtext(br.errs))
+    assert.strictEqual(configFlag(model), 1)
+    assert.deepStrictEqual(Fs.readdirSync(cdir).sort(),
+      ['local.aontu', 'model-config.aontu', 'model-config.json'])
   })
 
 })

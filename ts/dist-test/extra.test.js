@@ -15,6 +15,29 @@ const model_1 = require("../dist/model");
 const model_2 = require("../dist/producer/model");
 const config_1 = require("../dist/config");
 const GEN = __dirname + '/../test/_gen';
+const FLAG_CONFIG = (flag) => '@"./local.aon"\nsys: model: action: {}\nsys: model: flag: ' + flag + '\n';
+function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+}
+// An edit a second into the future, so the mtime moves on any filesystem.
+async function editLater(path, src) {
+    await (0, promises_1.writeFile)(path, src);
+    const later = new Date(Date.now() + 1000);
+    node_fs_1.default.utimesSync(path, later, later);
+}
+async function flagProject(name) {
+    const dir = GEN + '/' + name;
+    const cdir = dir + '/model/.model-config';
+    await (0, promises_1.rm)(dir, { recursive: true, force: true });
+    await (0, promises_1.mkdir)(cdir, { recursive: true });
+    await (0, promises_1.writeFile)(dir + '/model/model.aontu', 'x: 1\n');
+    await (0, promises_1.writeFile)(cdir + '/local.aontu', 'sys: model: order: action: *""\n');
+    await (0, promises_1.writeFile)(cdir + '/model-config.aon', FLAG_CONFIG(1));
+    return { dir, cdir };
+}
+function configFlag(model) {
+    return model.config?.watch.build?.model?.sys?.model?.flag;
+}
 function silentLog() {
     return (0, util_1.prettyPino)('test', { debug: 'silent' });
 }
@@ -374,7 +397,7 @@ function errtext(errs) {
     });
     (0, node_test_1.test)('dryrun-config-is-served-back-by-resolved-path', () => {
         const at = GEN + '/ex-readback/model/.model-config/model-config.aontu';
-        const fs = (0, config_1.readBack)(node_fs_1.default, GEN + '/ex-readback/model/x/../.model-config/model-config.aontu', 'x: 1\n');
+        const fs = (0, config_1.readBack)(node_fs_1.default, GEN + '/ex-readback/model/x/../.model-config/model-config.aontu', () => 'x: 1\n');
         node_assert_1.default.strictEqual(fs.readFileSync(at, 'utf8'), 'x: 1\n');
         node_assert_1.default.strictEqual(String(fs.readFileSync(node_path_1.default.resolve(at))), 'x: 1\n');
         node_assert_1.default.strictEqual(typeof fs.statSync(at).mtimeMs, 'number');
@@ -401,6 +424,98 @@ function errtext(errs) {
         finally {
             await model.stop();
         }
+    });
+    // A dry run keeps no snapshot of a legacy config: each config build
+    // re-derives it from model-config.aon.
+    (0, node_test_1.test)('dryrun-rerun-reads-legacy-config-edits', async () => {
+        const { dir, cdir } = await flagProject('ex-dry-rerun');
+        const model = new model_1.Model({
+            path: dir + '/model/model.aontu', base: dir + '/model',
+            debug: 'silent', dryrun: true,
+        });
+        node_assert_1.default.ok((await model.run()).ok);
+        node_assert_1.default.strictEqual(configFlag(model), 1);
+        await editLater(cdir + '/model-config.aon', FLAG_CONFIG(2));
+        const br = await model.run();
+        node_assert_1.default.ok(br.ok, errtext(br.errs));
+        node_assert_1.default.strictEqual(configFlag(model), 2);
+        node_assert_1.default.strictEqual(node_fs_1.default.existsSync(cdir + '/model-config.aontu'), false);
+    });
+    (0, node_test_1.test)('dryrun-watch-rebuilds-on-legacy-config-edit', async () => {
+        const { dir, cdir } = await flagProject('ex-dry-watch-edit');
+        const model = new model_1.Model({
+            path: dir + '/model/model.aontu', base: dir + '/model',
+            debug: 'silent', dryrun: true,
+        });
+        try {
+            const failed = await model.start();
+            node_assert_1.default.strictEqual(failed, undefined, errtext(failed?.errs));
+            node_assert_1.default.strictEqual(configFlag(model), 1);
+            await sleep(500);
+            await editLater(cdir + '/model-config.aon', FLAG_CONFIG(2));
+            for (let i = 0; i < 80 && 2 !== configFlag(model); i++) {
+                await sleep(100);
+            }
+            node_assert_1.default.strictEqual(configFlag(model), 2);
+            node_assert_1.default.strictEqual(node_fs_1.default.existsSync(cdir + '/model-config.aontu'), false);
+        }
+        finally {
+            await model.stop();
+        }
+    });
+    // Only a missing legacy file means there is none. One that cannot be read
+    // fails the config build, and no default is written over it.
+    (0, node_test_1.test)('unreadable-legacy-config-fails-and-writes-nothing', async () => {
+        const dir = GEN + '/ex-legacy-unreadable';
+        const cdir = dir + '/model/.model-config';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(cdir + '/model-config.aon', { recursive: true });
+        await (0, promises_1.writeFile)(dir + '/model/model.aontu', 'x: 1\n');
+        const model = new model_1.Model({
+            path: dir + '/model/model.aontu', base: dir + '/model', debug: 'silent',
+        });
+        const br = await model.run();
+        node_assert_1.default.strictEqual(br.ok, false);
+        node_assert_1.default.match(errtext(br.errs), /model config: cannot read .*model-config\.aon/);
+        node_assert_1.default.strictEqual(node_fs_1.default.existsSync(cdir + '/model-config.aontu'), false);
+        node_assert_1.default.strictEqual(node_fs_1.default.existsSync(dir + '/model/model.json'), false);
+    });
+    (0, node_test_1.test)('legacy-config-read-error-is-reported', async () => {
+        const { cdir } = await flagProject('ex-legacy-eacces');
+        const denied = {
+            ...node_fs_1.default,
+            readFileSync: (p, ...rest) => String(p).endsWith('.aon') ?
+                (() => {
+                    throw Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' });
+                })() :
+                node_fs_1.default.readFileSync(p, ...rest),
+        };
+        const prep = (0, config_1.prepareConfig)(denied, cdir, silentLog());
+        node_assert_1.default.strictEqual(prep.err?.code, 'EACCES');
+        node_assert_1.default.deepStrictEqual(node_fs_1.default.readdirSync(cdir).sort(), ['local.aontu', 'model-config.aon']);
+    });
+    // A write that fails part way leaves no model-config.aontu, which would
+    // otherwise take precedence over the intact legacy file on the next run.
+    (0, node_test_1.test)('failed-config-write-leaves-no-partial-file', async () => {
+        const { dir, cdir } = await flagProject('ex-write-partial');
+        const full = {
+            ...node_fs_1.default,
+            writeFileSync: (p, data) => {
+                node_fs_1.default.writeFileSync(p, String(data).slice(0, 7));
+                throw Object.assign(new Error('ENOSPC: no space left on device'), { code: 'ENOSPC' });
+            },
+        };
+        const prep = (0, config_1.prepareConfig)(full, cdir, silentLog());
+        node_assert_1.default.strictEqual(prep.err?.code, 'ENOSPC');
+        node_assert_1.default.deepStrictEqual(node_fs_1.default.readdirSync(cdir).sort(), ['local.aontu', 'model-config.aon']);
+        node_assert_1.default.strictEqual(await (0, promises_1.readFile)(cdir + '/model-config.aon', 'utf8'), FLAG_CONFIG(1));
+        const model = new model_1.Model({
+            path: dir + '/model/model.aontu', base: dir + '/model', debug: 'silent',
+        });
+        const br = await model.run();
+        node_assert_1.default.ok(br.ok, errtext(br.errs));
+        node_assert_1.default.strictEqual(configFlag(model), 1);
+        node_assert_1.default.deepStrictEqual(node_fs_1.default.readdirSync(cdir).sort(), ['local.aontu', 'model-config.aontu', 'model-config.json']);
     });
 });
 //# sourceMappingURL=extra.test.js.map
