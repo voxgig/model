@@ -720,6 +720,11 @@ color: @"./color.aontu"
 @"@voxgig/model/model/.model-config/model-config.aontu"
 ```
 
+An imported source file is named `.aontu`. aontu refuses an import of a `.aon`
+file with `include_extension`, and a bare `@"./color"` completes to
+`./color.aontu` only. A data file keeps its own extension (`.json`, `.yaml`,
+`.toml` and the other formats aontu reads) and is read by that format's parser.
+
 Imported files are tracked as dependencies, so changing one triggers a rebuild
 in watch mode.
 
@@ -780,8 +785,10 @@ and the Go module:
 ## Requirements
 
 - **Node.js.** CI tests on Node 24 (recommended). Node 20.19+ generally works;
-  the `shape` dependency declares `engines.node >= 24`, so older versions emit
-  an `EBADENGINE` warning.
+  the `aontu` and `shape` dependencies declare `engines.node >= 24`, so older
+  versions emit an `EBADENGINE` warning.
+- **aontu.** 0.75.0 or later, which reads only `.aontu` source. The Go module
+  requires `github.com/aontu-lang/aontu/go` at the same version.
 - **Peer dependencies:** `pino` (`>=10`) and `@voxgig/util`. Install them in the
   host project.
 - **Module system:** CommonJS (`"type": "commonjs"`).

@@ -129,7 +129,7 @@ func TestCacheHitSkipsResolve(t *testing.T) {
 
 // InvalidateCache forces the next build to re-resolve even when nothing on
 // disk changed. The watcher relies on this to pick up edits to imported files,
-// which the Go aontu engine does not report as deps.
+// which the Resolver seam does not report as deps.
 func TestInvalidateCacheForcesResolve(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "m.aontu")

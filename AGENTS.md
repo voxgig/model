@@ -127,11 +127,17 @@ Go **1.24+** is required (the `aontu/go` dependency declares `go 1.24.7`).
 6. **Generated test fixtures go in `ts/test/_gen/`** (gitignored). Tests write
    their own fixtures there at runtime; do not commit them.
 
-7. **`aontu` is a plain npm dependency, pinned exact** (see `ts/package.json`).
-   It was once vendored as a committed `ts/vendor/aontu-<version>.tgz`
-   tarball, because the npm package lives in a monorepo subdir
-   (`aontu-lang/aontu` → `ts/`) that npm cannot install from git, and GitHub
-   `main` was ahead of the npm release. The npm release caught up and the
+7. **`aontu` is a plain npm dependency with a floor, not a pin** (see
+   `ts/package.json`), and so are `@tabnas/jsonic` and `@tabnas/parser`. A
+   project installs one aontu for the whole toolchain; an exact pin here
+   cannot dedupe with it, and npm would nest a second engine for this package
+   alone. The parser floors are the versions aontu itself pins, so both
+   resolve to the copy aontu uses. The aontu floor is the release the
+   toolchain moved to together, on or after 0.73, which made `.aontu` the only
+   source extension. aontu was once vendored as a committed
+   `ts/vendor/aontu-<version>.tgz` tarball, because the npm package lives in
+   a monorepo subdir (`aontu-lang/aontu` → `ts/`) that npm cannot install
+   from git, and GitHub `main` was ahead of the npm release. The npm release caught up and the
    vendor mechanism was retired. If npm ever lags `main` again, the fallback
    is to vendor a tarball: `git clone` aontu at the target commit, `npm pack`
    its `ts/`, commit the `.tgz` under `ts/vendor/` (whitelist it in
@@ -171,11 +177,13 @@ Other notes:
   sources. Locked down by `comment-hash-only` (`ts/test/extra.test.ts`) and
   `TestCommentHashOnly` (`go/extra_test.go`).
 - **Unification** uses the real Go aontu engine
-  (`github.com/aontu-lang/aontu/go`). Its `Generate(src)` has no base parameter,
-  so `AontuResolver` briefly `chdir`s to the model base (guarded by a mutex)
-  so `@"..."` imports resolve. aontu/go does not report import deps, so the
-  watcher tracks `*.aontu` source (plus `*.jsonic` data) under the base
-  directory.
+  (`github.com/aontu-lang/aontu/go`, on the same version series as the npm
+  `aontu`). `AontuResolver` builds it with `aontu.NewWithBase(base)`, so
+  `@"..."` imports resolve against the model base without touching the
+  working directory. aontu/go records the files a build included
+  (`Aontu.IncludeDeps`), but the `Resolver` seam returns only the model, so
+  the watcher tracks `*.aontu` source (plus `*.jsonic` data) under the base
+  directory rather than the import graph TypeScript watches.
 - **Model JSON output is byte-for-byte identical** across the two
   implementations. Go's `encoding/json` sorts object keys lexically (UTF-8
   byte order), so the TypeScript model producer imposes the same order during
@@ -270,8 +278,7 @@ must `await model.stop()` in a `finally`. CLI tests spawn the built bin without
 a shell.
 
 **Go:** standard `testing` with `t.TempDir()` fixtures. Watch tests must
-`defer m.Stop()`. Do **not** `t.Parallel()` resolver-using tests —
-`AontuResolver` changes the working directory.
+`defer m.Stop()`.
 
 
 ## Common tasks (playbooks)

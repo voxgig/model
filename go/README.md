@@ -58,9 +58,10 @@ Go:
   TypeScript), but Go binds each declared name to a registered function rather than
   `require()`-ing a module.
 - **Watching polls modification times** instead of using chokidar.
-- **Imports** resolve relative to the model base directory; the resolver
-  briefly changes the working directory because the Go aontu `Generate(src)`
-  API takes no base parameter.
+- **Imports** resolve relative to the model base directory, through
+  `aontu.NewWithBase`. The watcher polls the `.aontu` and `.jsonic` files
+  under that directory rather than following the import graph, so an import
+  from outside it is not watched.
 - **JSON object keys are emitted in sorted order** (Go's `encoding/json`
   sorts them in UTF-8 byte order), and the TypeScript model producer imposes
   the same order, so `model.json` is byte-for-byte identical across the two. The

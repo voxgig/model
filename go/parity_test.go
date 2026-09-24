@@ -75,7 +75,7 @@ var specRunners = map[string]func(t *testing.T, src string) string{
 
 // TestSharedSpecs runs every test/spec/*.tsv row: the output must be
 // byte-for-byte identical to the TypeScript implementation, which generated
-// the expected values. No t.Parallel: AontuResolver chdirs to the model base.
+// the expected values.
 func TestSharedSpecs(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join("..", "test", "spec", "*.tsv"))
 	if err != nil {
