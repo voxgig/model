@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var modelExts = map[string]bool{".aon": true, ".aontu": true, ".jsonic": true}
+var modelExts = map[string]bool{".aontu": true, ".jsonic": true}
 
 // Watch rebuilds a Build when its source files change. It polls modification
 // times (stdlib only, no external dependency where the TypeScript port uses

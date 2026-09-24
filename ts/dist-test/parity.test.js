@@ -37,12 +37,12 @@ function loadSpec(file) {
 async function buildModelJson(name, src) {
     const base = path_1.default.join(__dirname, '..', 'test', '_gen', 'spec', name);
     (0, node_fs_1.mkdirSync)(base, { recursive: true });
-    (0, node_fs_1.writeFileSync)(path_1.default.join(base, 'model.aon'), src);
+    (0, node_fs_1.writeFileSync)(path_1.default.join(base, 'model.aontu'), src);
     const log = (0, util_1.prettyPino)('test', {});
     const b = (0, build_1.makeBuild)({
         fs: fs_1.default,
         base,
-        path: path_1.default.join(base, 'model.aon'),
+        path: path_1.default.join(base, 'model.aontu'),
         // As the Model wires them: the msg check first (pre), then the model
         // producer (post). A row therefore asserts both that the source passes
         // the built-in checks and that it serializes to the expected bytes.

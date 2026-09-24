@@ -33,10 +33,10 @@ async function runMsg(name: string, src: string) {
   const dir = GEN + '/msg-' + name
   await rm(dir, { recursive: true, force: true })
   await mkdir(dir, { recursive: true })
-  await writeFile(dir + '/m.aon', src)
+  await writeFile(dir + '/m.aontu', src)
 
   const b = makeBuild({
-    fs: Fs, base: dir, path: dir + '/m.aon',
+    fs: Fs, base: dir, path: dir + '/m.aontu',
     res: [
       { path: '/', build: msg_producer },
       { path: '/', build: model_producer },
@@ -355,7 +355,7 @@ describe('msg', () => {
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
 
-    const path = dir + '/m.aon'
+    const path = dir + '/m.aontu'
     await writeFile(path, 'main: msg: [ { pat: [ {aim: web}, {save: item} ] } ]\n')
 
     let rewritten = false
@@ -401,10 +401,10 @@ describe('msg', () => {
     const dir = GEN + '/msg-model'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
-    await writeFile(dir + '/m.aon', 'main: msg: [ { pat: [] } ]\n')
+    await writeFile(dir + '/m.aontu', 'main: msg: [ { pat: [] } ]\n')
 
     const model = new Model({
-      path: dir + '/m.aon', base: dir, config: false, debug: 'silent',
+      path: dir + '/m.aontu', base: dir, config: false, debug: 'silent',
     })
     const br = await model.run()
 
@@ -418,11 +418,11 @@ describe('msg', () => {
     const dir = GEN + '/msg-model-ok'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
-    await writeFile(dir + '/m.aon',
+    await writeFile(dir + '/m.aontu',
       'main: msg: [ { pat: [ {aim: web}, {save: item} ] } ]\n')
 
     const model = new Model({
-      path: dir + '/m.aon', base: dir, config: false, debug: 'silent',
+      path: dir + '/m.aontu', base: dir, config: false, debug: 'silent',
     })
     const br = await model.run()
 

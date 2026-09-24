@@ -201,7 +201,7 @@ function doInit(dir) {
   const res = initModel(dir, Fs)
   res.created.forEach(p => KONSOLE.log('created: ' + p))
   res.skipped.forEach(p => KONSOLE.log('exists:  ' + p))
-  KONSOLE.log('Next: voxgig-model ' + Path.join(dir, 'model', 'model.aon'))
+  KONSOLE.log('Next: voxgig-model ' + Path.join(dir, 'model', 'model.aontu'))
 }
 
 
@@ -275,7 +275,9 @@ Usage:
   voxgig-model init [dir]           Scaffold a new model and config under
                                     <dir>/model (default: current directory).
 
-  <root-file> is the root file of the model.
+  <root-file> is the root .aontu file of the model, such as
+  model/model.aontu. The model config is read from
+  .model-config/model-config.aontu beside it.
 
   <args> are the command arguments:
 
@@ -303,11 +305,11 @@ Examples:
 
 # Scaffold a new model in ./model, then build it
 > voxgig-model init
-> voxgig-model model/model.aon
+> voxgig-model model/model.aontu
 
 # Basic usage
-> voxgig-model model/model.aon
-# Builds a model defined in the file model/model.aon
+> voxgig-model model/model.aontu
+# Builds a model defined in the file model/model.aontu
 
 See also: https://voxgig.com/model
 `

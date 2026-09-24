@@ -3,9 +3,7 @@
 package model
 
 import (
-	"os"
 	"path/filepath"
-	"regexp"
 )
 
 // configStub is written when a model has no config file yet. It is
@@ -26,22 +24,10 @@ type Config struct {
 	log   Log
 }
 
-var legacyPkgImport = regexp.MustCompile(`@(\s*)"(@voxgig/model/[^"]*model-config)\.aontu"`)
-
 // newConfig sets up (and bootstraps) the config build for a model base.
 func newConfig(base string, spec ModelSpec, log Log) *Config {
 	cbase := filepath.Join(base, ".model-config")
-	cpath := filepath.Join(cbase, "model-config.aon")
-
-	legacy := filepath.Join(cbase, "model-config.aontu")
-	if _, err := os.Stat(cpath); os.IsNotExist(err) {
-		if src, rerr := os.ReadFile(legacy); rerr == nil {
-			src = legacyPkgImport.ReplaceAll(src, []byte(`@${1}"${2}.aon"`))
-			if werr := os.WriteFile(cpath, src, 0o644); werr == nil {
-				_ = os.Remove(legacy)
-			}
-		}
-	}
+	cpath := filepath.Join(cbase, "model-config.aontu")
 
 	cb := NewBuild(BuildSpec{
 		Name:     "config",

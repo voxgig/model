@@ -44,14 +44,14 @@ function loadSpec(file: string): SpecRow[] {
 async function buildModelJson(name: string, src: string): Promise<string> {
   const base = Path.join(__dirname, '..', 'test', '_gen', 'spec', name)
   mkdirSync(base, { recursive: true })
-  writeFileSync(Path.join(base, 'model.aon'), src)
+  writeFileSync(Path.join(base, 'model.aontu'), src)
 
   const log = prettyPino('test', {})
 
   const b = makeBuild({
     fs: Fs,
     base,
-    path: Path.join(base, 'model.aon'),
+    path: Path.join(base, 'model.aontu'),
     // As the Model wires them: the msg check first (pre), then the model
     // producer (post). A row therefore asserts both that the source passes
     // the built-in checks and that it serializes to the expected bytes.

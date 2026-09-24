@@ -60,13 +60,13 @@ describe('watch', () => {
     await rm(GEN + '/wat01', { recursive: true, force: true })
     await mkdir(base + '/.model-config', { recursive: true })
 
-    await writeFile(base + '/model.aon', 'top: 1\nval: @"./zed.aon"\n')
-    await writeFile(base + '/zed.aon', '2')
-    await writeFile(base + '/.model-config/model-config.aon',
+    await writeFile(base + '/model.aontu', 'top: 1\nval: @"./zed.aontu"\n')
+    await writeFile(base + '/zed.aontu', '2')
+    await writeFile(base + '/.model-config/model-config.aontu',
       'sys: model: action: {}\n')
 
     const out = base + '/model.json'
-    const model = new Model({ path: base + '/model.aon', base })
+    const model = new Model({ path: base + '/model.aontu', base })
 
     try {
       await model.start()
@@ -75,9 +75,9 @@ describe('watch', () => {
         await waitFor(async () => (await readVal(out)) === 2),
         'initial build should produce val:2')
 
-      // Let the dependency watchers attach before mutating zed.aon.
+      // Let the dependency watchers attach before mutating zed.aontu.
       await new Promise(r => setTimeout(r, 250))
-      await writeFile(base + '/zed.aon', '7')
+      await writeFile(base + '/zed.aontu', '7')
 
       assert.ok(
         await waitFor(async () => (await readVal(out)) === 7),
@@ -99,8 +99,8 @@ describe('watch', () => {
     await mkdir(base + '/.model-config', { recursive: true })
     await mkdir(dir + '/build', { recursive: true })
 
-    await writeFile(base + '/model.aon', 'top: 1\n')
-    await writeFile(base + '/.model-config/model-config.aon',
+    await writeFile(base + '/model.aontu', 'top: 1\n')
+    await writeFile(base + '/.model-config/model-config.aontu',
       "sys: model: action: { mark: load: 'build/mark' }\n")
     await writeFile(dir + '/build/mark.js',
       "const Path = require('node:path')\n" +
@@ -113,7 +113,7 @@ describe('watch', () => {
       '}\n')
 
     const mark = dir + '/mark.txt'
-    const model = new Model({ path: base + '/model.aon', base })
+    const model = new Model({ path: base + '/model.aontu', base })
 
     try {
       await model.start()
@@ -125,7 +125,7 @@ describe('watch', () => {
 
       // Let the config watcher attach, then edit a config file.
       await new Promise(r => setTimeout(r, 250))
-      await appendFile(base + '/.model-config/model-config.aon',
+      await appendFile(base + '/.model-config/model-config.aontu',
         '\n# touch to trigger a config rebuild\n')
 
       assert.ok(
@@ -147,12 +147,12 @@ describe('watch', () => {
     const base = GEN + '/wat03/model'
     await rm(GEN + '/wat03', { recursive: true, force: true })
     await mkdir(base + '/.model-config', { recursive: true })
-    await writeFile(base + '/model.aon', 'val: 1\n')
-    await writeFile(base + '/.model-config/model-config.aon',
+    await writeFile(base + '/model.aontu', 'val: 1\n')
+    await writeFile(base + '/.model-config/model-config.aontu',
       'sys: model: action: {}\n')
 
     const out = base + '/model.json'
-    const model = new Model({ path: base + '/model.aon', base, debug: 'silent' })
+    const model = new Model({ path: base + '/model.aontu', base, debug: 'silent' })
 
     try {
       await model.start()
@@ -162,10 +162,10 @@ describe('watch', () => {
 
       // Break the model: conflicting scalar values do not unify.
       await new Promise(r => setTimeout(r, 200))
-      await writeFile(base + '/model.aon', 'val: 1\nval: 2\n')
+      await writeFile(base + '/model.aontu', 'val: 1\nval: 2\n')
       await new Promise(r => setTimeout(r, 400))
 
-      await writeFile(base + '/model.aon', 'val: 9\n')
+      await writeFile(base + '/model.aontu', 'val: 9\n')
       assert.ok(
         await waitFor(async () => (await readVal(out)) === 9),
         'watcher should recover to val:9 after the model is fixed')
@@ -183,11 +183,11 @@ describe('watch', () => {
     const base = GEN + '/wat04/model'
     await rm(GEN + '/wat04', { recursive: true, force: true })
     await mkdir(base, { recursive: true })
-    await writeFile(base + '/model.aon', 'val: 5\n')
+    await writeFile(base + '/model.aontu', 'val: 5\n')
 
     const out = base + '/model.json'
     const model = new Model({
-      path: base + '/model.aon', base, config: false, debug: 'silent',
+      path: base + '/model.aontu', base, config: false, debug: 'silent',
     })
 
     try {
@@ -219,7 +219,7 @@ describe('watch-internals', () => {
     await mkdir(dir, { recursive: true })
 
     const w: any = new Watch({
-      name: 'modes', path: dir + '/m.aon', base: dir, fs: Fs,
+      name: 'modes', path: dir + '/m.aontu', base: dir, fs: Fs,
       watch: { mod: true, add: true, rem: true },
     } as any, silentLog())
 
@@ -242,9 +242,9 @@ describe('watch-internals', () => {
     assert.strictEqual(w.descDeps(null), '')
     assert.strictEqual(w.descDeps({}), '')
 
-    const desc = w.descDeps({ '/a.aon': { '/b.aon': { tar: '/b.aon' } } })
-    assert.match(desc, /\/a\.aon/)
-    assert.match(desc, /\/b\.aon/)
+    const desc = w.descDeps({ '/a.aontu': { '/b.aontu': { tar: '/b.aontu' } } })
+    assert.match(desc, /\/a\.aontu/)
+    assert.match(desc, /\/b\.aontu/)
   })
 
 })

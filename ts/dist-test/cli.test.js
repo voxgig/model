@@ -18,8 +18,8 @@ const BIN = __dirname + '/../bin/voxgig-model';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
         await (0, promises_1.mkdir)(dir + '/build', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/model.aon', 'top: 1\n');
-        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aon', "sys: model: action: { recordargs: load: 'build/recordargs' }\n");
+        await (0, promises_1.writeFile)(dir + '/model/model.aontu', 'top: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', "sys: model: action: { recordargs: load: 'build/recordargs' }\n");
         await (0, promises_1.writeFile)(dir + '/build/recordargs.js', "const Path = require('node:path')\n" +
             'module.exports = async function recordargs(model, build) {\n' +
             "  const root = Path.resolve(build.path, '..', '..')\n" +
@@ -31,7 +31,7 @@ const BIN = __dirname + '/../bin/voxgig-model';
         await (0, promises_1.rm)(out, { force: true });
         // No shell: args array avoids cross-platform quoting issues. Barewords
         // keep the jsonic free of embedded quotes.
-        const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN, dir + '/model/model.aon', '-b', '{outer:{inner:VAL}}'], { encoding: 'utf8' });
+        const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN, dir + '/model/model.aontu', '-b', '{outer:{inner:VAL}}'], { encoding: 'utf8' });
         node_assert_1.default.strictEqual(res.status, 0, 'cli should exit 0\nstdout:' + res.stdout + '\nstderr:' + res.stderr);
         const args = JSON.parse(await (0, promises_1.readFile)(out, 'utf8'));
         node_assert_1.default.deepStrictEqual(args, { outer: { inner: 'VAL' } });
@@ -41,8 +41,8 @@ const BIN = __dirname + '/../bin/voxgig-model';
         const dir = GEN + '/cli-noconfig';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir + '/model', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/model.aon', 'top: 1\n');
-        const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN, dir + '/model/model.aon', '--no-config', '-g', 'silent'], { encoding: 'utf8' });
+        await (0, promises_1.writeFile)(dir + '/model/model.aontu', 'top: 1\n');
+        const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN, dir + '/model/model.aontu', '--no-config', '-g', 'silent'], { encoding: 'utf8' });
         node_assert_1.default.strictEqual(res.status, 0, 'cli should exit 0\nstdout:' + res.stdout + '\nstderr:' + res.stderr);
         node_assert_1.default.deepStrictEqual(JSON.parse(await (0, promises_1.readFile)(dir + '/model/model.json', 'utf8')), { top: 1 });
         node_assert_1.default.strictEqual(existsSync(dir + '/model/.model-config'), false, '--no-config should not create .model-config');
@@ -55,8 +55,8 @@ const BIN = __dirname + '/../bin/voxgig-model';
         const dir = GEN + '/cli-noconfig-warn';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir + '/model', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/model.aon', 'top: 1\n');
-        const run = (args) => (0, node_child_process_1.spawnSync)(process.execPath, [BIN, dir + '/model/model.aon', ...args, '-g', 'silent'], { encoding: 'utf8' });
+        await (0, promises_1.writeFile)(dir + '/model/model.aontu', 'top: 1\n');
+        const run = (args) => (0, node_child_process_1.spawnSync)(process.execPath, [BIN, dir + '/model/model.aontu', ...args, '-g', 'silent'], { encoding: 'utf8' });
         const wrote = run(['--no-config']);
         node_assert_1.default.strictEqual(wrote.status, 0, 'cli should exit 0: ' + wrote.stderr);
         node_assert_1.default.match(wrote.stderr, /WARNING: --no-config/, 'writing with --no-config must warn');
@@ -69,7 +69,7 @@ const BIN = __dirname + '/../bin/voxgig-model';
         node_assert_1.default.doesNotMatch(plain.stderr, /WARNING/, 'an ordinary build must not warn');
     });
     (0, node_test_1.test)('missing-file-exits-nonzero', async () => {
-        const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN, GEN + '/cli-nope/does-not-exist.aon', '-g', 'silent'], { encoding: 'utf8' });
+        const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN, GEN + '/cli-nope/does-not-exist.aontu', '-g', 'silent'], { encoding: 'utf8' });
         node_assert_1.default.notStrictEqual(res.status, 0, 'missing file should exit non-zero');
         node_assert_1.default.match(res.stderr, /does not exist/);
     });
@@ -84,8 +84,8 @@ const BIN = __dirname + '/../bin/voxgig-model';
         const dir = GEN + '/cli-bad';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir + '/model', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/model.aon', 'x: 1\nx: 2\n');
-        const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN, dir + '/model/model.aon', '--no-config', '-g', 'silent'], { encoding: 'utf8' });
+        await (0, promises_1.writeFile)(dir + '/model/model.aontu', 'x: 1\nx: 2\n');
+        const res = (0, node_child_process_1.spawnSync)(process.execPath, [BIN, dir + '/model/model.aontu', '--no-config', '-g', 'silent'], { encoding: 'utf8' });
         node_assert_1.default.notStrictEqual(res.status, 0, 'invalid model should exit non-zero');
     });
 });

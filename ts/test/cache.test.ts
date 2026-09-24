@@ -33,7 +33,7 @@ describe('cache', () => {
     const dir = GEN + '/cache-hit'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
-    const path = dir + '/m.aon'
+    const path = dir + '/m.aontu'
     await writeFile(path, 'a: 1\n')
 
     const b: any = makeBuild({ fs: Fs, base: dir, path, res: [] }, silentLog())
@@ -54,7 +54,7 @@ describe('cache', () => {
     const dir = GEN + '/cache-miss'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
-    const path = dir + '/m.aon'
+    const path = dir + '/m.aontu'
     await writeFile(path, 'a: 1\n')
 
     const b: any = makeBuild({ fs: Fs, base: dir, path, res: [] }, silentLog())
@@ -80,7 +80,7 @@ describe('cache', () => {
     const dir = GEN + '/cache-err'
     await rm(dir, { recursive: true, force: true })
     await mkdir(dir, { recursive: true })
-    const path = dir + '/m.aon'
+    const path = dir + '/m.aontu'
     await writeFile(path, 'a: 1\n')
 
     const b: any = makeBuild({ fs: Fs, base: dir, path, res: [] }, silentLog())

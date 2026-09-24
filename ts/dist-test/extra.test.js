@@ -31,9 +31,9 @@ function errtext(errs) {
         const dir = GEN + '/ex-pre';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: dir, path: dir + '/m.aon',
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu',
             res: [{
                     path: '/', build: async function boom(_build, ctx) {
                         if ('pre' === ctx.step) {
@@ -52,9 +52,9 @@ function errtext(errs) {
         const dir = GEN + '/ex-post';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: dir, path: dir + '/m.aon',
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu',
             res: [{
                     path: '/', build: async function boom(_build, ctx) {
                         if ('post' === ctx.step) {
@@ -71,7 +71,7 @@ function errtext(errs) {
     // A missing root file fails the build with the read error.
     (0, node_test_1.test)('missing-root-file', async () => {
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: GEN, path: GEN + '/does-not-exist.aon', res: [],
+            fs: node_fs_1.default, base: GEN, path: GEN + '/does-not-exist.aontu', res: [],
         }, silentLog());
         const v = await b.run({ watch: false });
         node_assert_1.default.strictEqual(v.ok, false);
@@ -84,8 +84,8 @@ function errtext(errs) {
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
         await (0, promises_1.mkdir)(dir + '/build', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/m.aon', 'a: 1\n');
-        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aon', "sys: model: action: { p: load: 'build/p' }\n");
+        await (0, promises_1.writeFile)(dir + '/model/m.aontu', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', "sys: model: action: { p: load: 'build/p' }\n");
         await (0, promises_1.writeFile)(dir + '/build/p.js', "const Path = require('node:path')\n" +
             'module.exports = Promise.resolve(async function p(model, build) {\n' +
             "  const root = Path.resolve(build.path, '..', '..')\n" +
@@ -93,7 +93,7 @@ function errtext(errs) {
             '  return { ok: true }\n' +
             '})\n');
         const model = new model_1.Model({
-            path: dir + '/model/m.aon', base: dir + '/model', debug: 'silent',
+            path: dir + '/model/m.aontu', base: dir + '/model', debug: 'silent',
         });
         const br = await model.run();
         node_assert_1.default.ok(br.ok, 'build failed: ' + errtext(br.errs));
@@ -104,9 +104,9 @@ function errtext(errs) {
         const dir = GEN + '/ex-nokpre';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: dir, path: dir + '/m.aon',
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu',
             res: [{
                     path: '/', build: async function bad(_build, ctx) {
                         return {
@@ -124,9 +124,9 @@ function errtext(errs) {
         const dir = GEN + '/ex-nokpost';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: dir, path: dir + '/m.aon',
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu',
             res: [{
                     path: '/', build: async function bad(_build, ctx) {
                         return {
@@ -145,9 +145,9 @@ function errtext(errs) {
         const dir = GEN + '/ex-noconfig';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir + '/model', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/m.aon', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/m.aontu', 'a: 1\n');
         const model = new model_1.Model({
-            path: dir + '/model/m.aon', base: dir + '/model', debug: 'silent',
+            path: dir + '/model/m.aontu', base: dir + '/model', debug: 'silent',
             config: false,
         });
         const br = await model.run();
@@ -162,8 +162,8 @@ function errtext(errs) {
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
         await (0, promises_1.mkdir)(dir + '/build', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/m.aon', 'a: 1\n');
-        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aon', "sys: model: action: { p: load: 'build/p' }\n");
+        await (0, promises_1.writeFile)(dir + '/model/m.aontu', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', "sys: model: action: { p: load: 'build/p' }\n");
         await (0, promises_1.writeFile)(dir + '/build/p.js', "const Path = require('node:path')\n" +
             'module.exports = async function p(model, build) {\n' +
             "  const root = Path.resolve(build.path, '..', '..')\n" +
@@ -171,7 +171,7 @@ function errtext(errs) {
             '  return { ok: true }\n' +
             '}\n');
         const model = new model_1.Model({
-            path: dir + '/model/m.aon', base: dir + '/model', debug: 'silent',
+            path: dir + '/model/m.aontu', base: dir + '/model', debug: 'silent',
             config: false,
         });
         const br = await model.run();
@@ -193,9 +193,9 @@ function errtext(errs) {
             const dir = GEN + '/ex-comment-' + name;
             await (0, promises_1.rm)(dir, { recursive: true, force: true });
             await (0, promises_1.mkdir)(dir, { recursive: true });
-            await (0, promises_1.writeFile)(dir + '/m.aon', src);
+            await (0, promises_1.writeFile)(dir + '/m.aontu', src);
             const b = (0, build_1.makeBuild)({
-                fs: node_fs_1.default, base: dir, path: dir + '/m.aon', res: [],
+                fs: node_fs_1.default, base: dir, path: dir + '/m.aontu', res: [],
             }, silentLog());
             const v = await b.run({ watch: false });
             node_assert_1.default.strictEqual(v.ok, ok, name + ' comment: expected ok=' + ok);
@@ -205,9 +205,9 @@ function errtext(errs) {
         const dir = GEN + '/ex-serializer';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aon', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/m.aontu', 'a: 1\n');
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: dir, path: dir + '/m.aon',
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu',
             res: [
                 {
                     path: '/', build: async function mutate(build, ctx) {
@@ -254,84 +254,13 @@ function errtext(errs) {
         const dir = GEN + '/ex-import';
         await (0, promises_1.rm)(dir, { recursive: true, force: true });
         await (0, promises_1.mkdir)(dir, { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/m.aon', 'top: @"./missing.aon"\n');
+        await (0, promises_1.writeFile)(dir + '/m.aontu', 'top: @"./missing.aontu"\n');
         const b = (0, build_1.makeBuild)({
-            fs: node_fs_1.default, base: dir, path: dir + '/m.aon', res: [],
+            fs: node_fs_1.default, base: dir, path: dir + '/m.aontu', res: [],
         }, silentLog());
         const v = await b.run({ watch: false });
         node_assert_1.default.strictEqual(v.ok, false);
         node_assert_1.default.ok(0 < v.errs.length);
-    });
-    (0, node_test_1.test)('legacy-config-migrates-with-package-import-retargeted', async () => {
-        const dir = GEN + '/ex-migrate-pkg';
-        await (0, promises_1.rm)(dir, { recursive: true, force: true });
-        await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/model.aon', 'x: 1\n');
-        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', `
-@"@voxgig/model/model/.model-config/model-config.aontu"
-
-sys: model: action: {}
-`);
-        const model = new model_1.Model({
-            fs: node_fs_1.default,
-            path: dir + '/model/model.aon',
-            base: dir + '/model',
-            debug: 'silent',
-        });
-        const br = await model.run();
-        node_assert_1.default.ok(br.ok, 'migrated config did not build: ' + errtext(br.errs));
-        node_assert_1.default.strictEqual(node_fs_1.default.existsSync(dir + '/model/.model-config/model-config.aontu'), false, 'the legacy config should be gone once migrated');
-        const migrated = await (0, promises_1.readFile)(dir + '/model/.model-config/model-config.aon', 'utf8');
-        node_assert_1.default.ok(migrated.includes('@voxgig/model/model/.model-config/model-config.aon"'), 'the package import should name .aon: ' + migrated);
-    });
-    // Only the @voxgig/model import is retargeted. A project's OWN .aontu
-    // imports still name real files on disk, so rewriting them would break
-    // exactly the declarations the migration exists to preserve.
-    (0, node_test_1.test)('legacy-config-keeps-its-own-aontu-imports', async () => {
-        const dir = GEN + '/ex-migrate-own';
-        await (0, promises_1.rm)(dir, { recursive: true, force: true });
-        await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/model.aon', 'x: 1\n');
-        await (0, promises_1.writeFile)(dir + '/model/.model-config/local.aontu', 'sys: model: action: {}\n');
-        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', `
-@"@voxgig/model/model/.model-config/model-config.aontu"
-@"./local.aontu"
-`);
-        const model = new model_1.Model({
-            fs: node_fs_1.default,
-            path: dir + '/model/model.aon',
-            base: dir + '/model',
-            debug: 'silent',
-        });
-        const br = await model.run();
-        node_assert_1.default.ok(br.ok, 'migrated config did not build: ' + errtext(br.errs));
-        const migrated = await (0, promises_1.readFile)(dir + '/model/.model-config/model-config.aon', 'utf8');
-        node_assert_1.default.ok(migrated.includes('@"./local.aontu"'), "a project's own .aontu import must be left alone: " + migrated);
-    });
-    (0, node_test_1.test)('legacy-config-rewrite-does-not-touch-string-data', async () => {
-        const dir = GEN + '/ex-migrate-data';
-        await (0, promises_1.rm)(dir, { recursive: true, force: true });
-        await (0, promises_1.mkdir)(dir + '/model/.model-config', { recursive: true });
-        await (0, promises_1.writeFile)(dir + '/model/model.aon', 'x: 1\n');
-        await (0, promises_1.writeFile)(dir + '/model/.model-config/model-config.aontu', `
-@"@voxgig/model/model/.model-config/model-config.aontu"
-
-sys: model: action: {}
-sys: model: was: '@voxgig/model/model/.model-config/model-config.aontu'
-`);
-        const model = new model_1.Model({
-            fs: node_fs_1.default,
-            path: dir + '/model/model.aon',
-            base: dir + '/model',
-            debug: 'silent',
-        });
-        const br = await model.run();
-        node_assert_1.default.ok(br.ok, 'migrated config did not build: ' + errtext(br.errs));
-        const migrated = await (0, promises_1.readFile)(dir + '/model/.model-config/model-config.aon', 'utf8');
-        // The import moved...
-        node_assert_1.default.ok(migrated.includes('@"@voxgig/model/model/.model-config/model-config.aon"'), 'the import should name .aon: ' + migrated);
-        // ...and the string value did not.
-        node_assert_1.default.ok(migrated.includes("was: '@voxgig/model/model/.model-config/model-config.aontu'"), 'a path held as string data must be left alone: ' + migrated);
     });
 });
 //# sourceMappingURL=extra.test.js.map

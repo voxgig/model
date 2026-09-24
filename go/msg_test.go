@@ -16,10 +16,10 @@ func msgBuild(t *testing.T, src string) (*BuildResult, string) {
 	t.Helper()
 
 	dir := t.TempDir()
-	writeFile(t, dir, "m.aon", src)
+	writeFile(t, dir, "m.aontu", src)
 
 	b := NewBuild(BuildSpec{
-		Path: filepath.Join(dir, "m.aon"),
+		Path: filepath.Join(dir, "m.aontu"),
 		Base: dir,
 		Res: []ProducerDef{
 			{Path: "/", Build: MsgProducer},
@@ -357,8 +357,8 @@ func TestMsgProducerChecksInPostToo(t *testing.T) {
 // a reload, turning a valid model into an invalid one.
 func TestMsgReloadedModelIsRechecked(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "m.aon")
-	writeFile(t, dir, "m.aon",
+	path := filepath.Join(dir, "m.aontu")
+	writeFile(t, dir, "m.aontu",
 		"main: msg: [ { pat: [ {aim: web}, {save: item} ] } ]\n")
 
 	rewritten := false
@@ -409,10 +409,10 @@ func TestMsgReloadedModelIsRechecked(t *testing.T) {
 
 func TestModelRunsTheMsgCheck(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, dir, "m.aon", "main: msg: [ { pat: [] } ]\n")
+	writeFile(t, dir, "m.aontu", "main: msg: [ { pat: [] } ]\n")
 
 	off := false
-	m := New(ModelSpec{Path: filepath.Join(dir, "m.aon"), Base: dir, Config: &off})
+	m := New(ModelSpec{Path: filepath.Join(dir, "m.aontu"), Base: dir, Config: &off})
 	br := m.Run()
 
 	if br.OK {
@@ -428,11 +428,11 @@ func TestModelRunsTheMsgCheck(t *testing.T) {
 
 func TestModelBuildsAValidMsgDeclaration(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, dir, "m.aon",
+	writeFile(t, dir, "m.aontu",
 		"main: msg: [ { pat: [ {aim: web}, {save: item} ] } ]\n")
 
 	off := false
-	m := New(ModelSpec{Path: filepath.Join(dir, "m.aon"), Base: dir, Config: &off})
+	m := New(ModelSpec{Path: filepath.Join(dir, "m.aontu"), Base: dir, Config: &off})
 	br := m.Run()
 
 	if !br.OK {

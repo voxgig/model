@@ -171,20 +171,11 @@ class Model {
 exports.Model = Model;
 function makeConfig(mspec, log, fs, trigger_model_build) {
     let cbase = mspec.base + '/.model-config';
-    let cpath = cbase + '/model-config.aon';
-    const legacycpath = cbase + '/model-config.aontu';
-    if (!fs.existsSync(cpath) && fs.existsSync(legacycpath)) {
-        const legacy = fs.readFileSync(legacycpath, 'utf8');
-        fs.writeFileSync(cpath, legacy.replace(/@(\s*)"(@voxgig\/model\/[^"]*model-config)\.aontu"/g, '@$1"$2.aon"'));
-        try {
-            fs.unlinkSync(legacycpath);
-        }
-        catch (_err) { }
-    }
+    let cpath = cbase + '/model-config.aontu';
     if (!fs.existsSync(cpath)) {
         fs.mkdirSync(cbase, { recursive: true });
         fs.writeFileSync(cpath, `
-@"@voxgig/model/model/.model-config/model-config.aon"
+@"@voxgig/model/model/.model-config/model-config.aontu"
 
 sys: model: action: {}
 `);

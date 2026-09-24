@@ -12,13 +12,13 @@ import (
 // New auto-creates the config file and writes model-config.json.
 func TestConfigAutoCreated(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, dir, "model.aon", "x: 1\n")
+	writeFile(t, dir, "model.aontu", "x: 1\n")
 
-	m := New(ModelSpec{Path: filepath.Join(dir, "model.aon"), Base: dir})
+	m := New(ModelSpec{Path: filepath.Join(dir, "model.aontu"), Base: dir})
 	if br := m.Run(); !br.OK {
 		t.Fatalf("run failed: %v", br.Errs)
 	}
-	if _, err := os.Stat(filepath.Join(dir, ".model-config", "model-config.aon")); err != nil {
+	if _, err := os.Stat(filepath.Join(dir, ".model-config", "model-config.aontu")); err != nil {
 		t.Fatalf("config file not auto-created: %v", err)
 	}
 	if _, err := os.Stat(filepath.Join(dir, ".model-config", "model-config.json")); err != nil {
@@ -33,11 +33,11 @@ func TestConfigAutoCreated(t *testing.T) {
 // auto-created, Config() is nil, but the model is still written.
 func TestConfigDisabled(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, dir, "model.aon", "x: 1\n")
+	writeFile(t, dir, "model.aontu", "x: 1\n")
 
 	disabled := false
 	m := New(ModelSpec{
-		Path:   filepath.Join(dir, "model.aon"),
+		Path:   filepath.Join(dir, "model.aontu"),
 		Base:   dir,
 		Config: &disabled,
 	})
@@ -64,8 +64,8 @@ func TestConfigDisabledIgnoresFileUsesOrder(t *testing.T) {
 	if err := os.MkdirAll(cdir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	writeFile(t, mdir, "model.aon", "x: 1\n")
-	writeFile(t, cdir, "model-config.aon",
+	writeFile(t, mdir, "model.aontu", "x: 1\n")
+	writeFile(t, cdir, "model-config.aontu",
 		"sys: model: action: { a: load: 'x', b: load: 'y' }\n"+
 			"sys: model: order: action: 'b,a'\n")
 
@@ -78,7 +78,7 @@ func TestConfigDisabledIgnoresFileUsesOrder(t *testing.T) {
 	}
 	disabled := false
 	m := New(ModelSpec{
-		Path:    filepath.Join(mdir, "model.aon"),
+		Path:    filepath.Join(mdir, "model.aontu"),
 		Base:    mdir,
 		Config:  &disabled,
 		Actions: map[string]ActionDef{"a": mk("a"), "b": mk("b")},
@@ -102,8 +102,8 @@ func TestConfigDrivesActionOrder(t *testing.T) {
 	if err := os.MkdirAll(cdir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	writeFile(t, mdir, "model.aon", "x: 1\n")
-	writeFile(t, cdir, "model-config.aon",
+	writeFile(t, mdir, "model.aontu", "x: 1\n")
+	writeFile(t, cdir, "model-config.aontu",
 		"sys: model: action: { a: load: 'x', b: load: 'y' }\n"+
 			"sys: model: order: action: 'b,a'\n")
 
@@ -115,7 +115,7 @@ func TestConfigDrivesActionOrder(t *testing.T) {
 		}}
 	}
 	m := New(ModelSpec{
-		Path:    filepath.Join(mdir, "model.aon"),
+		Path:    filepath.Join(mdir, "model.aontu"),
 		Base:    mdir,
 		Actions: map[string]ActionDef{"a": mk("a"), "b": mk("b")},
 	})
@@ -136,8 +136,8 @@ func TestConfigOrderFallsBackToSortedKeys(t *testing.T) {
 	if err := os.MkdirAll(cdir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	writeFile(t, mdir, "model.aon", "x: 1\n")
-	writeFile(t, cdir, "model-config.aon",
+	writeFile(t, mdir, "model.aontu", "x: 1\n")
+	writeFile(t, cdir, "model-config.aontu",
 		"sys: model: action: { b: load: 'y', a: load: 'x' }\n")
 
 	var order []string
@@ -148,7 +148,7 @@ func TestConfigOrderFallsBackToSortedKeys(t *testing.T) {
 		}}
 	}
 	m := New(ModelSpec{
-		Path:    filepath.Join(mdir, "model.aon"),
+		Path:    filepath.Join(mdir, "model.aontu"),
 		Base:    mdir,
 		Actions: map[string]ActionDef{"a": mk("a"), "b": mk("b")},
 	})
@@ -157,47 +157,5 @@ func TestConfigOrderFallsBackToSortedKeys(t *testing.T) {
 	}
 	if strings.Join(order, ",") != "a,b" {
 		t.Fatalf("action order = %v, want [a b] (sorted action keys)", order)
-	}
-}
-
-func TestConfigLegacyMigrationRetargetsPackageImport(t *testing.T) {
-	dir := t.TempDir()
-	cdir := filepath.Join(dir, ".model-config")
-	if err := os.MkdirAll(cdir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	writeFile(t, dir, "model.aon", "x: 1\n")
-	writeFile(t, cdir, "model-config.aontu",
-		"@\"@voxgig/model/model/.model-config/model-config.aontu\"\n"+
-			"@\"local.aontu\"\n"+
-			"sys: model: action: {}\n"+
-			"sys: model: was: '@voxgig/model/model/.model-config/model-config.aontu'\n")
-
-	New(ModelSpec{Path: filepath.Join(dir, "model.aon"), Base: dir})
-
-	if _, err := os.Stat(filepath.Join(cdir, "model-config.aontu")); !os.IsNotExist(err) {
-		t.Fatalf("legacy config should be gone once migrated (err=%v)", err)
-	}
-	got, err := os.ReadFile(filepath.Join(cdir, "model-config.aon"))
-	if err != nil {
-		t.Fatalf("migrated config not written: %v", err)
-	}
-	migrated := string(got)
-
-	if !strings.Contains(migrated, "@voxgig/model/model/.model-config/model-config.aon\"") {
-		t.Fatalf("package import should name .aon, got:\n%s", migrated)
-	}
-	if !strings.Contains(migrated,
-		"was: '@voxgig/model/model/.model-config/model-config.aontu'") {
-		t.Fatalf("a path held as string data must be left alone, got:\n%s", migrated)
-	}
-	// A project's OWN .aontu import still names a real file on disk, so the
-	// migration must leave it exactly as it found it.
-	if !strings.Contains(migrated, "@\"local.aontu\"") {
-		t.Fatalf("a project's own .aontu import must be left alone, got:\n%s", migrated)
-	}
-	// The declarations the migration exists to preserve are still there.
-	if !strings.Contains(migrated, "sys: model: action: {}") {
-		t.Fatalf("declared content lost in migration, got:\n%s", migrated)
 	}
 }

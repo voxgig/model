@@ -50,8 +50,8 @@ func loadSpec(t *testing.T, path string) []specRow {
 func buildModelJSON(t *testing.T, src string) string {
 	t.Helper()
 	dir := t.TempDir()
-	path := filepath.Join(dir, "model.aon")
-	writeFile(t, dir, "model.aon", src)
+	path := filepath.Join(dir, "model.aontu")
+	writeFile(t, dir, "model.aontu", src)
 
 	b := NewBuild(BuildSpec{Path: path, Base: dir,
 		Res: []ProducerDef{
