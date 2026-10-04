@@ -1,7 +1,8 @@
 /* Copyright © 2021-2025 Voxgig Ltd, MIT License. */
 
 
-import * as NodeFs from 'node:fs'
+// Not a namespace import, whose copy reads the deprecated F_OK getters.
+import NodeFs from 'node:fs'
 
 import { memfs as MemFs } from 'memfs'
 
