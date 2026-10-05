@@ -1,41 +1,12 @@
 "use strict";
 /* Copyright © 2021-2025 Voxgig Ltd, MIT License. */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initModel = exports.Model = void 0;
-const NodeFs = __importStar(require("node:fs"));
+// Not a namespace import, whose copy reads the deprecated F_OK getters.
+const node_fs_1 = __importDefault(require("node:fs"));
 const memfs_1 = require("memfs");
 const util_1 = require("@voxgig/util");
 const config_1 = require("./config");
@@ -49,7 +20,7 @@ class Model {
     constructor(mspec) {
         this.trigger_model = false;
         const self = this;
-        this.fs = { ...(mspec.fs || NodeFs) };
+        this.fs = copyFs(mspec.fs || node_fs_1.default);
         if (mspec.dryrun) {
             makeReadOnly(this.fs);
         }
@@ -193,6 +164,18 @@ function makeConfig(mspec, log, fs, trigger_model_build) {
         fs: cfs,
     };
     return new config_1.Config(cspec, log, prep);
+}
+const ACCESS_MODES = ['F_OK', 'R_OK', 'W_OK', 'X_OK'];
+// A spread skips the access modes where fs hides them behind deprecated
+// getters, so they come back from fs.constants, which holds the same values.
+function copyFs(fs) {
+    const copy = { ...fs };
+    for (const mode of ACCESS_MODES) {
+        if (undefined === copy[mode] && fs.constants) {
+            copy[mode] = fs.constants[mode];
+        }
+    }
+    return copy;
 }
 function makeReadOnly(fsm) {
     // NOTE: NOT COMPLETE!

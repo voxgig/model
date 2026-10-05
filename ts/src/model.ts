@@ -1,7 +1,8 @@
 /* Copyright © 2021-2025 Voxgig Ltd, MIT License. */
 
 
-import * as NodeFs from 'node:fs'
+// Not a namespace import, whose copy reads the deprecated F_OK getters.
+import NodeFs from 'node:fs'
 
 import { memfs as MemFs } from 'memfs'
 
@@ -43,7 +44,7 @@ class Model {
   constructor(mspec: ModelSpec) {
     const self = this
 
-    this.fs = { ...(mspec.fs || NodeFs) }
+    this.fs = copyFs(mspec.fs || NodeFs)
 
     if (mspec.dryrun) {
       makeReadOnly(this.fs)
@@ -215,6 +216,22 @@ function makeConfig(mspec: ModelSpec, log: Log, fs: any, trigger_model_build: Pr
   }
 
   return new Config(cspec, log, prep)
+}
+
+
+const ACCESS_MODES = ['F_OK', 'R_OK', 'W_OK', 'X_OK']
+
+
+// A spread skips the access modes where fs hides them behind deprecated
+// getters, so they come back from fs.constants, which holds the same values.
+function copyFs(fs: any): any {
+  const copy = { ...fs }
+  for (const mode of ACCESS_MODES) {
+    if (undefined === copy[mode] && fs.constants) {
+      copy[mode] = fs.constants[mode]
+    }
+  }
+  return copy
 }
 
 
