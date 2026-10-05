@@ -20,7 +20,7 @@ class Model {
     constructor(mspec) {
         this.trigger_model = false;
         const self = this;
-        this.fs = { ...(mspec.fs || node_fs_1.default) };
+        this.fs = copyFs(mspec.fs || node_fs_1.default);
         if (mspec.dryrun) {
             makeReadOnly(this.fs);
         }
@@ -164,6 +164,18 @@ function makeConfig(mspec, log, fs, trigger_model_build) {
         fs: cfs,
     };
     return new config_1.Config(cspec, log, prep);
+}
+const ACCESS_MODES = ['F_OK', 'R_OK', 'W_OK', 'X_OK'];
+// A spread skips the access modes where fs hides them behind deprecated
+// getters, so they come back from fs.constants, which holds the same values.
+function copyFs(fs) {
+    const copy = { ...fs };
+    for (const mode of ACCESS_MODES) {
+        if (undefined === copy[mode] && fs.constants) {
+            copy[mode] = fs.constants[mode];
+        }
+    }
+    return copy;
 }
 function makeReadOnly(fsm) {
     // NOTE: NOT COMPLETE!
