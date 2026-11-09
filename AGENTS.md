@@ -47,7 +47,6 @@ tools/check_prose.py  the prose gate's second half; `--files` prints the page se
 .vale.ini  .vale/   Vale config, the vocabulary, and the banned list
 Makefile            orchestrates both: `make build`, `make test`, `make scan-prose`
 .github/workflows/  CI (a `ts` job and a `go` job, plus the `docs` prose gate)
-patch/              held-back commits as `git am` patches; each message says why
 ```
 
 
