@@ -1,5 +1,5 @@
-github.com/aontu-lang/aontu/go v0.75.0 h1:GXtBhGXqpY5VSL0Ve/ySmKBTz5C6FKgM44CFGDaIk+Y=
-github.com/aontu-lang/aontu/go v0.75.0/go.mod h1:4pphazDj9hs2BtdwDLsSQbGpfFpSYhjsAd2NVDGeROo=
+github.com/aontu-lang/aontu/go v0.76.3 h1:SENhdIOVTFSV7Owz9YSRk+WYENcVgH91mkLVuxXibSo=
+github.com/aontu-lang/aontu/go v0.76.3/go.mod h1:4pphazDj9hs2BtdwDLsSQbGpfFpSYhjsAd2NVDGeROo=
 github.com/tabnas/abnf/go v0.4.15 h1:MElCjps2Rszqg/b5LeKK4nzf38lkRhKZk1fwY/I8pf0=
 github.com/tabnas/abnf/go v0.4.15/go.mod h1:fdJs0b02RhYMu+agLED9dGKnCp5O8OGBaSeb2oiegG8=
 github.com/tabnas/bnf/go v0.1.19 h1:mVwO28yZ7sSQKgylxf/carqLa+FiosGe5P17t/05SFU=

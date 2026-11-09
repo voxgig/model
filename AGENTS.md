@@ -138,13 +138,19 @@ Go **1.24+** is required (the `aontu/go` dependency declares `go 1.24.7`).
    their own fixtures there at runtime; do not commit them.
 
 7. **`aontu` is a plain npm dependency with a floor, not a pin** (see
-   `ts/package.json`), and so are `@tabnas/jsonic` and `@tabnas/parser`. A
-   project installs one aontu for the whole toolchain; an exact pin here
-   cannot dedupe with it, and npm would nest a second engine for this package
-   alone. The parser floors are the versions aontu itself pins, so both
-   resolve to the copy aontu uses. The aontu floor is the release the
-   toolchain moved to together, on or after 0.73, which made `.aontu` the only
-   source extension. aontu was once vendored as a committed
+   `ts/package.json`). A project installs one aontu for the whole toolchain;
+   an exact pin here cannot dedupe with it, and npm would nest a second engine
+   for this package alone. The aontu floor is the release the toolchain moved
+   to together, on or after 0.73, which made `.aontu` the only source
+   extension. **Do not declare `@tabnas/jsonic` or `@tabnas/parser` here.**
+   aontu pins both exactly and its plugins take them as `>=0` peers. npm
+   resolves a range declared here to the newest release, so once that is
+   ahead of aontu's pin, aontu's copy is nested under it while the hoisted
+   plugins bind to the newer one, and a single build runs on two parser
+   versions. Undeclared, aontu's pins are hoisted and shared by everything;
+   `npm ls @tabnas/parser` shows one version. The CLI bin parses `--build`
+   with that same jsonic, resolved from aontu's location by `createRequire`.
+   aontu was once vendored as a committed
    `ts/vendor/aontu-<version>.tgz` tarball, because the npm package lives in
    a monorepo subdir (`aontu-lang/aontu` → `ts/`) that npm cannot install
    from git, and GitHub `main` was ahead of the npm release. The npm release caught up and the
@@ -152,9 +158,7 @@ Go **1.24+** is required (the `aontu/go` dependency declares `go 1.24.7`).
    is to vendor a tarball: `git clone` aontu at the target commit, `npm pack`
    its `ts/`, commit the `.tgz` under `ts/vendor/` (whitelist it in
    `.gitignore` against the global `*.tgz` rule), and reference it as
-   `"aontu": "file:vendor/aontu-<version>.tgz"`. aontu's parser is
-   `@tabnas/jsonic`; the CLI bin requires it directly (an explicit dep, since
-   it is not hoisted transitively).
+   `"aontu": "file:vendor/aontu-<version>.tgz"`.
 
 
 ## The Go port

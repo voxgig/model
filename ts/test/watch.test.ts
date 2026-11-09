@@ -89,6 +89,47 @@ describe('watch', () => {
   })
 
 
+  // A stopped model starts again: the restart builds what changed while it
+  // was stopped, and keeps watching the same dependencies.
+  test('restarts-after-stop', async () => {
+    const base = GEN + '/wat05/model'
+    await rm(GEN + '/wat05', { recursive: true, force: true })
+    await mkdir(base + '/.model-config', { recursive: true })
+
+    await writeFile(base + '/model.aontu', 'top: 1\nval: @"./zed.aontu"\n')
+    await writeFile(base + '/zed.aontu', '2')
+    await writeFile(base + '/.model-config/model-config.aontu',
+      'sys: model: action: {}\n')
+
+    const out = base + '/model.json'
+    const model = new Model({ path: base + '/model.aontu', base, debug: 'silent' })
+
+    try {
+      await model.start()
+      assert.ok(
+        await waitFor(async () => (await readVal(out)) === 2),
+        'initial build should produce val:2')
+      await new Promise(r => setTimeout(r, 250))
+      await model.stop()
+
+      await writeFile(base + '/zed.aontu', '5')
+      await model.start()
+      assert.ok(
+        await waitFor(async () => (await readVal(out)) === 5),
+        'the restart should build the change made while stopped')
+
+      await new Promise(r => setTimeout(r, 250))
+      await writeFile(base + '/zed.aontu', '7')
+      assert.ok(
+        await waitFor(async () => (await readVal(out)) === 7),
+        'the restarted watcher should rebuild on a dependency change')
+    }
+    finally {
+      await model.stop()
+    }
+  })
+
+
   // A change to a config file should rebuild the config and re-trigger the
   // model build. The `mark` action bumps a counter on every model build, so
   // a change in its output proves the config change drove a rebuild.
@@ -227,6 +268,46 @@ describe('watch-internals', () => {
       const fsw = w.ensureFSW()
       assert.ok(fsw, 'ensureFSW should create a watcher')
       assert.strictEqual(w.ensureFSW(), fsw)
+    }
+    finally {
+      await w.stop()
+    }
+  })
+
+
+  // A closed chokidar watcher cannot take new paths. While stopped, add()
+  // holds the path without reopening anything; start() watches it with a new
+  // watcher. The long idle keeps the interval from running a build.
+  test('add-while-stopped-waits-for-restart', async () => {
+    const dir = GEN + '/wat-restart'
+    await rm(dir, { recursive: true, force: true })
+    await mkdir(dir, { recursive: true })
+    await writeFile(dir + '/a.aontu', 'a: 1\n')
+    await writeFile(dir + '/b.aontu', 'b: 1\n')
+
+    const w: any = new Watch({
+      name: 'restart', path: dir + '/a.aontu', base: dir, fs: Fs, idle: 60000,
+    } as any, silentLog())
+
+    try {
+      await w.add(dir + '/a.aontu')
+      const first = w.fsw
+      w.start(false)
+      await w.stop()
+      assert.strictEqual(w.fsw, undefined, 'stop should release the watcher')
+
+      await w.add(dir + '/b.aontu')
+      assert.strictEqual(w.fsw, undefined, 'add while stopped should not reopen')
+
+      w.start(false)
+      assert.ok(w.fsw && first !== w.fsw && !w.fsw.closed,
+        'start after stop should create a new open watcher')
+
+      await new Promise(r => setTimeout(r, 250))
+      await writeFile(dir + '/b.aontu', 'b: 2\n')
+      assert.ok(
+        await waitFor(async () => w.lastChange.path.endsWith('b.aontu')),
+        'the new watcher should watch the path added while stopped')
     }
     finally {
       await w.stop()

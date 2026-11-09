@@ -33,6 +33,7 @@ class Watch {
   canons: Canon[]
   canonPaths: Set<string>
   lastrun: Run | undefined
+  stopped: boolean
   idle: number
   intervalId: ReturnType<typeof setInterval> | undefined
   startTime: number
@@ -63,6 +64,7 @@ class Watch {
     this.lastTrigger = { path: '', when: 0 }
     this.running = false
     this.lastrun = undefined
+    this.stopped = false
 
     this.idle = bspec.idle || 111
 
@@ -101,7 +103,16 @@ class Watch {
   // Pass initial=false to start watching without forcing that first build
   // (e.g. when the caller has already produced one).
   start(initial: boolean = true) {
-    this.ensureFSW()
+    this.stopped = false
+
+    // A closed chokidar watcher cannot be reopened, so a restart gets a new
+    // watcher and hands it the paths already known.
+    const fresh = !this.fsw
+    const fsw = this.ensureFSW()
+    if (fresh && 0 < this.canons.length) {
+      fsw.add(this.canons.map(canon => canon.path))
+    }
+
     this.startTime = Date.now()
     if (initial) {
       this.handleChange('<start>')
@@ -200,7 +211,9 @@ class Watch {
     this.canons.push(canon)
     this.canonPaths.add(path)
 
-    this.ensureFSW().add(path)
+    if (!this.stopped) {
+      this.ensureFSW().add(path)
+    }
   }
 
 
@@ -299,12 +312,15 @@ class Watch {
 
 
   async stop() {
+    this.stopped = true
     if (this.intervalId) {
       clearInterval(this.intervalId)
       this.intervalId = undefined
     }
     if (this.fsw) {
-      await this.fsw.close()
+      const fsw = this.fsw
+      this.fsw = undefined
+      await fsw.close()
     }
   }
 

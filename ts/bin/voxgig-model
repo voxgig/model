@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 
 const { parseArgs } = require('node:util')
+const { createRequire } = require('node:module')
 const Fs = require('node:fs')
 const Path = require('node:path')
 
 const Pkg = require('../package.json')
 const { Model, initModel } = require('../dist/model.js')
 
-const { Jsonic } = require('@tabnas/jsonic')
-const { Shape, Fault, One, Any } = require('shape')
+// Resolved from aontu, so --build is parsed by the same jsonic copy that
+// parses the model, wherever npm placed it.
+const { Jsonic } = createRequire(require.resolve('aontu'))('@tabnas/jsonic')
+const { Shape, Fault, Any } = require('shape')
 
 
 
@@ -154,7 +157,7 @@ function validateOptions(rawOptions) {
   const optShape = Shape({
     model: Fault('The first command line argument must be the model file path.', String),
     watch: Boolean,
-    debug: One(String,Boolean),
+    debug: String,
     dryrun: false,
     build: Any(),
     config: Boolean,

@@ -55,11 +55,9 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@tabnas/jsonic": ">=0.7.1",
-    "@tabnas/parser": ">=0.12.2",
-    "aontu": ">=0.75.0",
-    "chokidar": "5.0.0",
-    "memfs": "4.64.0",
+    "aontu": ">=0.76.3",
+    "chokidar": "6.0.0",
+    "memfs": "4.80.0",
     "shape": ">=10"
   },
   "peerDependencies": {
@@ -72,7 +70,7 @@
     }
   },
   "devDependencies": {
-    "@types/node": "26.1.2",
+    "@types/node": "26.6.6",
     "typescript": "7.0.2"
   }
 }

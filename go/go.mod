@@ -2,7 +2,7 @@ module github.com/voxgig/model/go
 
 go 1.24.7
 
-require github.com/aontu-lang/aontu/go v0.75.0
+require github.com/aontu-lang/aontu/go v0.76.3
 
 require (
 	github.com/tabnas/abnf/go v0.4.15 // indirect
