@@ -1,0 +1,35 @@
+From 6621442758ad544df9b377aab7b006f872176e88 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 9 Nov 2026 18:16:57 +0000
+Subject: [PATCH 2/2] Pin comments.yml to the action versions the other
+ workflows use
+
+comments.yml still pinned actions/checkout and actions/setup-node at
+their v4 commits, while build.yml, docs.yml and publish.yml use the v7
+commits. It now uses the same two SHAs as the others, so one bump covers
+every workflow.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MCLq6NpYjLh9fwta1HECH8
+---
+ .github/workflows/comments.yml | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/.github/workflows/comments.yml b/.github/workflows/comments.yml
+index 7b052e6..77fa2a5 100644
+--- a/.github/workflows/comments.yml
++++ b/.github/workflows/comments.yml
+@@ -6,8 +6,8 @@ jobs:
+   comments:
+     runs-on: ubuntu-latest
+     steps:
+-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
++      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
++      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+         with:
+           node-version: '24'
+       - run: make comments comments-test
+-- 
+2.43.0
+
