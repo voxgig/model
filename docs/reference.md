@@ -794,7 +794,7 @@ and the Go module:
 - **Node.js.** CI tests on Node 24 (recommended). Node 20.19+ generally works;
   the `aontu` and `shape` dependencies declare `engines.node >= 24`, so older
   versions emit an `EBADENGINE` warning.
-- **aontu.** 0.75.0 or later, which reads only `.aontu` source. The Go module
+- **aontu.** 0.76.3 or later, which reads only `.aontu` source. The Go module
   requires `github.com/aontu-lang/aontu/go` at the same version.
 - **Peer dependencies:** `pino` (`>=10`) and `@voxgig/util`. Install them in the
   host project.
