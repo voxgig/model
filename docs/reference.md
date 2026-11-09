@@ -316,7 +316,7 @@ class Model {
   build it resolves with that result. **Always call `stop()`** to release
   watchers, or the process stays alive.
 - `stop()` clears the watch interval and closes the file watchers for both the
-  model and config.
+  model and config. A later `start()` watches again, with new watchers.
 
 ### ModelSpec
 
@@ -791,9 +791,9 @@ and the Go module:
 
 ## Requirements
 
-- **Node.js.** CI tests on Node 24 (recommended). Node 20.19+ generally works;
-  the `aontu` and `shape` dependencies declare `engines.node >= 24`, so older
-  versions emit an `EBADENGINE` warning.
+- **Node.js.** CI tests on Node 24 (recommended). Node 22.22+ generally works,
+  with an `EBADENGINE` warning on install because `aontu` declares
+  `engines.node >= 24`. The `chokidar` dependency requires 22.22 or later.
 - **aontu.** 0.76.3 or later, which reads only `.aontu` source. The Go module
   requires `github.com/aontu-lang/aontu/go` at the same version.
 - **Peer dependencies:** `pino` (`>=10`) and `@voxgig/util`. Install them in the

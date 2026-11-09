@@ -66,6 +66,33 @@ async function read(file) {
             await model.stop();
         }
     });
+    // A stopped model starts again: the restart builds what changed while it
+    // was stopped, and keeps watching the same dependencies.
+    (0, node_test_1.test)('restarts-after-stop', async () => {
+        const base = GEN + '/wat05/model';
+        await (0, promises_1.rm)(GEN + '/wat05', { recursive: true, force: true });
+        await (0, promises_1.mkdir)(base + '/.model-config', { recursive: true });
+        await (0, promises_1.writeFile)(base + '/model.aontu', 'top: 1\nval: @"./zed.aontu"\n');
+        await (0, promises_1.writeFile)(base + '/zed.aontu', '2');
+        await (0, promises_1.writeFile)(base + '/.model-config/model-config.aontu', 'sys: model: action: {}\n');
+        const out = base + '/model.json';
+        const model = new model_1.Model({ path: base + '/model.aontu', base, debug: 'silent' });
+        try {
+            await model.start();
+            node_assert_1.default.ok(await waitFor(async () => (await readVal(out)) === 2), 'initial build should produce val:2');
+            await new Promise(r => setTimeout(r, 250));
+            await model.stop();
+            await (0, promises_1.writeFile)(base + '/zed.aontu', '5');
+            await model.start();
+            node_assert_1.default.ok(await waitFor(async () => (await readVal(out)) === 5), 'the restart should build the change made while stopped');
+            await new Promise(r => setTimeout(r, 250));
+            await (0, promises_1.writeFile)(base + '/zed.aontu', '7');
+            node_assert_1.default.ok(await waitFor(async () => (await readVal(out)) === 7), 'the restarted watcher should rebuild on a dependency change');
+        }
+        finally {
+            await model.stop();
+        }
+    });
     // A change to a config file should rebuild the config and re-trigger the
     // model build. The `mark` action bumps a counter on every model build, so
     // a change in its output proves the config change drove a rebuild.
@@ -167,6 +194,36 @@ async function read(file) {
             const fsw = w.ensureFSW();
             node_assert_1.default.ok(fsw, 'ensureFSW should create a watcher');
             node_assert_1.default.strictEqual(w.ensureFSW(), fsw);
+        }
+        finally {
+            await w.stop();
+        }
+    });
+    // A closed chokidar watcher cannot take new paths. While stopped, add()
+    // holds the path without reopening anything; start() watches it with a new
+    // watcher. The long idle keeps the interval from running a build.
+    (0, node_test_1.test)('add-while-stopped-waits-for-restart', async () => {
+        const dir = GEN + '/wat-restart';
+        await (0, promises_1.rm)(dir, { recursive: true, force: true });
+        await (0, promises_1.mkdir)(dir, { recursive: true });
+        await (0, promises_1.writeFile)(dir + '/a.aontu', 'a: 1\n');
+        await (0, promises_1.writeFile)(dir + '/b.aontu', 'b: 1\n');
+        const w = new watch_1.Watch({
+            name: 'restart', path: dir + '/a.aontu', base: dir, fs: node_fs_1.default, idle: 60000,
+        }, silentLog());
+        try {
+            await w.add(dir + '/a.aontu');
+            const first = w.fsw;
+            w.start(false);
+            await w.stop();
+            node_assert_1.default.strictEqual(w.fsw, undefined, 'stop should release the watcher');
+            await w.add(dir + '/b.aontu');
+            node_assert_1.default.strictEqual(w.fsw, undefined, 'add while stopped should not reopen');
+            w.start(false);
+            node_assert_1.default.ok(w.fsw && first !== w.fsw && !w.fsw.closed, 'start after stop should create a new open watcher');
+            await new Promise(r => setTimeout(r, 250));
+            await (0, promises_1.writeFile)(dir + '/b.aontu', 'b: 2\n');
+            node_assert_1.default.ok(await waitFor(async () => w.lastChange.path.endsWith('b.aontu')), 'the new watcher should watch the path added while stopped');
         }
         finally {
             await w.stop();

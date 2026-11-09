@@ -11,6 +11,7 @@ declare class Watch {
     canons: Canon[];
     canonPaths: Set<string>;
     lastrun: Run | undefined;
+    stopped: boolean;
     idle: number;
     intervalId: ReturnType<typeof setInterval> | undefined;
     startTime: number;
