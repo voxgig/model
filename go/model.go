@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-const VERSION = "0.5.1"
+const VERSION = "0.5.2"
 
 const DefaultIdle = 111 * time.Millisecond
 
