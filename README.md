@@ -24,7 +24,7 @@ npm install @voxgig/model pino
 `pino` is a peer dependency (logging). Requires Node.js — CI runs Node 24;
 Node 22.22+ generally works.
 
-The Go module:
+The Go module, which requires Go 1.25 or later:
 
 ```bash
 go get github.com/voxgig/model/go

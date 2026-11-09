@@ -1,6 +1,6 @@
 module github.com/voxgig/model/go
 
-go 1.24.7
+go 1.25.0
 
 require github.com/aontu-lang/aontu/go v0.76.3
 
@@ -20,6 +20,6 @@ require (
 	github.com/tabnas/path/go v0.3.8 // indirect
 	github.com/tabnas/toml/go v0.5.8 // indirect
 	github.com/tabnas/yaml/go v0.5.8 // indirect
-	golang.org/x/mod v0.32.0 // indirect
-	golang.org/x/text v0.34.0 // indirect
+	golang.org/x/mod v0.40.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 )

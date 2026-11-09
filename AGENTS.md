@@ -96,7 +96,10 @@ gofmt -l .                 # must print nothing
 go test ./...
 ```
 
-Go **1.24+** is required (the `aontu/go` dependency declares `go 1.24.7`).
+Go **1.25+** is required. `aontu/go` declares `go 1.24.7`, but the
+`golang.org/x/text` releases that fix GO-2026-5970 (an infinite loop on
+invalid UTF-8, reachable from model generation) declare `go 1.25.0`. CI
+tests on that minimum.
 
 
 ## House style, in code

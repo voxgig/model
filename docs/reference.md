@@ -796,6 +796,7 @@ and the Go module:
   `engines.node >= 24`. The `chokidar` dependency requires 22.22 or later.
 - **aontu.** 0.76.3 or later, which reads only `.aontu` source. The Go module
   requires `github.com/aontu-lang/aontu/go` at the same version.
+- **Go.** 1.25 or later, for the Go module. CI tests on Go 1.25.
 - **Peer dependencies:** `pino` (`>=10`) and `@voxgig/util`. Install them in the
   host project.
 - **Module system:** CommonJS (`"type": "commonjs"`).
