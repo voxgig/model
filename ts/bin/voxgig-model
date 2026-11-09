@@ -8,7 +8,7 @@ const Pkg = require('../package.json')
 const { Model, initModel } = require('../dist/model.js')
 
 const { Jsonic } = require('@tabnas/jsonic')
-const { Shape, Fault, One, Any } = require('shape')
+const { Shape, Fault, Any } = require('shape')
 
 
 
@@ -154,7 +154,7 @@ function validateOptions(rawOptions) {
   const optShape = Shape({
     model: Fault('The first command line argument must be the model file path.', String),
     watch: Boolean,
-    debug: One(String,Boolean),
+    debug: String,
     dryrun: false,
     build: Any(),
     config: Boolean,
